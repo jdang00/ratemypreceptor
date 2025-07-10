@@ -25,7 +25,7 @@ export default defineSchema({
 		schoolId: v.id('schools'),
 		siteId: v.id('practiceSites'),
 		fullName: v.string()
-	}).index('by_school_site_name', ['schoolId', 'siteId', 'fullName']),
+	}).index('by_full_name', ['fullName']),
 
 	/* -------------------------- 5. Reviews ------------------------------ */
 	reviews: defineTable({
