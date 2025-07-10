@@ -3,10 +3,10 @@
 	import { api } from '../../convex/_generated/api.js';
 	import PreceptorResults from '$lib/components/PreceptorResults.svelte';
 
-	const query = useQuery(api.preceptors.get, {});
+	const query = useQuery(api.preceptors.getWithReviews, {});
 </script>
 
-<div class="mb-6 text-3xl font-bold">Professors</div>
+<div class="mb-6 text-3xl font-bold">Preceptors</div>
 
 {#if query.isLoading}
 	Loading...
@@ -19,6 +19,9 @@
 				fullName={preceptor.fullName}
 				schoolId={preceptor.schoolId}
 				siteId={preceptor.siteId}
+				totalReviews={preceptor.totalReviews}
+				averageStarRating={preceptor.averageStarRating}
+				recommendationRate={preceptor.recommendationRate}
 			/>
 		{/each}
 	</div>

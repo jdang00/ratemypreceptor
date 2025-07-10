@@ -10,7 +10,8 @@
 
 	const navLinks = [
 		{ title: 'Home', href: '/' },
-		{ title: 'Preceptors', href: '/preceptors' }
+		{ title: 'Preceptors', href: '/preceptors' },
+		{ title: 'Reviews', href: '/reviews' }
 	];
 </script>
 
@@ -18,7 +19,7 @@
 	<ModeWatcher />
 	<NavHeader title="RateMyPreceptor" links={navLinks} showThemeButton={true} />
 
-	<main class="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
+	<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
 		{@render children()}
 	</main>
 
