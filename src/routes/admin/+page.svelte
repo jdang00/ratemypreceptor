@@ -24,24 +24,20 @@
 		{ id: 'rotations', label: 'Rotation Types', count: 0 }
 	]);
 
-	// Queries for all entities
 	const reviewsQuery = useQuery(api.reviews.get, {});
 	const preceptorsQuery = useQuery(api.preceptors.get, {});
 	const schoolsQuery = useQuery(api.schools.get, {});
 	const sitesQuery = useQuery(api.practiceSites.get, {});
 	const rotationsQuery = useQuery(api.rotationTypes.get, {});
 
-	// Get the Convex client for mutations
 	const client = useConvexClient();
 
-	// Data derivations
 	let reviewsData = $derived(reviewsQuery.data ?? []);
 	let preceptorsData = $derived((preceptorsQuery.data ?? []) as Preceptor[]);
 	let schoolsData = $derived((schoolsQuery.data ?? []) as School[]);
 	let sitesData = $derived((sitesQuery.data ?? []) as PracticeSite[]);
 	let rotationsData = $derived((rotationsQuery.data ?? []) as RotationType[]);
 
-	// Loading and error states
 	let reviewsLoading = $derived(reviewsQuery.isLoading);
 	let preceptorsLoading = $derived(preceptorsQuery.isLoading);
 	let schoolsLoading = $derived(schoolsQuery.isLoading);
@@ -54,13 +50,11 @@
 	let sitesError = $derived(sitesQuery.error);
 	let rotationsError = $derived(rotationsQuery.error);
 
-	// EditModal state
 	let editModalOpen = $state(false);
 	let editModalEntity = $state<any>(null);
 	let editModalMutationName = $state('');
 	let editModalFields = $state<any[]>([]);
 
-	// DeleteConfirmationModal state
 	let deleteModalOpen = $state(false);
 	let deleteModalEntityId = $state('');
 	let deleteModalEntityName = $state('');
@@ -75,7 +69,6 @@
 		tabs[4].count = rotationsData.length;
 	});
 
-	// Field configurations for each entity type - made reactive to update when data loads
 	const schoolFields = $derived([
 		{ key: 'name', label: 'School Name', type: 'text' as const, required: true }
 	]);
@@ -233,7 +226,6 @@
 			}
 		});
 
-		// Custom event listeners for reviews
 		window.addEventListener('edit-review', (e) => {
 			const review = (e as CustomEvent).detail;
 			openEditModal(review, 'reviews.updateReview', reviewFields);

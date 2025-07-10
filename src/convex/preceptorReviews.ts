@@ -20,13 +20,10 @@ export const get = query({
 			.withIndex('by_preceptor', (q) => q.eq('preceptorId', preceptor._id))
 			.collect();
 
-		// Get rotation types for joining
 		const rotationTypes = await ctx.db.query('rotationTypes').collect();
 		
-		// Create lookup map for efficient joining
 		const rotationTypeMap = new Map(rotationTypes.map(r => [r._id, r.name]));
 		
-		// Return reviews with resolved names
 		return reviews.map(review => ({
 			...review,
 			rotationTypeName: rotationTypeMap.get(review.rotationTypeId) || 'Unknown Rotation'

@@ -35,7 +35,6 @@
 	let columnFilters = $state<ColumnFiltersState>([]);
 	let rowSelection = $state<RowSelectionState>({});
 
-	// Filter states
 	let ippeAppeFilter = $state('');
 	let wouldRecommendFilter = $state('');
 
@@ -92,7 +91,6 @@
 		}
 	});
 
-	// Derived values for select triggers
 	const ippeAppeTriggerContent = $derived(
 		ippeAppeFilter === '' ? 'All Types' :
 		ippeAppeFilter === 'IPPE' ? 'IPPE' : 'APPE'
@@ -103,7 +101,6 @@
 		wouldRecommendFilter === 'true' ? 'Would Recommend' : 'Would Not Recommend'
 	);
 
-	// Handle filter changes
 	function handleIppeAppeFilterChange(value: string) {
 		ippeAppeFilter = value;
 		table.getColumn('ippeAppe')?.setFilterValue(value === '' ? '' : value);

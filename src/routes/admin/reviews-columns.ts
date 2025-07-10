@@ -165,7 +165,7 @@ export const reviewsColumns: ColumnDef<Review>[] = [
 					Significant: 'bg-green-100 text-green-800'
 				};
 				const color = colorMap[exp as keyof typeof colorMap];
-				const shortText = exp.charAt(0); // Just show first letter
+				const shortText = exp.charAt(0);
 				return {
 					render: () =>
 						`<span class="px-2 py-1 rounded-full text-xs font-medium ${color}" title="${exp}">${shortText}</span>`

@@ -27,14 +27,11 @@
 
 	let { isOpen, entity, mutationName, fields, onClose, onSave }: Props = $props();
 
-	// Get Convex client for mutations
 	const client = useConvexClient();
 
-		// Form state
 	let formData: Record<string, any> = $state({});
 	let isSubmitting = $state(false);
 
-	// Initialize form data when entity changes
 	$effect(() => {
 		if (entity) {
 			formData = { ...entity };
@@ -55,7 +52,6 @@
 				const newValue = formData[field.key];
 				const oldValue = entity[field.key];
 				
-				// Handle type conversions for specific field types
 				let processedValue = newValue;
 				if (field.type === 'boolean' && typeof newValue === 'string') {
 					processedValue = newValue === 'true';
@@ -88,7 +84,6 @@
 		formData[fieldKey] = value;
 	}
 
-	// Helper function to get trigger content for select fields
 	function getSelectTriggerContent(field: FieldConfig, value: any): string {
 		if (!value) return `Select ${field.label.toLowerCase()}`;
 		
@@ -100,7 +95,6 @@
 		return value.toString();
 	}
 
-	// Helper function to get options for a field
 	function getFieldOptions(field: FieldConfig): { label: string; value: string }[] {
 		return field.options || [];
 	}

@@ -17,17 +17,14 @@
 
 	let { isOpen, entityId, entityName, entityType, mutationName, onClose, onDelete }: Props = $props();
 
-	// Get Convex client for mutations
 	const client = useConvexClient();
 
-	// State
 	let isDeleting = $state(false);
 
 	async function handleDelete() {
 		try {
 			isDeleting = true;
 
-			// Dynamically call the correct mutation based on mutationName
 			const [moduleName, functionName] = mutationName.split('.');
 			const mutation = (api as any)[moduleName][functionName];
 			await client.mutation(mutation, { id: entityId });

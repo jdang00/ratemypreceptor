@@ -6,13 +6,10 @@ export const get = query({
 	handler: async (ctx) => {
 		const practiceSites = await ctx.db.query('practiceSites').collect();
 		
-		// Get all schools for joining
 		const schools = await ctx.db.query('schools').collect();
 		
-		// Create lookup map for efficient joining
 		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
 		
-		// Return practice sites with resolved school names
 		return practiceSites.map(site => ({
 			...site,
 			schoolName: schoolMap.get(site.schoolId) || 'Unknown School'

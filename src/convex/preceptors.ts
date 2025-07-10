@@ -6,15 +6,12 @@ export const get = query({
 	handler: async (ctx) => {
 		const preceptors = await ctx.db.query('preceptors').collect();
 		
-		// Get all schools and practice sites for joining
 		const schools = await ctx.db.query('schools').collect();
 		const practiceSites = await ctx.db.query('practiceSites').collect();
 		
-		// Create lookup maps for efficient joining
 		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
 		const practiceSiteMap = new Map(practiceSites.map(s => [s._id, s.name]));
 		
-		// Return preceptors with resolved names
 		return preceptors.map(preceptor => ({
 			...preceptor,
 			schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
@@ -28,18 +25,14 @@ export const getWithReviews = query({
 	handler: async (ctx) => {
 		const preceptors = await ctx.db.query('preceptors').collect();
 		
-		// Get all schools and practice sites for joining
 		const schools = await ctx.db.query('schools').collect();
 		const practiceSites = await ctx.db.query('practiceSites').collect();
 		
-		// Get all reviews
 		const reviews = await ctx.db.query('reviews').collect();
 		
-		// Create lookup maps for efficient joining
 		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
 		const practiceSiteMap = new Map(practiceSites.map(s => [s._id, s.name]));
 		
-		// Group reviews by preceptor
 		const reviewsByPreceptor = new Map();
 		reviews.forEach(review => {
 			if (!reviewsByPreceptor.has(review.preceptorId)) {
@@ -48,7 +41,6 @@ export const getWithReviews = query({
 			reviewsByPreceptor.get(review.preceptorId).push(review);
 		});
 		
-		// Return preceptors with resolved names and review aggregations
 		return preceptors.map(preceptor => {
 			const preceptorReviews = reviewsByPreceptor.get(preceptor._id) || [];
 			const totalReviews = preceptorReviews.length;

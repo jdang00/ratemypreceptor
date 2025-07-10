@@ -5,12 +5,16 @@
 	import PreceptorResults from '$lib/components/PreceptorResults.svelte';
 	import { Search } from '@lucide/svelte';
 
-	let searchTerm = '';
+	let searchTerm = $state('');
 
-	// Query for search results
 	const searchResults = useQuery(
 		api.reviews.searchPreceptorsByReviews,
-		{ searchTerm }
+		() => ({ searchTerm: searchTerm || '' })
+	);
+
+	const allPreceptors = useQuery(
+		api.preceptors.getWithReviews,
+		{}
 	);
 </script>
 
@@ -27,8 +31,8 @@
 		/>
 	</div>
 
-	{#if searchTerm}
-		<div class="w-full max-w-4xl">
+	<div class="w-full max-w-4xl">
+		{#if searchTerm}
 			{#if searchResults.isLoading}
 				<div class="text-center text-muted-foreground">Searching...</div>
 			{:else if searchResults.error}
@@ -56,6 +60,34 @@
 					</div>
 				{/if}
 			{/if}
-		</div>
-	{/if}
+		{:else}
+			{#if allPreceptors.isLoading}
+				<div class="text-center text-muted-foreground">Loading preceptors...</div>
+			{:else if allPreceptors.error}
+				<div class="text-center text-red-500">Error: {allPreceptors.error.toString()}</div>
+			{:else if allPreceptors.data}
+				{#if allPreceptors.data.length === 0}
+					<div class="text-center text-muted-foreground">
+						No preceptors available yet.
+					</div>
+				{:else}
+					<div class="text-lg font-semibold mb-4">
+						All Preceptors ({allPreceptors.data.length})
+					</div>
+					<div class="flex flex-col gap-2">
+						{#each allPreceptors.data as preceptor (preceptor._id)}
+							<PreceptorResults
+								fullName={preceptor.fullName}
+								schoolId={preceptor.schoolId}
+								siteId={preceptor.siteId}
+								totalReviews={preceptor.totalReviews}
+								averageStarRating={preceptor.averageStarRating}
+								recommendationRate={preceptor.recommendationRate}
+							/>
+						{/each}
+					</div>
+				{/if}
+			{/if}
+		{/if}
+	</div>
 </div>

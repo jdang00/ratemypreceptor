@@ -2,12 +2,10 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 export default defineSchema({
-	/* ---------------------------- 1. Schools ---------------------------- */
 	schools: defineTable({
 		name: v.string()
 	}),
 
-	/* ----------------------- 2. Practice Sites -------------------------- */
 	practiceSites: defineTable({
 		schoolId: v.id('schools'),
 		name: v.string(),
@@ -15,19 +13,16 @@ export default defineSchema({
 		state: v.string()
 	}).index('by_school_name', ['schoolId', 'name']),
 
-	/* ---------------------- 3. Rotation Types --------------------------- */
 	rotationTypes: defineTable({
 		name: v.string()
 	}),
 
-	/* ------------------------ 4. Preceptors ----------------------------- */
 	preceptors: defineTable({
 		schoolId: v.id('schools'),
 		siteId: v.id('practiceSites'),
 		fullName: v.string()
 	}).index('by_full_name', ['fullName']),
 
-	/* -------------------------- 5. Reviews ------------------------------ */
 	reviews: defineTable({
 		preceptorId: v.id('preceptors'),
 		rotationTypeId: v.id('rotationTypes'),

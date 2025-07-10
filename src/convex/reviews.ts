@@ -1,5 +1,6 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
+import type { Id } from './_generated/dataModel';
 
 export const get = query({
 	args: {},
@@ -97,64 +98,58 @@ export const updateReview = mutation({
 });
 
 export const searchPreceptorsByReviews = query({
-	args: {
-		searchTerm: v.string()
-	},
+	args: { searchTerm: v.string() },
 	handler: async (ctx, { searchTerm }) => {
-		// Return empty array if search term is empty
 		if (!searchTerm.trim()) {
 			return [];
 		}
-		
+
 		const searchLower = searchTerm.toLowerCase();
 		
-		// Get all data needed for search
-		const reviews = await ctx.db.query('reviews').collect();
 		const preceptors = await ctx.db.query('preceptors').collect();
 		const schools = await ctx.db.query('schools').collect();
 		const practiceSites = await ctx.db.query('practiceSites').collect();
 		const rotationTypes = await ctx.db.query('rotationTypes').collect();
+		const reviews = await ctx.db.query('reviews').collect();
 		
-		// Create lookup maps
 		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
 		const practiceSiteMap = new Map(practiceSites.map(s => [s._id, s.name]));
 		const rotationTypeMap = new Map(rotationTypes.map(r => [r._id, r.name]));
 		
-		// Find preceptors that match the search criteria
-		const matchingPreceptorIds = new Set();
-		
-		// Search through reviews to find matching preceptors
+		const reviewsByPreceptor = new Map();
 		reviews.forEach(review => {
-			const preceptor = preceptors.find(p => p._id === review.preceptorId);
-			if (!preceptor) return;
-			
-			const school = schoolMap.get(preceptor.schoolId);
-			const practiceSite = practiceSiteMap.get(preceptor.siteId);
-			const rotationType = rotationTypeMap.get(review.rotationTypeId);
-			
-			// Check if any field matches the search term
-			if (
-				preceptor.fullName.toLowerCase().includes(searchLower) ||
-				school?.toLowerCase().includes(searchLower) ||
-				practiceSite?.toLowerCase().includes(searchLower) ||
-				rotationType?.toLowerCase().includes(searchLower)
-			) {
-				matchingPreceptorIds.add(review.preceptorId);
+			if (!reviewsByPreceptor.has(review.preceptorId)) {
+				reviewsByPreceptor.set(review.preceptorId, []);
 			}
+			reviewsByPreceptor.get(review.preceptorId).push(review);
 		});
 		
-		// Get unique preceptors that match
-		const matchingPreceptors = preceptors.filter(p => matchingPreceptorIds.has(p._id));
+		const matchingPreceptors = preceptors.filter(preceptor => {
+			const preceptorName = preceptor.fullName.toLowerCase();
+			const schoolName = schoolMap.get(preceptor.schoolId)?.toLowerCase() || '';
+			const siteName = practiceSiteMap.get(preceptor.siteId)?.toLowerCase() || '';
+			
+			if (preceptorName.includes(searchLower) || 
+				schoolName.includes(searchLower) || 
+				siteName.includes(searchLower)) {
+				return true;
+			}
+			
+			const preceptorReviews = reviewsByPreceptor.get(preceptor._id) || [];
+			return preceptorReviews.some((review: { rotationTypeId: Id<'rotationTypes'> }) => {
+				const rotationTypeName = rotationTypeMap.get(review.rotationTypeId)?.toLowerCase() || '';
+				return rotationTypeName.includes(searchLower);
+			});
+		});
 		
-		// Calculate review statistics for each matching preceptor
 		return matchingPreceptors.map(preceptor => {
-			const preceptorReviews = reviews.filter(r => r.preceptorId === preceptor._id);
+			const preceptorReviews = reviewsByPreceptor.get(preceptor._id) || [];
 			const totalReviews = preceptorReviews.length;
 			const averageStarRating = totalReviews > 0 
-				? preceptorReviews.reduce((sum, r) => sum + r.starRating, 0) / totalReviews 
+				? preceptorReviews.reduce((sum: number, r: { starRating: number }) => sum + r.starRating, 0) / totalReviews 
 				: 0;
 			const recommendationRate = totalReviews > 0 
-				? (preceptorReviews.filter(r => r.wouldRecommend).length / totalReviews) * 100 
+				? (preceptorReviews.filter((r: { wouldRecommend: boolean }) => r.wouldRecommend).length / totalReviews) * 100 
 				: 0;
 			
 			return {
@@ -168,3 +163,5 @@ export const searchPreceptorsByReviews = query({
 		});
 	}
 });
+
+

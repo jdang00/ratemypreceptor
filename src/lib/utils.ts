@@ -5,14 +5,11 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type WithoutChild<T> = T extends { child?: any } ? Omit<T, "child"> : T;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type WithoutChildren<T> = T extends { children?: any } ? Omit<T, "children"> : T;
+export type WithoutChild<T> = T extends { child?: unknown } ? Omit<T, "child"> : T;
+export type WithoutChildren<T> = T extends { children?: unknown } ? Omit<T, "children"> : T;
 export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null };
 
-// Review aggregation helper functions
 export interface ReviewAggregation {
 	averageStarRating: number;
 	totalReviews: number;
@@ -61,37 +58,47 @@ export function aggregateReviews(reviews: Array<{
 	};
 }
 
-// Name formatting helper functions
 export function formatName(fullName: string, includeCredentials: boolean = true): string {
 	if (!fullName) return '';
-	// Remove common credentials if not including them
 	let name = fullName;
 	if (!includeCredentials) {
 		name = name
-			.replace(/\s*PharmD\s*/gi, ' ')
-			.replace(/\s*Ph\.D\.\s*/gi, ' ')
-			.replace(/\s*MD\s*/gi, ' ')
-			.replace(/\s*DO\s*/gi, ' ')
-			.replace(/\s*RN\s*/gi, ' ')
-			.replace(/\s*NP\s*/gi, ' ')
-			.replace(/\s*PA\s*/gi, ' ')
-			.replace(/\s*BCPS\s*/gi, ' ')
-			.replace(/\s*BCACP\s*/gi, ' ')
-			.replace(/\s*BCGP\s*/gi, ' ')
-			.replace(/\s*BCPP\s*/gi, ' ')
-			.replace(/\s*FASHP\s*/gi, ' ')
-			.replace(/\s*FCCP\s*/gi, ' ')
-			.replace(/\s*FCCM\s*/gi, ' ');
+			.replace(/,\s*PharmD\b/gi, '')
+			.replace(/\s+PharmD\b/gi, '')
+			.replace(/,\s*Ph\.D\.\b/gi, '')
+			.replace(/\s+Ph\.D\.\b/gi, '')
+			.replace(/,\s*MD\b/gi, '')
+			.replace(/\s+MD\b/gi, '')
+			.replace(/,\s*DO\b/gi, '')
+			.replace(/\s+DO\b/gi, '')
+			.replace(/,\s*RN\b/gi, '')
+			.replace(/\s+RN\b/gi, '')
+			.replace(/,\s*NP\b/gi, '')
+			.replace(/\s+NP\b/gi, '')
+			.replace(/,\s*PA\b/gi, '')
+			.replace(/\s+PA\b/gi, '')
+			.replace(/,\s*BCPS\b/gi, '')
+			.replace(/\s+BCPS\b/gi, '')
+			.replace(/,\s*BCACP\b/gi, '')
+			.replace(/\s+BCACP\b/gi, '')
+			.replace(/,\s*BCGP\b/gi, '')
+			.replace(/\s+BCGP\b/gi, '')
+			.replace(/,\s*BCPP\b/gi, '')
+			.replace(/\s+BCPP\b/gi, '')
+			.replace(/,\s*FASHP\b/gi, '')
+			.replace(/\s+FASHP\b/gi, '')
+			.replace(/,\s*FCCP\b/gi, '')
+			.replace(/\s+FCCP\b/gi, '')
+			.replace(/,\s*FCCM\b/gi, '')
+			.replace(/\s+FCCM\b/gi, '');
 	}
-	// Remove any trailing commas and whitespace
-	return name.replace(/,+\s*$/, '').trim();
+	return name.replace(/\s+/g, ' ').replace(/,\s*$/, '').trim();
 }
 
 export function extractCredentials(fullName: string): { name: string; credentials: string } {
 	if (!fullName) return { name: '', credentials: '' };
 	const credentials = fullName.match(/\b(PharmD|Ph\.D\.|MD|DO|RN|NP|PA|BCPS|BCACP|BCGP|BCPP|FASHP|FCCP|FCCM)\b/gi);
 	let nameWithoutCredentials = formatName(fullName, false);
-	// Remove any trailing commas and whitespace
 	nameWithoutCredentials = nameWithoutCredentials.replace(/,+\s*$/, '').trim();
 	return {
 		name: nameWithoutCredentials,

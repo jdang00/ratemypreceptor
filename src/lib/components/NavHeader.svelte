@@ -30,10 +30,8 @@
 
 	let { title, links = [], showThemeButton = true, class: className = '' }: Props = $props();
 
-	// mobile menu state
 	let mobileOpen = $state(false);
 
-	// Close mobile menu when clicking on a link
 	function handleMobileNavClick() {
 		mobileOpen = false;
 	}

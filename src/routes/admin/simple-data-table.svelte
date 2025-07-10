@@ -88,17 +88,14 @@
 		}
 	});
 
-	// Page size state
 	let pageSize = $state(table.getState().pagination.pageSize.toString());
 
-	// Handle page size change
 	function handlePageSizeChange(value: string) {
 		const newPageSize = Number(value);
 		pageSize = value;
 		table.setPageSize(newPageSize);
 	}
 
-	// Derived value for page size trigger
 	const pageSizeTriggerContent = $derived(`${pageSize} per page`);
 </script>
 

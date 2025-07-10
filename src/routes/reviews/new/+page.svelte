@@ -37,7 +37,6 @@
 	const preceptors = $derived(preceptorsQuery.data ?? []);
 	const rotationTypes = $derived(rotationTypesQuery.data ?? []);
 
-	// Derived values for select triggers
 	const preceptorTriggerContent = $derived(
 		preceptors.find((p) => p._id === formData.preceptorId)?.fullName ?? 'Select preceptor'
 	);
