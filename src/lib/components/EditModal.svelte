@@ -7,12 +7,14 @@
 	import * as Select from './ui/select/index.js';
 	import { Checkbox } from './ui/checkbox/index.js';
 	import { Label } from './ui/label/index.js';
+	import PreceptorComboBox from './PreceptorComboBox.svelte';
 
 	type FieldConfig = {
 		key: string;
 		label: string;
-		type: 'text' | 'select' | 'number' | 'boolean';
+		type: 'text' | 'select' | 'number' | 'boolean' | 'preceptor_combobox';
 		options?: { label: string; value: string }[];
+		preceptors?: { _id: string; fullName: string }[];
 		required?: boolean;
 	};
 
@@ -172,6 +174,15 @@
 										{field.label}
 									</Label>
 								</div>
+							{:else if field.type === 'preceptor_combobox'}
+								<PreceptorComboBox 
+									preceptors={field.preceptors || []}
+									value={formData[field.key] || ''}
+									onValueChange={(value) => handleFieldChange(field.key, value)}
+									placeholder="Select {field.label.toLowerCase()}"
+									searchPlaceholder="Search {field.label.toLowerCase()}s..."
+									class="h-9 text-sm"
+								/>
 							{/if}
 						</div>
 					{/each}

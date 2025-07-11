@@ -4,6 +4,7 @@
 	import { api } from '../convex/_generated/api.js';
 	import PreceptorResults from '$lib/components/PreceptorResults.svelte';
 	import { Search } from '@lucide/svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 
 	let searchTerm = $state('');
 
@@ -31,60 +32,74 @@
 		/>
 	</div>
 
+	<p class="text-center"> <a href="/reviews/new"><Button variant="link">Or, submit a review</Button></a></p>
+
+
 	<div class="w-full max-w-4xl">
 		{#if searchTerm}
 			{#if searchResults.isLoading}
-				<div class="text-center text-muted-foreground">Searching...</div>
+				<div class="flex items-center justify-center py-8">
+					<div class="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600"></div>
+					<span class="ml-2 text-muted-foreground">Searching...</span>
+				</div>
 			{:else if searchResults.error}
 				<div class="text-center text-red-500">Error: {searchResults.error.toString()}</div>
 			{:else if searchResults.data}
 				{#if searchResults.data.length === 0}
-					<div class="text-center text-muted-foreground">
-						No preceptors found matching "{searchTerm}"
+					<div class="text-center py-8">
+						<p class="text-muted-foreground">No preceptors found matching "{searchTerm}"</p>
+						<p class="text-sm text-muted-foreground mt-1">Try a different search term or browse all preceptors below.</p>
 					</div>
 				{:else}
-					<div class="text-lg font-semibold mb-4">
-						Found {searchResults.data.length} preceptor{searchResults.data.length !== 1 ? 's' : ''} for "{searchTerm}"
-					</div>
-					<div class="flex flex-col gap-2">
-						{#each searchResults.data as preceptor (preceptor._id)}
-							<PreceptorResults
-								fullName={preceptor.fullName}
-								schoolId={preceptor.schoolId}
-								siteId={preceptor.siteId}
-								totalReviews={preceptor.totalReviews}
-								averageStarRating={preceptor.averageStarRating}
-								recommendationRate={preceptor.recommendationRate}
-							/>
-						{/each}
+					<div class="mb-6">
+						<h2 class="text-xl font-semibold mb-4">
+							Found {searchResults.data.length} preceptor{searchResults.data.length !== 1 ? 's' : ''} for "{searchTerm}"
+						</h2>
+						<div class="flex flex-col gap-3">
+							{#each searchResults.data as preceptor (preceptor._id)}
+								<PreceptorResults
+									fullName={preceptor.fullName}
+									schoolName={preceptor.schoolName}
+									siteName={preceptor.siteName}
+									totalReviews={preceptor.totalReviews}
+									averageStarRating={preceptor.averageStarRating}
+									recommendationRate={preceptor.recommendationRate}
+								/>
+							{/each}
+						</div>
 					</div>
 				{/if}
 			{/if}
 		{:else}
 			{#if allPreceptors.isLoading}
-				<div class="text-center text-muted-foreground">Loading preceptors...</div>
+				<div class="flex items-center justify-center py-8">
+					<div class="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600"></div>
+					<span class="ml-2 text-muted-foreground">Loading preceptors...</span>
+				</div>
 			{:else if allPreceptors.error}
 				<div class="text-center text-red-500">Error: {allPreceptors.error.toString()}</div>
 			{:else if allPreceptors.data}
 				{#if allPreceptors.data.length === 0}
-					<div class="text-center text-muted-foreground">
-						No preceptors available yet.
+					<div class="text-center py-8">
+						<p class="text-muted-foreground">No preceptors available yet.</p>
 					</div>
 				{:else}
-					<div class="text-lg font-semibold mb-4">
-						All Preceptors ({allPreceptors.data.length})
-					</div>
-					<div class="flex flex-col gap-2">
-						{#each allPreceptors.data as preceptor (preceptor._id)}
-							<PreceptorResults
-								fullName={preceptor.fullName}
-								schoolId={preceptor.schoolId}
-								siteId={preceptor.siteId}
-								totalReviews={preceptor.totalReviews}
-								averageStarRating={preceptor.averageStarRating}
-								recommendationRate={preceptor.recommendationRate}
-							/>
-						{/each}
+					<div class="mb-6">
+						<h2 class="text-xl font-semibold mb-4">
+							All Preceptors ({allPreceptors.data.length})
+						</h2>
+						<div class="flex flex-col gap-3">
+							{#each allPreceptors.data as preceptor (preceptor._id)}
+								<PreceptorResults
+									fullName={preceptor.fullName}
+									schoolName={preceptor.schoolName}
+									siteName={preceptor.siteName}
+									totalReviews={preceptor.totalReviews}
+									averageStarRating={preceptor.averageStarRating}
+									recommendationRate={preceptor.recommendationRate}
+								/>
+							{/each}
+						</div>
 					</div>
 				{/if}
 			{/if}

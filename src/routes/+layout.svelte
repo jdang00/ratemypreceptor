@@ -42,8 +42,12 @@
 					<a href="/terms" class="text-muted-foreground hover:text-foreground transition-colors">
 						Terms
 					</a>
-					<a href="/contact" class="text-muted-foreground hover:text-foreground transition-colors">
-						Contact
+					<a href="/privacy" class="text-muted-foreground hover:text-foreground transition-colors">
+						Privacy
+					</a>	
+					
+					<a href="/guidelines" class="text-muted-foreground hover:text-foreground transition-colors">
+						Guidelines
 					</a>
 				</div>
 			</div>

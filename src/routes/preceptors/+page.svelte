@@ -17,8 +17,8 @@
 		{#each query.data as preceptor (preceptor._id)}
 			<PreceptorResults
 				fullName={preceptor.fullName}
-				schoolId={preceptor.schoolId}
-				siteId={preceptor.siteId}
+				schoolName={preceptor.schoolName}
+				siteName={preceptor.siteName}
 				totalReviews={preceptor.totalReviews}
 				averageStarRating={preceptor.averageStarRating}
 				recommendationRate={preceptor.recommendationRate}

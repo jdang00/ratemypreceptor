@@ -25,11 +25,13 @@
 			<p class="mt-2">Browse preceptor reviews from other students</p>
 		</div>
 		<Button onclick={() => goto('/reviews/new')}>Submit Review</Button>
+
+
 	</div>
 
 	{#if reviewsQuery.isLoading}
 		<div class="flex items-center justify-center py-12">
-			<div class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+			<div class="h-8 w-8 animate-spin rounded-full"></div>
 			<span class="ml-2">Loading reviews...</span>
 		</div>
 	{:else if reviewsQuery.error}
@@ -50,84 +52,92 @@
 		<div class="space-y-4">
 			{#each reviews as review (review._id)}
 				<Card.Root>
-					<Card.Header>
+					<Card.Header class="pb-4">
 						<div class="flex items-start justify-between">
 							<div>
-								<Card.Title class="text-lg">{review.preceptorName}</Card.Title>
-								<Card.Description>
-									{review.rotationTypeName} • {review.ippeAppe} • {review.schoolYear}
+								<Card.Title class="text-base font-semibold">
+									<a href="/preceptors/{review.preceptorName}" class="hover:underline ">
+										{review.preceptorName}
+									</a>
+								</Card.Title>
+								<Card.Description class="flex items-center gap-2 mt-1">
+									<span class="font-medium">{review.rotationTypeName}</span>
+									<span>•</span>
+									<span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+										review.ippeAppe === 'IPPE' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+									}`}>
+										{review.ippeAppe}
+									</span>
+									<span>•</span>
+									<span>{review.schoolYear}</span>
+									<span>•</span>
+									<span class="text-muted-foreground">{review.priorExperience} experience</span>
 								</Card.Description>
 							</div>
-							<div class="flex items-center space-x-2">
-								<div class="flex items-center">
-									<span class="text-yellow-500">{'⭐️'.repeat(Math.floor(review.starRating))}</span>
-									<span class="ml-1 text-sm">{review.starRating.toFixed(1)}</span>
+							<div class="flex items-center gap-3">
+								<div class="flex items-center gap-1">
+									<span class="text-yellow-500">⭐</span>
+									<span class="text-sm font-semibold">{review.starRating.toFixed(1)}</span>
 								</div>
-								<span class={`px-2 py-1 rounded-full text-xs font-medium ${
-									review.wouldRecommend 
-										? 'bg-green-100 text-green-800' 
-										: 'bg-red-100 text-red-800'
-								}`}>
-									{review.wouldRecommend ? 'Recommended' : 'Not Recommended'}
+								<span
+									class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+										review.wouldRecommend
+											? 'bg-green-100 text-green-800'
+											: 'bg-red-100 text-red-800'
+									}`}
+								>
+									{review.wouldRecommend ? '👍 Recommends' : '👎 Doesn\'t recommend'}
 								</span>
 							</div>
 						</div>
 					</Card.Header>
 					<Card.Content class="space-y-4">
-						<div class="grid grid-cols-2 gap-4 text-sm md:grid-cols-5">
-							<div class="text-center">
-								<div class="font-medium">Flexibility</div>
-								<div>{review.schedulingFlexibility.toFixed(1)}</div>
+						<!-- Condensed ratings grid -->
+						<div class="grid grid-cols-5 gap-3 text-center text-sm">
+							<div>
+								<div class="font-medium text-muted-foreground text-xs">Flexibility</div>
+								<div class="text-base font-semibold">{review.schedulingFlexibility}/5</div>
 							</div>
-							<div class="text-center">
-								<div class="font-medium">Workload</div>
-								<div>{review.workload.toFixed(1)}</div>
+							<div>
+								<div class="font-medium text-muted-foreground text-xs">Workload</div>
+								<div class="text-base font-semibold">{review.workload}/5</div>
 							</div>
-							<div class="text-center">
-								<div class="font-medium">Expectations</div>
-								<div>{review.expectations.toFixed(1)}</div>
+							<div>
+								<div class="font-medium text-muted-foreground text-xs">Expectations</div>
+								<div class="text-base font-semibold">{review.expectations}/5</div>
 							</div>
-							<div class="text-center">
-								<div class="font-medium">Mentorship</div>
-								<div>{review.mentorship.toFixed(1)}</div>
+							<div>
+								<div class="font-medium text-muted-foreground text-xs">Mentorship</div>
+								<div class="text-base font-semibold">{review.mentorship}/5</div>
 							</div>
-							<div class="text-center">
-								<div class="font-medium">Enjoyment</div>
-								<div>{review.enjoyment.toFixed(1)}</div>
+							<div>
+								<div class="font-medium text-muted-foreground text-xs">Enjoyment</div>
+								<div class="text-base font-semibold">{review.enjoyment}/5</div>
 							</div>
 						</div>
 
-						<div class="flex items-center space-x-4 text-sm">
-							<span class="font-medium">Prior Experience:</span>
-							<span class={`px-2 py-1 rounded-full text-xs font-medium ${
-								review.priorExperience === 'None' ? 'bg-red-100 text-red-800' :
-								review.priorExperience === 'Little' ? 'bg-orange-100 text-orange-800' :
-								review.priorExperience === 'Moderate' ? 'bg-yellow-100 text-yellow-800' :
-								'bg-green-100 text-green-800'
-							}`}>
-								{review.priorExperience}
-							</span>
-							{#if review.extraHours}
-								<span>Extra Hours: {review.extraHours}/week</span>
-							{/if}
-						</div>
+						{#if review.extraHours}
+							<div class="text-sm text-muted-foreground">
+								Extra hours per week: <span class="font-medium">{review.extraHours}</span>
+							</div>
+						{/if}
 
 						{#if review.comment}
-							<div class="rounded-md bg-muted p-3">
+							<div class="bg-muted rounded-lg p-3 ">
 								<p class="text-sm leading-relaxed">{review.comment}</p>
 							</div>
 						{/if}
 
 						{#if review.isOutlier && review.outlierReason}
-							<div class="rounded-md border border-amber-200 bg-amber-50 p-3">
-								<div class="flex items-center space-x-2">
-									<span class="text-xs font-medium text-amber-800">OUTLIER EXPERIENCE</span>
+							<div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+								<div class="flex items-center gap-2 mb-1">
+									<span class="text-xs font-bold text-amber-800">⚠️ OUTLIER EXPERIENCE</span>
 								</div>
-								<p class="mt-1 text-sm text-amber-700">{review.outlierReason}</p>
+								<p class="text-sm text-amber-700">{review.outlierReason}</p>
 							</div>
 						{/if}
 					</Card.Content>
-					<Card.Footer class="text-xs">
+					<Card.Footer class="text-xs text-muted-foreground pt-3 border-t">
 						Submitted {formatDate(review.updatedAt)}
 					</Card.Footer>
 				</Card.Root>

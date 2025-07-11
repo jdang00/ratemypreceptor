@@ -7,6 +7,7 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import PreceptorComboBox from '$lib/components/PreceptorComboBox.svelte';
 
 	type Props = {
 		isOpen: boolean;
@@ -44,10 +45,6 @@
 
 	const preceptors = $derived(preceptorsQuery.data ?? []);
 	const rotationTypes = $derived(rotationTypesQuery.data ?? []);
-
-	const preceptorTriggerContent = $derived(
-		preceptors.find((p) => p._id === formData.preceptorId)?.fullName ?? 'Select preceptor'
-	);
 
 	const rotationTypeTriggerContent = $derived(
 		rotationTypes.find((r) => r._id === formData.rotationTypeId)?.name ?? 'Select rotation type'
@@ -159,18 +156,14 @@
 			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Preceptor *</Label>
-					<Select.Root type="single" bind:value={formData.preceptorId}>
-						<Select.Trigger class="w-full h-9 text-sm">
-							{preceptorTriggerContent}
-						</Select.Trigger>
-						<Select.Content>
-							{#each preceptors as preceptor (preceptor._id)}
-								<Select.Item value={preceptor._id} label={preceptor.fullName}>
-									{preceptor.fullName}
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
+					<PreceptorComboBox 
+						{preceptors}
+						value={formData.preceptorId}
+						onValueChange={(value) => formData.preceptorId = value}
+						placeholder="Select preceptor"
+						searchPlaceholder="Search preceptors..."
+						class="h-9 text-sm"
+					/>
 				</div>
 
 				<div class="space-y-2">

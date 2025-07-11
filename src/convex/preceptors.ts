@@ -92,6 +92,34 @@ export const deletePreceptor = mutation({
 	}
 });
 
+export const getByFullName = query({
+	args: {
+		fullName: v.string()
+	},
+	handler: async (ctx, { fullName }) => {
+		const preceptor = await ctx.db
+			.query('preceptors')
+			.withIndex('by_full_name', (q) => q.eq('fullName', fullName))
+			.first();
+
+		if (!preceptor) {
+			return null;
+		}
+
+		const schools = await ctx.db.query('schools').collect();
+		const practiceSites = await ctx.db.query('practiceSites').collect();
+
+		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
+		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
+
+		return {
+			...preceptor,
+			schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
+			siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site'
+		};
+	}
+});
+
 export const updatePreceptor = mutation({
 	args: {
 		id: v.id('preceptors'),

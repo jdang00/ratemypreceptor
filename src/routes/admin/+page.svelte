@@ -122,8 +122,8 @@
 		{
 			key: 'preceptorId',
 			label: 'Preceptor',
-			type: 'select' as const,
-			options: preceptorsData.map((p) => ({ label: p.fullName, value: p._id })),
+			type: 'preceptor_combobox' as const,
+			preceptors: preceptorsData.map((p) => ({ _id: p._id, fullName: p.fullName })),
 			required: true
 		},
 		{
