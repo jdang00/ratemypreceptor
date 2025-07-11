@@ -5,14 +5,14 @@ export const get = query({
 	args: {},
 	handler: async (ctx) => {
 		const preceptors = await ctx.db.query('preceptors').collect();
-		
+
 		const schools = await ctx.db.query('schools').collect();
 		const practiceSites = await ctx.db.query('practiceSites').collect();
-		
-		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
-		const practiceSiteMap = new Map(practiceSites.map(s => [s._id, s.name]));
-		
-		return preceptors.map(preceptor => ({
+
+		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
+		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
+
+		return preceptors.map((preceptor) => ({
 			...preceptor,
 			schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
 			siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site'
@@ -20,37 +20,59 @@ export const get = query({
 	}
 });
 
+export const insertPreceptor = mutation({
+	args: {
+		fullName: v.string(),
+		schoolId: v.id('schools'),
+		siteId: v.id('practiceSites')
+	},
+	handler: async (ctx, { fullName, schoolId, siteId }) => {
+		await ctx.db.insert('preceptors', {
+			fullName,
+			schoolId,
+			siteId
+		});
+	}
+});
+
 export const getWithReviews = query({
 	args: {},
 	handler: async (ctx) => {
 		const preceptors = await ctx.db.query('preceptors').collect();
-		
+
 		const schools = await ctx.db.query('schools').collect();
 		const practiceSites = await ctx.db.query('practiceSites').collect();
-		
+
 		const reviews = await ctx.db.query('reviews').collect();
-		
-		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
-		const practiceSiteMap = new Map(practiceSites.map(s => [s._id, s.name]));
-		
+
+		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
+		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
+
 		const reviewsByPreceptor = new Map();
-		reviews.forEach(review => {
+		reviews.forEach((review) => {
 			if (!reviewsByPreceptor.has(review.preceptorId)) {
 				reviewsByPreceptor.set(review.preceptorId, []);
 			}
 			reviewsByPreceptor.get(review.preceptorId).push(review);
 		});
-		
-		return preceptors.map(preceptor => {
+
+		return preceptors.map((preceptor) => {
 			const preceptorReviews = reviewsByPreceptor.get(preceptor._id) || [];
 			const totalReviews = preceptorReviews.length;
-			const averageStarRating = totalReviews > 0 
-				? preceptorReviews.reduce((sum: number, r: { starRating: number }) => sum + r.starRating, 0) / totalReviews 
-				: 0;
-			const recommendationRate = totalReviews > 0 
-				? (preceptorReviews.filter((r: { wouldRecommend: boolean }) => r.wouldRecommend).length / totalReviews) * 100 
-				: 0;
-			
+			const averageStarRating =
+				totalReviews > 0
+					? preceptorReviews.reduce(
+							(sum: number, r: { starRating: number }) => sum + r.starRating,
+							0
+						) / totalReviews
+					: 0;
+			const recommendationRate =
+				totalReviews > 0
+					? (preceptorReviews.filter((r: { wouldRecommend: boolean }) => r.wouldRecommend).length /
+							totalReviews) *
+						100
+					: 0;
+
 			return {
 				...preceptor,
 				schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
@@ -71,7 +93,7 @@ export const deletePreceptor = mutation({
 });
 
 export const updatePreceptor = mutation({
-	args: { 
+	args: {
 		id: v.id('preceptors'),
 		schoolId: v.optional(v.id('schools')),
 		siteId: v.optional(v.id('practiceSites')),

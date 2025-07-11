@@ -9,6 +9,15 @@ export const get = query({
 	}
 });
 
+export const insertRotationType = mutation({
+	args: {
+		name: v.string()
+	},
+	handler: async (ctx, { name }) => {
+		await ctx.db.insert('rotationTypes', { name });
+	}
+});
+
 export const deleteRotationType = mutation({
 	args: { id: v.id('rotationTypes') },
 	handler: async (ctx, { id }) => {

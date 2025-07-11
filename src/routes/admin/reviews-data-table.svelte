@@ -5,6 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from '@lucide/svelte';
 	import {
 		getCoreRowModel,
 		getPaginationRowModel,
@@ -23,11 +24,11 @@
 		searchColumn?: string;
 	};
 
-	let { 
-		data, 
-		columns, 
-		searchPlaceholder = 'Search...', 
-		searchColumn = 'name' 
+	let {
+		data,
+		columns,
+		searchPlaceholder = 'Search...',
+		searchColumn = 'name'
 	}: DataTableProps<T> = $props();
 
 	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -92,13 +93,15 @@
 	});
 
 	const ippeAppeTriggerContent = $derived(
-		ippeAppeFilter === '' ? 'All Types' :
-		ippeAppeFilter === 'IPPE' ? 'IPPE' : 'APPE'
+		ippeAppeFilter === '' ? 'All Types' : ippeAppeFilter === 'IPPE' ? 'IPPE' : 'APPE'
 	);
 
 	const wouldRecommendTriggerContent = $derived(
-		wouldRecommendFilter === '' ? 'All Recommendations' :
-		wouldRecommendFilter === 'true' ? 'Would Recommend' : 'Would Not Recommend'
+		wouldRecommendFilter === ''
+			? 'All Recommendations'
+			: wouldRecommendFilter === 'true'
+				? 'Would Recommend'
+				: 'Would Not Recommend'
 	);
 
 	function handleIppeAppeFilterChange(value: string) {
@@ -123,17 +126,21 @@
 </script>
 
 <div class="w-full space-y-4">
-	<div class="flex items-center justify-between">
-		<div class="flex items-center space-x-2">
+	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+		<div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
 			<Input
 				placeholder="Search comments..."
 				value={(table.getColumn('comment')?.getFilterValue() as string) ?? ''}
 				oninput={(e) => table.getColumn('comment')?.setFilterValue(e.currentTarget.value)}
-				class="max-w-sm"
+				class="w-full sm:w-auto sm:max-w-sm text-sm"
 			/>
 
-			<Select.Root type="single" bind:value={ippeAppeFilter} onValueChange={handleIppeAppeFilterChange}>
-				<Select.Trigger class="w-[180px]">
+			<Select.Root
+				type="single"
+				bind:value={ippeAppeFilter}
+				onValueChange={handleIppeAppeFilterChange}
+			>
+				<Select.Trigger class="w-full sm:w-[180px] text-sm">
 					{ippeAppeTriggerContent}
 				</Select.Trigger>
 				<Select.Content>
@@ -143,8 +150,12 @@
 				</Select.Content>
 			</Select.Root>
 
-			<Select.Root type="single" bind:value={wouldRecommendFilter} onValueChange={handleWouldRecommendFilterChange}>
-				<Select.Trigger class="w-[200px]">
+			<Select.Root
+				type="single"
+				bind:value={wouldRecommendFilter}
+				onValueChange={handleWouldRecommendFilterChange}
+			>
+				<Select.Trigger class="w-full sm:w-[200px] text-sm">
 					{wouldRecommendTriggerContent}
 				</Select.Trigger>
 				<Select.Content>
@@ -154,18 +165,18 @@
 				</Select.Content>
 			</Select.Root>
 		</div>
-		<div class="text-sm">
+		<div class="text-sm text-muted-foreground">
 			{table.getFilteredRowModel().rows.length} review(s)
 		</div>
 	</div>
 
-	<div class="rounded-md border">
+	<div class="rounded-md border overflow-x-auto">
 		<Table.Root>
 			<Table.Header>
 				{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
 					<Table.Row>
 						{#each headerGroup.headers as header (header.id)}
-							<Table.Head class="font-medium">
+							<Table.Head class="font-medium text-xs sm:text-sm">
 								{#if !header.isPlaceholder}
 									<FlexRender
 										content={header.column.columnDef.header}
@@ -181,15 +192,15 @@
 				{#each table.getRowModel().rows as row (row.id)}
 					<Table.Row class="">
 						{#each row.getVisibleCells() as cell (cell.id)}
-							<Table.Cell class="py-3">
+							<Table.Cell class="py-2 sm:py-3 text-xs sm:text-sm">
 								<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
 							</Table.Cell>
 						{/each}
 					</Table.Row>
 				{:else}
 					<Table.Row>
-						<Table.Cell colspan={columns.length} class="h-24 text-center">
-							No records found.
+						<Table.Cell colspan={columns.length} class="h-24 text-center text-sm">
+							No reviews found.
 						</Table.Cell>
 					</Table.Row>
 				{/each}
@@ -197,16 +208,16 @@
 		</Table.Root>
 	</div>
 
-	<div class="flex items-center justify-between flex-wrap gap-2 py-4">
-		<div class="text-sm">
+	<div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+		<div class="text-sm text-muted-foreground order-2 sm:order-1">
 			Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to {Math.min(
 				(table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
 				table.getFilteredRowModel().rows.length
-			)} of {table.getFilteredRowModel().rows.length} review(s)
+			)} of {table.getFilteredRowModel().rows.length} row(s)
 		</div>
-		<div class="flex items-center flex-wrap gap-2">
+		<div class="flex items-center space-x-2 order-1 sm:order-2">
 			<Select.Root type="single" bind:value={pageSize} onValueChange={handlePageSizeChange}>
-				<Select.Trigger class="w-[120px]">
+				<Select.Trigger class="w-[100px] sm:w-[120px] text-xs sm:text-sm">
 					{pageSizeTriggerContent}
 				</Select.Trigger>
 				<Select.Content>
@@ -216,21 +227,47 @@
 					<Select.Item value="50" label="50 per page">50 per page</Select.Item>
 				</Select.Content>
 			</Select.Root>
-			<Button variant="outline" size="sm" onclick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}>
-				««
-			</Button>
-			<Button variant="outline" size="sm" onclick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-				Previous
-			</Button>
-			<span class="text-sm">
-				Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-			</span>
-			<Button variant="outline" size="sm" onclick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-				Next
-			</Button>
-			<Button variant="outline" size="sm" onclick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}>
-				»»
-			</Button>
+			<div class="flex items-center space-x-1 sm:space-x-2">
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => table.setPageIndex(0)}
+					disabled={!table.getCanPreviousPage()}
+					class="px-2 sm:px-3 text-xs"
+				>
+					<ChevronsLeft class="h-4 w-4" />
+				</Button>
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => table.previousPage()}
+					disabled={!table.getCanPreviousPage()}
+					class="px-2 sm:px-3 text-xs"
+				>
+					<ChevronLeft class="h-4 w-4" />
+				</Button>
+				<span class="text-xs sm:text-sm px-2">
+					Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+				</span>
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => table.nextPage()}
+					disabled={!table.getCanNextPage()}
+					class="px-2 sm:px-3 text-xs"
+				>
+					<ChevronRight class="h-4 w-4" />
+				</Button>
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => table.setPageIndex(table.getPageCount() - 1)}
+					disabled={!table.getCanNextPage()}
+					class="px-2 sm:px-3 text-xs"
+				>
+					<ChevronsRight class="h-4 w-4" />
+				</Button>
+			</div>
 		</div>
 	</div>
 </div>

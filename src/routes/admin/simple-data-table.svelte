@@ -5,6 +5,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
+	import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from '@lucide/svelte';
 	import {
 		getCoreRowModel,
 		getPaginationRowModel,
@@ -23,11 +24,11 @@
 		searchColumn?: string;
 	};
 
-	let { 
-		data, 
-		columns, 
-		searchPlaceholder = 'Search...', 
-		searchColumn = 'name' 
+	let {
+		data,
+		columns,
+		searchPlaceholder = 'Search...',
+		searchColumn = 'name'
 	}: DataTableProps<T> = $props();
 
 	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
@@ -100,27 +101,27 @@
 </script>
 
 <div class="w-full space-y-4">
-	<div class="flex items-center justify-between">
-		<div class="flex items-center space-x-2">
+	<div class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+		<div class="flex w-full items-center space-x-2">
 			<Input
 				placeholder={searchPlaceholder}
 				value={(table.getColumn(searchColumn)?.getFilterValue() as string) ?? ''}
 				oninput={(e) => table.getColumn(searchColumn)?.setFilterValue(e.currentTarget.value)}
-				class="max-w-sm"
+				class="w-full text-sm sm:max-w-sm"
 			/>
 		</div>
-		<div class="text-sm">
+		<div class="text-muted-foreground text-sm">
 			{table.getFilteredRowModel().rows.length} record(s)
 		</div>
 	</div>
 
-	<div class="rounded-md border">
+	<div class="overflow-x-auto rounded-md border">
 		<Table.Root>
 			<Table.Header>
 				{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
 					<Table.Row>
 						{#each headerGroup.headers as header (header.id)}
-							<Table.Head class="font-medium">
+							<Table.Head class="text-xs font-medium sm:text-sm">
 								{#if !header.isPlaceholder}
 									<FlexRender
 										content={header.column.columnDef.header}
@@ -136,14 +137,14 @@
 				{#each table.getRowModel().rows as row (row.id)}
 					<Table.Row class="">
 						{#each row.getVisibleCells() as cell (cell.id)}
-							<Table.Cell class="py-3">
+							<Table.Cell class="py-2 text-xs sm:py-3 sm:text-sm">
 								<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
 							</Table.Cell>
 						{/each}
 					</Table.Row>
 				{:else}
 					<Table.Row>
-						<Table.Cell colspan={columns.length} class="h-24 text-center">
+						<Table.Cell colspan={columns.length} class="h-24 text-center text-sm">
 							No records found.
 						</Table.Cell>
 					</Table.Row>
@@ -152,16 +153,16 @@
 		</Table.Root>
 	</div>
 
-	<div class="flex items-center justify-between">
-		<div class="text-sm">
+	<div class="flex flex-col items-center justify-between gap-3 sm:flex-row">
+		<div class="text-muted-foreground order-2 text-sm sm:order-1">
 			Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to {Math.min(
 				(table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
 				table.getFilteredRowModel().rows.length
 			)} of {table.getFilteredRowModel().rows.length} row(s)
 		</div>
-		<div class="flex items-center space-x-2">
+		<div class="order-1 flex items-center space-x-2 sm:order-2">
 			<Select.Root type="single" bind:value={pageSize} onValueChange={handlePageSizeChange}>
-				<Select.Trigger class="w-[120px]">
+				<Select.Trigger class="w-[100px] text-xs sm:w-[120px] sm:text-sm">
 					{pageSizeTriggerContent}
 				</Select.Trigger>
 				<Select.Content>
@@ -171,41 +172,47 @@
 					<Select.Item value="50" label="50 per page">50 per page</Select.Item>
 				</Select.Content>
 			</Select.Root>
-			<Button
-				variant="outline"
-				size="sm"
-				onclick={() => table.setPageIndex(0)}
-				disabled={!table.getCanPreviousPage()}
-			>
-				««
-			</Button>
-			<Button
-				variant="outline"
-				size="sm"
-				onclick={() => table.previousPage()}
-				disabled={!table.getCanPreviousPage()}
-			>
-				Previous
-			</Button>
-			<span class="text-sm">
-				Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-			</span>
-			<Button
-				variant="outline"
-				size="sm"
-				onclick={() => table.nextPage()}
-				disabled={!table.getCanNextPage()}
-			>
-				Next
-			</Button>
-			<Button
-				variant="outline"
-				size="sm"
-				onclick={() => table.setPageIndex(table.getPageCount() - 1)}
-				disabled={!table.getCanNextPage()}
-			>
-				»»
-			</Button>
+			<div class="flex items-center space-x-1 sm:space-x-2">
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => table.setPageIndex(0)}
+					disabled={!table.getCanPreviousPage()}
+					class="px-2 text-xs sm:px-3"
+				>
+					<ChevronsLeft class="h-4 w-4" />
+				</Button>
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => table.previousPage()}
+					disabled={!table.getCanPreviousPage()}
+					class="px-2 text-xs sm:px-3"
+				>
+					<ChevronLeft class="h-4 w-4" />
+				</Button>
+				<span class="px-2 text-xs sm:text-sm">
+					Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+				</span>
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => table.nextPage()}
+					disabled={!table.getCanNextPage()}
+					class="px-2 text-xs sm:px-3"
+				>
+					<ChevronRight class="h-4 w-4" />
+				</Button>
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => table.setPageIndex(table.getPageCount() - 1)}
+					disabled={!table.getCanNextPage()}
+					class="px-2 text-xs sm:px-3"
+				>
+					<ChevronsRight class="h-4 w-4" />
+				</Button>
+			</div>
 		</div>
 	</div>
-</div> 
+</div>

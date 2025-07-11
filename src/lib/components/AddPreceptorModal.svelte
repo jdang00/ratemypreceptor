@@ -1,0 +1,247 @@
+<script lang="ts">
+	import { useQuery, useConvexClient } from 'convex-svelte';
+	import { api } from '../../convex/_generated/api.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import { TITLES, DEGREES, formatFullName } from '$lib/utils.js';
+
+	type Props = {
+		isOpen: boolean;
+		onClose: () => void;
+		onSuccess?: () => void;
+	};
+
+	let { isOpen, onClose, onSuccess }: Props = $props();
+
+	const client = useConvexClient();
+	const schoolsQuery = useQuery(api.schools.get, {});
+	const practiceSitesQuery = useQuery(api.practiceSites.get, {});
+
+	let formData = $state({
+		title: '',
+		firstName: '',
+		lastName: '',
+		degree: '',
+		schoolId: '',
+		siteId: ''
+	});
+
+	let isSubmitting = $state(false);
+	let submitError = $state('');
+
+	const schools = $derived(schoolsQuery.data ?? []);
+	const practiceSites = $derived(practiceSitesQuery.data ?? []);
+
+	const schoolTriggerContent = $derived(
+		schools.find((s) => s._id === formData.schoolId)?.name ?? 'Select school'
+	);
+
+	const practiceSiteTriggerContent = $derived(
+		practiceSites.find((p) => p._id === formData.siteId)?.name ?? 'Select practice site'
+	);
+
+	// Filter practice sites by selected school
+	const filteredPracticeSites = $derived(
+		formData.schoolId 
+			? practiceSites.filter((site) => site.schoolId === formData.schoolId)
+			: practiceSites
+	);
+
+	async function handleSubmit() {
+		if (isSubmitting) return;
+
+		// Validate required fields
+		if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.schoolId || !formData.siteId) {
+			submitError = 'Please fill in all required fields';
+			return;
+		}
+
+		try {
+			isSubmitting = true;
+			submitError = '';
+
+			const fullName = formatFullName(formData.title, formData.firstName.trim(), formData.lastName.trim(), formData.degree);
+			
+			const preceptorData = {
+				fullName: fullName,
+				schoolId: formData.schoolId as any,
+				siteId: formData.siteId as any
+			};
+
+			await client.mutation(api.preceptors.insertPreceptor, preceptorData);
+			
+			// Reset form
+			formData = {
+				title: '',
+				firstName: '',
+				lastName: '',
+				degree: '',
+				schoolId: '',
+				siteId: ''
+			};
+			
+			onSuccess?.();
+			onClose();
+		} catch (error) {
+			submitError = error instanceof Error ? error.message : 'Failed to add preceptor';
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
+	function handleSchoolChange(schoolId: string) {
+		formData.schoolId = schoolId;
+		// Reset site selection when school changes
+		formData.siteId = '';
+	}
+
+	function handleClose() {
+		// Reset form when closing
+		formData = {
+			title: '',
+			firstName: '',
+			lastName: '',
+			degree: '',
+			schoolId: '',
+			siteId: ''
+		};
+		submitError = '';
+		onClose();
+	}
+</script>
+
+<Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-hidden p-4 sm:p-6">
+		<Dialog.Header>
+			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New Preceptor</Dialog.Title>
+			<Dialog.Description class="text-sm text-muted-foreground">
+				Add a new preceptor to the system. First and last name are required.
+			</Dialog.Description>
+		</Dialog.Header>
+
+		<div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+				<div class="space-y-2">
+					<Label class="text-sm font-medium">Title</Label>
+					<Select.Root type="single" bind:value={formData.title}>
+						<Select.Trigger class="w-full h-9 text-sm">
+							{formData.title || 'Select title'}
+						</Select.Trigger>
+						<Select.Content>
+							{#each TITLES as title (title.value)}
+								<Select.Item value={title.value} label={title.label}>
+									{title.label}
+								</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				</div>
+
+				<div class="space-y-2">
+					<Label class="text-sm font-medium">Degree</Label>
+					<Select.Root type="single" bind:value={formData.degree}>
+						<Select.Trigger class="w-full h-9 text-sm">
+							{formData.degree || 'Select degree'}
+						</Select.Trigger>
+						<Select.Content>
+							{#each DEGREES as degree (degree.value)}
+								<Select.Item value={degree.value} label={degree.label}>
+									{degree.label}
+								</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				</div>
+			</div>
+
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+				<div class="space-y-2">
+					<Label for="firstName" class="text-sm font-medium">
+						First Name *
+					</Label>
+					<Input
+						id="firstName"
+						placeholder="First name"
+						bind:value={formData.firstName}
+						disabled={isSubmitting}
+						class="h-9 text-sm"
+					/>
+				</div>
+
+				<div class="space-y-2">
+					<Label for="lastName" class="text-sm font-medium">
+						Last Name *
+					</Label>
+					<Input
+						id="lastName"
+						placeholder="Last name"
+						bind:value={formData.lastName}
+						disabled={isSubmitting}
+						class="h-9 text-sm"
+					/>
+				</div>
+			</div>
+
+			{#if formData.title || formData.firstName || formData.lastName || formData.degree}
+				<div class="rounded-md border border-blue-200 bg-blue-50 p-3">
+					<p class="text-sm text-blue-800">
+						<strong>Preview:</strong> {formatFullName(formData.title, formData.firstName, formData.lastName, formData.degree)}
+					</p>
+				</div>
+			{/if}
+
+			<div class="space-y-2">
+				<Label class="text-sm font-medium">School *</Label>
+				<Select.Root type="single" bind:value={formData.schoolId} onValueChange={handleSchoolChange}>
+					<Select.Trigger class="w-full h-9 text-sm">
+						{schoolTriggerContent}
+					</Select.Trigger>
+					<Select.Content>
+						{#each schools as school (school._id)}
+							<Select.Item value={school._id} label={school.name}>
+								{school.name}
+							</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</div>
+
+			<div class="space-y-2">
+				<Label class="text-sm font-medium">Practice Site *</Label>
+				<Select.Root type="single" bind:value={formData.siteId}>
+					<Select.Trigger class="w-full h-9 text-sm" disabled={!formData.schoolId}>
+						{practiceSiteTriggerContent}
+					</Select.Trigger>
+					<Select.Content>
+						{#each filteredPracticeSites as site (site._id)}
+							<Select.Item value={site._id} label={site.name}>
+								{site.name} - {site.city}, {site.state}
+							</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+				{#if !formData.schoolId}
+					<p class="text-xs text-muted-foreground">Select a school first</p>
+				{/if}
+			</div>
+
+			{#if submitError}
+				<div class="rounded-md border border-red-200 bg-red-50 p-3">
+					<p class="text-sm text-red-800">{submitError}</p>
+				</div>
+			{/if}
+		</div>
+
+		<Dialog.Footer class="flex justify-end gap-3 pt-4 border-t">
+			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>
+				Cancel
+			</Button>
+			<Button onclick={handleSubmit} disabled={isSubmitting}>
+				{isSubmitting ? 'Adding...' : 'Add Preceptor'}
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root> 

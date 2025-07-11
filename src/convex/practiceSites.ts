@@ -17,6 +17,23 @@ export const get = query({
 	}
 });
 
+export const insertPracticeSite = mutation({
+	args: {
+		name: v.string(),
+		city: v.string(),
+		state: v.string(),
+		schoolId: v.id('schools')
+	},
+	handler: async (ctx, { name, city, state, schoolId }) => {
+		await ctx.db.insert('practiceSites', {
+			name,
+			city,
+			state,
+			schoolId
+		});
+	}
+});
+
 export const deletePracticeSite = mutation({
 	args: { id: v.id('practiceSites') },
 	handler: async (ctx, { id }) => {

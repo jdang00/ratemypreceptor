@@ -71,6 +71,8 @@ export function formatName(fullName: string, includeCredentials: boolean = true)
 			.replace(/\s+MD\b/gi, '')
 			.replace(/,\s*DO\b/gi, '')
 			.replace(/\s+DO\b/gi, '')
+			.replace(/,\s*OD\b/gi, '')
+			.replace(/\s+OD\b/gi, '')
 			.replace(/,\s*RN\b/gi, '')
 			.replace(/\s+RN\b/gi, '')
 			.replace(/,\s*NP\b/gi, '')
@@ -97,7 +99,7 @@ export function formatName(fullName: string, includeCredentials: boolean = true)
 
 export function extractCredentials(fullName: string): { name: string; credentials: string } {
 	if (!fullName) return { name: '', credentials: '' };
-	const credentials = fullName.match(/\b(PharmD|Ph\.D\.|MD|DO|RN|NP|PA|BCPS|BCACP|BCGP|BCPP|FASHP|FCCP|FCCM)\b/gi);
+	const credentials = fullName.match(/\b(PharmD|Ph\.D\.|MD|DO|OD|RN|NP|PA|BCPS|BCACP|BCGP|BCPP|FASHP|FCCP|FCCM)\b/gi);
 	let nameWithoutCredentials = formatName(fullName, false);
 	nameWithoutCredentials = nameWithoutCredentials.replace(/,+\s*$/, '').trim();
 	return {
@@ -112,4 +114,42 @@ export function formatNameWithCredentials(fullName: string): { displayName: stri
 		displayName: name,
 		credentials: credentials
 	};
+}
+
+export const TITLES = [
+	{ value: '', label: 'No Title' },
+	{ value: 'Dr.', label: 'Dr.' },
+	{ value: 'Prof.', label: 'Prof.' },
+	{ value: 'Mr.', label: 'Mr.' },
+	{ value: 'Mrs.', label: 'Mrs.' },
+	{ value: 'Ms.', label: 'Ms.' }
+];
+
+export const DEGREES = [
+	{ value: 'PharmD', label: 'PharmD' },
+	{ value: 'Ph.D.', label: 'Ph.D.' },
+	{ value: 'MD', label: 'MD' },
+	{ value: 'DO', label: 'DO' },
+	{ value: 'OD', label: 'OD' },
+	{ value: 'RN', label: 'RN' },
+	{ value: 'NP', label: 'NP' },
+	{ value: 'PA', label: 'PA' },
+	{ value: 'BCPS', label: 'BCPS' },
+	{ value: 'BCACP', label: 'BCACP' },
+	{ value: 'BCGP', label: 'BCGP' },
+	{ value: 'BCPP', label: 'BCPP' },
+	{ value: 'FASHP', label: 'FASHP' },
+	{ value: 'FCCP', label: 'FCCP' },
+	{ value: 'FCCM', label: 'FCCM' }
+];
+
+export function formatFullName(title: string, firstName: string, lastName: string, degree: string): string {
+	const parts = [];
+	
+	if (title) parts.push(title);
+	if (firstName) parts.push(firstName);
+	if (lastName) parts.push(lastName);
+	if (degree) parts.push(degree);
+	
+	return parts.join(' ');
 }

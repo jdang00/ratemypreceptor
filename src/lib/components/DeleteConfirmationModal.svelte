@@ -13,9 +13,10 @@
 		mutationName: string;
 		onClose: () => void;
 		onDelete?: () => void;
+		onSuccess?: () => void;
 	};
 
-	let { isOpen, entityId, entityName, entityType, mutationName, onClose, onDelete }: Props = $props();
+	let { isOpen, entityId, entityName, entityType, mutationName, onClose, onDelete, onSuccess }: Props = $props();
 
 	const client = useConvexClient();
 
@@ -31,6 +32,7 @@
 			
 			onDelete?.();
 			onClose();
+			onSuccess?.();
 		} catch (error) {
 			console.error('Failed to delete entity:', error);
 		} finally {
@@ -42,7 +44,7 @@
 <Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && onClose()}>
 	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-[425px] p-4 sm:p-8">
 		<Dialog.Header class="pb-4">
-			<Dialog.Title class="text-lg font-semibold flex items-center gap-2">
+			<Dialog.Title class="text-lg sm:text-xl font-semibold flex items-center gap-2">
 				<AlertTriangle class="h-5 w-5 text-destructive" />
 				Delete {entityType}
 			</Dialog.Title>
@@ -52,9 +54,9 @@
 		</Dialog.Header>
 
 		<div class="py-4">
-			<div class="bg-muted/50 rounded-lg p-4">
+			<div class="bg-muted/50 rounded-lg p-3 sm:p-4">
 				<p class="text-sm font-medium mb-1">{entityType}:</p>
-				<p class="text-sm text-muted-foreground">{entityName}</p>
+				<p class="text-sm text-muted-foreground break-words">{entityName}</p>
 			</div>
 		</div>
 

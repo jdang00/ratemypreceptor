@@ -23,9 +23,10 @@
 		fields: FieldConfig[];
 		onClose: () => void;
 		onSave?: (updatedEntity: T) => void;
+		onSuccess?: () => void;
 	};
 
-	let { isOpen, entity, mutationName, fields, onClose, onSave }: Props = $props();
+	let { isOpen, entity, mutationName, fields, onClose, onSave, onSuccess }: Props = $props();
 
 	const client = useConvexClient();
 
@@ -70,6 +71,7 @@
 				await client.mutation(mutation, updates);
 				
 				onSave?.(formData as T);
+				onSuccess?.();
 			}
 			
 			onClose();
@@ -101,9 +103,9 @@
 </script>
 
 <Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && onClose()}>
-	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-[700px] max-h-[85vh] overflow-hidden p-4 sm:p-8">
+	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-[700px] max-h-[90vh] sm:max-h-[85vh] overflow-hidden p-4 sm:p-8">
 		<Dialog.Header class="pb-4">
-			<Dialog.Title class="text-lg font-semibold">
+			<Dialog.Title class="text-lg sm:text-xl font-semibold">
 				Edit {mutationName.split('.')[0]}
 			</Dialog.Title>
 			<Dialog.Description class="text-sm text-muted-foreground">
@@ -112,8 +114,8 @@
 		</Dialog.Header>
 
 		{#if entity}
-			<div class="max-h-[60vh] overflow-y-auto pr-2">
-				<div class="grid gap-x-6 gap-y-4" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+			<div class="max-h-[60vh] sm:max-h-[60vh] overflow-y-auto pr-2">
+				<div class="grid gap-x-4 sm:gap-x-6 gap-y-4" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
 					{#each fields as field (field.key)}
 						<div class="flex flex-col space-y-2">
 							<Label for={field.key} class="text-sm font-medium text-foreground">
@@ -129,7 +131,7 @@
 									value={formData[field.key] || ''}
 									oninput={(e) => handleFieldChange(field.key, e.currentTarget.value)}
 									required={field.required}
-									class="h-9"
+									class="h-9 text-sm"
 									placeholder="Enter {field.label.toLowerCase()}"
 								/>
 							{:else if field.type === 'number'}
@@ -139,7 +141,7 @@
 									value={formData[field.key] || ''}
 									oninput={(e) => handleFieldChange(field.key, Number(e.currentTarget.value))}
 									required={field.required}
-									class="h-9"
+									class="h-9 text-sm"
 									placeholder="Enter {field.label.toLowerCase()}"
 								/>
 							{:else if field.type === 'select'}
@@ -148,7 +150,7 @@
 									bind:value={formData[field.key]}
 									onValueChange={(value) => handleFieldChange(field.key, value)}
 								>
-									<Select.Trigger class="w-full">
+									<Select.Trigger class="w-full h-9 text-sm">
 										{getSelectTriggerContent(field, formData[field.key])}
 									</Select.Trigger>
 									<Select.Content>

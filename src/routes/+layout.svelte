@@ -4,6 +4,7 @@
 	import NavHeader from '$lib/components/NavHeader.svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import '../app.css';
+	import { Toaster } from "$lib/components/ui/sonner/index.js";
 
 	const { children } = $props();
 	setupConvex(PUBLIC_CONVEX_URL);
@@ -16,6 +17,7 @@
 </script>
 
 <div class="flex min-h-screen flex-col">
+	<Toaster />
 	<ModeWatcher />
 	<NavHeader title="RateMyPreceptor" links={navLinks} showThemeButton={true} />
 
