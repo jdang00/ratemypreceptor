@@ -5,8 +5,10 @@ import { createRawSnippet } from 'svelte';
 export type Preceptor = {
 	_id: string;
 	schoolId: string;
+	programTypeId: string;
 	siteId: string;
 	schoolName: string;
+	programTypeName: string;
 	siteName: string;
 	fullName: string;
 	_creationTime: number;
@@ -37,6 +39,19 @@ export const preceptorsColumns: ColumnDef<Preceptor>[] = [
 				};
 			});
 			return renderSnippet(schoolSnippet, row.getValue('schoolName'));
+		}
+	},
+	{
+		accessorKey: 'programTypeName',
+		header: 'Program',
+		cell: ({ row }) => {
+			const programSnippet = createRawSnippet<[string]>((getProgramName) => {
+				const programName = getProgramName();
+				return {
+					render: () => `<div class="text-sm">${programName}</div>`
+				};
+			});
+			return renderSnippet(programSnippet, row.getValue('programTypeName'));
 		}
 	},
 	{

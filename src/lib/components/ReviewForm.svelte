@@ -16,11 +16,13 @@
 	const client = useConvexClient();
 	const preceptorsQuery = useQuery(api.preceptors.get, {});
 	const rotationTypesQuery = useQuery(api.rotationTypes.get, {});
+	const experienceTypesQuery = useQuery(api.experienceTypes.get, {});
+	const programTypesQuery = useQuery(api.programTypes.get, {});
 
 	let formData = $state({
 		preceptorId: '',
 		rotationTypeId: '',
-		ippeAppe: '',
+		experienceTypeId: '',
 		schoolYear: '',
 		priorExperience: '',
 		extraHours: '',
@@ -43,13 +45,31 @@
 
 	const preceptors = $derived(preceptorsQuery.data ?? []);
 	const rotationTypes = $derived(rotationTypesQuery.data ?? []);
+	const experienceTypes = $derived(experienceTypesQuery.data ?? []);
+	const programTypes = $derived(programTypesQuery.data ?? []);
 
-	const rotationTypeTriggerContent = $derived(
-		rotationTypes.find((r) => r._id === formData.rotationTypeId)?.name ?? 'Select rotation'
+	const selectedPreceptor = $derived(preceptors.find(p => p._id === formData.preceptorId));
+	const selectedProgramType = $derived(selectedPreceptor ? programTypes.find(pt => pt._id === selectedPreceptor.programTypeId) : null);
+	const availableYears = $derived(selectedProgramType ? selectedProgramType.yearLabels : []);
+
+	const filteredRotationTypes = $derived(
+		selectedPreceptor && selectedPreceptor.programTypeId
+			? rotationTypes.filter(rt => rt.programTypeId === selectedPreceptor.programTypeId)
+			: rotationTypes
 	);
 
-	const ippeAppeTriggerContent = $derived(
-		formData.ippeAppe || 'Select type'
+	const filteredExperienceTypes = $derived(
+		selectedPreceptor && selectedPreceptor.programTypeId
+			? experienceTypes.filter(et => et.programTypeId === selectedPreceptor.programTypeId)
+			: experienceTypes
+	);
+
+	const rotationTypeTriggerContent = $derived(
+		filteredRotationTypes.find((r) => r._id === formData.rotationTypeId)?.name ?? 'Select rotation'
+	);
+
+	const experienceTypeTriggerContent = $derived(
+		filteredExperienceTypes.find((e) => e._id === formData.experienceTypeId)?.name ?? 'Select experience'
 	);
 
 	const schoolYearTriggerContent = $derived(
@@ -95,48 +115,59 @@
 		}
 	});
 
-	function validateForm(): string[] {
-		const errors: string[] = [];
-		if (!formData.preceptorId) errors.push('Please select a preceptor');
-		if (!formData.rotationTypeId) errors.push('Please select a rotation type');
-		if (!formData.ippeAppe) errors.push('Please select IPPE or APPE');
-		if (!formData.schoolYear) errors.push('Please select your school year');
-		if (!formData.priorExperience) errors.push('Please select your prior experience level');
-		if (!formData.schedulingFlexibility || Number(formData.schedulingFlexibility) < 1) errors.push('Please rate Scheduling Flexibility (1-5)');
-		if (!formData.workload || Number(formData.workload) < 1) errors.push('Please rate Workload (1-5)');
-		if (!formData.expectations || Number(formData.expectations) < 1) errors.push('Please rate Expectations (1-5)');
-		if (!formData.mentorship || Number(formData.mentorship) < 1) errors.push('Please rate Mentorship (1-5)');
-		if (!formData.enjoyment || Number(formData.enjoyment) < 1) errors.push('Please rate Enjoyment (1-5)');
-		if (!formData.starRating || Number(formData.starRating) < 1) errors.push('Please provide an Overall Rating (1-5)');
-		if (!formData.wouldRecommend) errors.push('Please indicate if you would recommend this preceptor');
-		if (!formData.isOutlier) errors.push('Please indicate if this was an outlier experience');
-		if (formData.isOutlier === 'true' && !formData.outlierReason?.trim()) errors.push('Please explain why this was an outlier experience');
-		if (!formData.agreedToPolicies) errors.push('You must agree to the Terms, Privacy Policy, and Guidelines to submit a review');
-		return errors;
+	function clearValidationErrors() {
+		validationErrors = [];
 	}
 
-	function clearValidationErrors() {
-		if (validationErrors.length > 0) validationErrors = [];
+	function validateForm() {
+		const errors = [];
+
+		if (!formData.preceptorId) errors.push('Please select a preceptor');
+		if (!formData.rotationTypeId) errors.push('Please select a rotation type');
+		if (!formData.experienceTypeId) errors.push('Please select an experience type');
+		if (!formData.schoolYear) errors.push('Please select a school year');
+		if (!formData.priorExperience) errors.push('Please select your prior experience level');
+		if (!formData.schedulingFlexibility) errors.push('Please rate scheduling flexibility');
+		if (!formData.workload) errors.push('Please rate workload');
+		if (!formData.expectations) errors.push('Please rate expectations');
+		if (!formData.mentorship) errors.push('Please rate mentorship');
+		if (!formData.enjoyment) errors.push('Please rate enjoyment');
+		if (!formData.wouldRecommend) errors.push('Please select recommendation');
+		if (!formData.starRating) errors.push('Please provide a star rating');
+		if (!formData.agreedToPolicies) errors.push('Please agree to the review policies');
+
+		if (formData.isOutlier === 'true' && !formData.outlierReason?.trim()) {
+			errors.push('Please explain why this is an outlier experience');
+		}
+
+		if (formData.extraHours && (isNaN(Number(formData.extraHours)) || Number(formData.extraHours) < 0)) {
+			errors.push('Extra hours must be a valid number');
+		}
+
+		return errors;
 	}
 
 	async function handleSubmit() {
 		if (isSubmitting) return;
-		validationErrors = [];
-		submitError = '';
+
+		clearValidationErrors();
 		const errors = validateForm();
+		
 		if (errors.length > 0) {
 			validationErrors = errors;
-			window.scrollTo({ top: 0, behavior: 'smooth' });
 			return;
 		}
+
 		try {
 			isSubmitting = true;
+			submitError = '';
+
 			const reviewData = {
-				preceptorId: formData.preceptorId as any,
-				rotationTypeId: formData.rotationTypeId as any,
-				ippeAppe: formData.ippeAppe as 'IPPE' | 'APPE',
-				schoolYear: formData.schoolYear as 'P1' | 'P2' | 'P3' | 'P4',
-				priorExperience: formData.priorExperience as 'None' | 'Little' | 'Moderate' | 'Significant',
+				preceptorId: formData.preceptorId,
+				rotationTypeId: formData.rotationTypeId,
+				experienceTypeId: formData.experienceTypeId,
+				schoolYear: formData.schoolYear,
+				priorExperience: formData.priorExperience,
 				extraHours: formData.extraHours ? Number(formData.extraHours) : undefined,
 				schedulingFlexibility: Number(formData.schedulingFlexibility),
 				workload: Number(formData.workload),
@@ -145,10 +176,11 @@
 				enjoyment: Number(formData.enjoyment),
 				wouldRecommend: formData.wouldRecommend === 'true',
 				starRating: Number(formData.starRating),
-				comment: formData.comment || undefined,
+				comment: formData.comment?.trim() || undefined,
 				isOutlier: formData.isOutlier === 'true',
-				outlierReason: formData.outlierReason || undefined
+				outlierReason: formData.isOutlier === 'true' ? formData.outlierReason?.trim() : undefined
 			};
+
 			await client.mutation(api.reviews.insertReview, reviewData);
 			dispatch('submitted');
 		} catch (error) {
@@ -157,47 +189,32 @@
 			isSubmitting = false;
 		}
 	}
+
+	function handlePreceptorChange(preceptorId: string) {
+		formData.preceptorId = preceptorId;
+		formData.rotationTypeId = '';
+		formData.experienceTypeId = '';
+		formData.schoolYear = '';
+		clearValidationErrors();
+	}
 </script>
 
-<div class="mx-auto max-w-4xl">
-	<Card.Root>
-		<Card.Header>
-			<Card.Title>Review Details</Card.Title>
-			<Card.Description>All fields marked with * are required</Card.Description>
-		</Card.Header>
-		<Card.Content class="space-y-6">
-			{#if validationErrors.length > 0}
-				<div class="rounded-md border border-orange-200 bg-orange-50 p-4">
-					<div class="flex">
-						<div class="flex-shrink-0">
-							<svg class="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
-								<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-							</svg>
-						</div>
-						<div class="ml-3">
-							<h3 class="text-sm font-medium text-orange-800">Please complete all required fields</h3>
-							<div class="mt-2 text-sm text-orange-700">
-								<ul class="list-disc list-inside space-y-1">
-									{#each validationErrors as error}
-										<li>{error}</li>
-									{/each}
-								</ul>
-							</div>
-						</div>
-					</div>
-				</div>
-			{/if}
-
+<Card.Root class="w-full">
+	<Card.Header>
+		<Card.Title>Share Your Experience</Card.Title>
+		<Card.Description>
+			Help other students by sharing your honest feedback about your preceptor experience.
+		</Card.Description>
+	</Card.Header>
+	<Card.Content>
+		<form class="space-y-6">
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Preceptor *</Label>
 					<PreceptorComboBox 
 						{preceptors}
 						value={formData.preceptorId}
-						onValueChange={(value) => {
-							formData.preceptorId = value;
-							clearValidationErrors();
-						}}
+						onValueChange={handlePreceptorChange}
 						placeholder="Select preceptor"
 						searchPlaceholder="Search preceptors..."
 					/>
@@ -206,50 +223,63 @@
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Rotation Type *</Label>
 					<Select.Root type="single" bind:value={formData.rotationTypeId} onValueChange={clearValidationErrors}>
-						<Select.Trigger class="w-full">
+						<Select.Trigger class="w-full" disabled={!selectedPreceptor}>
 							{rotationTypeTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
-							{#each rotationTypes as rotation (rotation._id)}
+							{#each filteredRotationTypes as rotation (rotation._id)}
 								<Select.Item value={rotation._id} label={rotation.name}>
 									{rotation.name}
 								</Select.Item>
 							{/each}
 						</Select.Content>
 					</Select.Root>
+					{#if !selectedPreceptor}
+						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+					{/if}
 				</div>
 
 				<div class="space-y-2">
-					<Label class="text-sm font-medium">Type *</Label>
-					<Select.Root type="single" bind:value={formData.ippeAppe}>
-						<Select.Trigger class="w-full">
-							{ippeAppeTriggerContent}
+					<Label class="text-sm font-medium">Experience Type *</Label>
+					<Select.Root type="single" bind:value={formData.experienceTypeId} onValueChange={clearValidationErrors}>
+						<Select.Trigger class="w-full" disabled={!selectedPreceptor}>
+							{experienceTypeTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
-							<Select.Item value="IPPE" label="IPPE">IPPE</Select.Item>
-							<Select.Item value="APPE" label="APPE">APPE</Select.Item>
+							{#each filteredExperienceTypes as experienceType (experienceType._id)}
+								<Select.Item value={experienceType._id} label={experienceType.name}>
+									{experienceType.name}
+								</Select.Item>
+							{/each}
 						</Select.Content>
 					</Select.Root>
+					{#if !selectedPreceptor}
+						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+					{/if}
 				</div>
 
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">School Year *</Label>
-					<Select.Root type="single" bind:value={formData.schoolYear}>
-						<Select.Trigger class="w-full">
+					<Select.Root type="single" bind:value={formData.schoolYear} onValueChange={clearValidationErrors}>
+						<Select.Trigger class="w-full" disabled={!selectedProgramType}>
 							{schoolYearTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
-							<Select.Item value="P1" label="P1">P1</Select.Item>
-							<Select.Item value="P2" label="P2">P2</Select.Item>
-							<Select.Item value="P3" label="P3">P3</Select.Item>
-							<Select.Item value="P4" label="P4">P4</Select.Item>
+							{#each availableYears as year}
+								<Select.Item value={year} label={year}>
+									{year}
+								</Select.Item>
+							{/each}
 						</Select.Content>
 					</Select.Root>
+					{#if !selectedProgramType}
+						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+					{/if}
 				</div>
 
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Prior Experience *</Label>
-					<Select.Root type="single" bind:value={formData.priorExperience}>
+					<Select.Root type="single" bind:value={formData.priorExperience} onValueChange={clearValidationErrors}>
 						<Select.Trigger class="w-full">
 							{priorExperienceTriggerContent}
 						</Select.Trigger>
@@ -263,57 +293,63 @@
 				</div>
 
 				<div class="space-y-2">
-					<Label class="text-sm font-medium">Extra Hours per Week</Label>
+					<Label class="text-sm font-medium">Extra Hours (per week)</Label>
 					<Input
 						type="number"
-						placeholder="0"
 						bind:value={formData.extraHours}
+						placeholder="0"
 						min="0"
-						max="168"
+						max="60"
+						oninput={clearValidationErrors}
 					/>
+					<p class="text-xs text-muted-foreground">Leave blank if no extra hours required</p>
 				</div>
 			</div>
 
 			<div class="space-y-4">
-				<h3 class="text-lg font-medium">Ratings (1-5 scale) *</h3>
-				<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-					<RatingInput
-						label="Scheduling Flexibility"
-						value={formData.schedulingFlexibility}
-						onChange={(value) => {
-							formData.schedulingFlexibility = value.toString();
-							clearValidationErrors();
-						}}
+				<h3 class="text-lg font-semibold">Rate Your Experience</h3>
+				<p class="text-sm text-muted-foreground">Rate each aspect on a scale of 1-5 (1 = Poor, 5 = Excellent)</p>
+				
+				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<RatingInput 
+						label="Scheduling Flexibility" 
+						bind:value={formData.schedulingFlexibility} 
+						onChange={(value) => { formData.schedulingFlexibility = value.toString(); clearValidationErrors(); }}
 						required={true}
 					/>
-					<RatingInput
-						label="Workload"
-						value={formData.workload}
-						onChange={(value) => formData.workload = value.toString()}
+					
+					<RatingInput 
+						label="Workload" 
+						bind:value={formData.workload} 
+						onChange={(value) => { formData.workload = value.toString(); clearValidationErrors(); }}
 						required={true}
 					/>
-					<RatingInput
-						label="Expectations"
-						value={formData.expectations}
-						onChange={(value) => formData.expectations = value.toString()}
+					
+					<RatingInput 
+						label="Expectations" 
+						bind:value={formData.expectations} 
+						onChange={(value) => { formData.expectations = value.toString(); clearValidationErrors(); }}
 						required={true}
 					/>
-					<RatingInput
-						label="Mentorship"
-						value={formData.mentorship}
-						onChange={(value) => formData.mentorship = value.toString()}
+					
+					<RatingInput 
+						label="Mentorship" 
+						bind:value={formData.mentorship} 
+						onChange={(value) => { formData.mentorship = value.toString(); clearValidationErrors(); }}
 						required={true}
 					/>
-					<RatingInput
-						label="Enjoyment"
-						value={formData.enjoyment}
-						onChange={(value) => formData.enjoyment = value.toString()}
+					
+					<RatingInput 
+						label="Enjoyment" 
+						bind:value={formData.enjoyment} 
+						onChange={(value) => { formData.enjoyment = value.toString(); clearValidationErrors(); }}
 						required={true}
 					/>
-					<RatingInput
-						label="Overall Rating"
-						value={formData.starRating}
-						onChange={(value) => formData.starRating = value.toString()}
+					
+					<RatingInput 
+						label="Overall Rating" 
+						bind:value={formData.starRating} 
+						onChange={(value) => { formData.starRating = value.toString(); clearValidationErrors(); }}
 						required={true}
 					/>
 				</div>
@@ -321,7 +357,7 @@
 
 			<div class="space-y-4">
 				<div class="space-y-2">
-					<Label class="text-sm font-medium">Would Recommend *</Label>
+					<Label class="text-sm font-medium">Would you recommend this preceptor? *</Label>
 					<Select.Root type="single" bind:value={formData.wouldRecommend} onValueChange={clearValidationErrors}>
 						<Select.Trigger class="w-full">
 							{wouldRecommendTriggerContent}
@@ -334,7 +370,20 @@
 				</div>
 
 				<div class="space-y-2">
-					<Label class="text-sm font-medium">Is this an outlier experience? *</Label>
+					<Label class="text-sm font-medium">Comment</Label>
+					<textarea
+						bind:value={formData.comment}
+						placeholder="Share specific details about your experience..."
+						class="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+						oninput={clearValidationErrors}
+					></textarea>
+					<p class="text-xs text-muted-foreground">
+						{commentCharCount}/2000 characters • {commentWordCount} words
+					</p>
+				</div>
+
+				<div class="space-y-2">
+					<Label class="text-sm font-medium">Is this an outlier experience?</Label>
 					<Select.Root type="single" bind:value={formData.isOutlier} onValueChange={clearValidationErrors}>
 						<Select.Trigger class="w-full">
 							{isOutlierTriggerContent}
@@ -348,55 +397,44 @@
 
 				{#if formData.isOutlier === 'true'}
 					<div class="space-y-2">
-						<Label class="text-sm font-medium">Outlier Reason</Label>
-						<Input
-							placeholder="Explain why this was an outlier experience"
+						<Label class="text-sm font-medium">Explain why this is an outlier experience *</Label>
+						<textarea
 							bind:value={formData.outlierReason}
-						/>
+							placeholder="Explain what made this experience unusual..."
+							class="min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+							oninput={clearValidationErrors}
+						></textarea>
 					</div>
 				{/if}
-
-				<div class="space-y-2">
-					<Label class="text-sm font-medium">Additional Comments</Label>
-					<textarea
-						class="min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-						placeholder="Share your experience in detail... (max 500 words)"
-						bind:value={formData.comment}
-						maxlength="2500"
-					></textarea>
-					<div class="flex justify-between text-xs text-muted-foreground">
-						<span>{commentWordCount} words</span>
-						<span>{commentCharCount}/2500 characters</span>
-					</div>
-				</div>
 			</div>
 
-			{#if submitError}
+			<div class="flex items-center space-x-2">
+				<Checkbox bind:checked={formData.agreedToPolicies} onCheckedChange={clearValidationErrors} />
+				<Label class="text-sm">
+					I agree to the <a href="/terms" class="text-primary hover:underline">Terms of Service</a> and <a href="/privacy" class="text-primary hover:underline">Privacy Policy</a>
+				</Label>
+			</div>
+
+			{#if validationErrors.length > 0}
 				<div class="rounded-md border border-red-200 bg-red-50 p-4">
-					<p class="text-red-800">{submitError}</p>
+					<h4 class="text-sm font-medium text-red-800">Please fix the following errors:</h4>
+					<ul class="mt-2 text-sm text-red-700">
+						{#each validationErrors as error}
+							<li>• {error}</li>
+						{/each}
+					</ul>
 				</div>
 			{/if}
 
-			<div class="space-y-2">
-				<div class="flex items-center space-x-2">
-					<Checkbox 
-						id="policies" 
-						bind:checked={formData.agreedToPolicies}
-						onCheckedChange={clearValidationErrors}
-					/>
-					<Label for="policies" class="text-sm">
-						I agree to the <a href="/terms" target="_blank" class="text-primary hover:underline">Terms and Conditions</a>, 
-						<a href="/privacy" target="_blank" class="text-primary hover:underline">Privacy Policy</a>, and 
-						<a href="/guidelines" target="_blank" class="text-primary hover:underline">Community Guidelines</a> *
-					</Label>
+			{#if submitError}
+				<div class="rounded-md border border-red-200 bg-red-50 p-4">
+					<p class="text-sm text-red-800">{submitError}</p>
 				</div>
-			</div>
-		</Card.Content>
-		<Card.Footer class="flex justify-between">
-			<Button variant="outline" onclick={() => dispatch('submitted')}>Cancel</Button>
-			<Button onclick={handleSubmit} disabled={isSubmitting}>
+			{/if}
+
+			<Button type="button" onclick={handleSubmit} disabled={isSubmitting} class="w-full">
 				{isSubmitting ? 'Submitting...' : 'Submit Review'}
 			</Button>
-		</Card.Footer>
-	</Card.Root>
-</div> 
+		</form>
+	</Card.Content>
+</Card.Root> 

@@ -5,7 +5,8 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
-	import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from '@lucide/svelte';
+	import * as Pagination from '$lib/components/ui/pagination/index.js';
+	import { ChevronLeft, ChevronRight } from '@lucide/svelte';
 	import {
 		getCoreRowModel,
 		getPaginationRowModel,
@@ -32,6 +33,7 @@
 	}: DataTableProps<T> = $props();
 
 	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
+
 	let sorting = $state<SortingState>([]);
 	let columnFilters = $state<ColumnFiltersState>([]);
 	let rowSelection = $state<RowSelectionState>({});
@@ -89,15 +91,19 @@
 		}
 	});
 
-	let pageSize = $state(table.getState().pagination.pageSize.toString());
+	let pageSizeTriggerContent = $derived(`${pagination.pageSize} per page`);
 
 	function handlePageSizeChange(value: string) {
 		const newPageSize = Number(value);
-		pageSize = value;
 		table.setPageSize(newPageSize);
 	}
 
-	const pageSizeTriggerContent = $derived(`${pageSize} per page`);
+	let selectedPageSize = $state(pagination.pageSize.toString());
+
+	let count = $derived(table.getFilteredRowModel().rows.length);
+	let perPage = $derived(pagination.pageSize);
+	let currentPage = $derived(pagination.pageIndex + 1);
+	let siblingCount = 1;
 </script>
 
 <div class="w-full space-y-4">
@@ -161,7 +167,7 @@
 			)} of {table.getFilteredRowModel().rows.length} row(s)
 		</div>
 		<div class="order-1 flex items-center space-x-2 sm:order-2">
-			<Select.Root type="single" bind:value={pageSize} onValueChange={handlePageSizeChange}>
+			<Select.Root type="single" value={selectedPageSize} onValueChange={handlePageSizeChange}>
 				<Select.Trigger class="w-[100px] text-xs sm:w-[120px] sm:text-sm">
 					{pageSizeTriggerContent}
 				</Select.Trigger>
@@ -172,47 +178,41 @@
 					<Select.Item value="50" label="50 per page">50 per page</Select.Item>
 				</Select.Content>
 			</Select.Root>
-			<div class="flex items-center space-x-1 sm:space-x-2">
-				<Button
-					variant="outline"
-					size="sm"
-					onclick={() => table.setPageIndex(0)}
-					disabled={!table.getCanPreviousPage()}
-					class="px-2 text-xs sm:px-3"
-				>
-					<ChevronsLeft class="h-4 w-4" />
-				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					onclick={() => table.previousPage()}
-					disabled={!table.getCanPreviousPage()}
-					class="px-2 text-xs sm:px-3"
-				>
-					<ChevronLeft class="h-4 w-4" />
-				</Button>
-				<span class="px-2 text-xs sm:text-sm">
-					Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-				</span>
-				<Button
-					variant="outline"
-					size="sm"
-					onclick={() => table.nextPage()}
-					disabled={!table.getCanNextPage()}
-					class="px-2 text-xs sm:px-3"
-				>
-					<ChevronRight class="h-4 w-4" />
-				</Button>
-				<Button
-					variant="outline"
-					size="sm"
-					onclick={() => table.setPageIndex(table.getPageCount() - 1)}
-					disabled={!table.getCanNextPage()}
-					class="px-2 text-xs sm:px-3"
-				>
-					<ChevronsRight class="h-4 w-4" />
-				</Button>
-			</div>
+			<Pagination.Root {count} {perPage} {siblingCount}>
+				{#snippet children({ pages, currentPage })}
+					<Pagination.Content>
+						<Pagination.Item>
+							<Pagination.PrevButton onclick={() => table.previousPage()}>
+								<ChevronLeft class="h-4 w-4" />
+								<span class="hidden sm:block">Previous</span>
+							</Pagination.PrevButton>
+						</Pagination.Item>
+						{#each pages as page (page.key)}
+							{#if page.type === "ellipsis"}
+								<Pagination.Item>
+									<Pagination.Ellipsis />
+								</Pagination.Item>
+							{:else}
+								<Pagination.Item>
+									<Pagination.Link 
+										{page} 
+										isActive={currentPage === page.value}
+										onclick={() => table.setPageIndex(page.value - 1)}
+									>
+										{page.value}
+									</Pagination.Link>
+								</Pagination.Item>
+							{/if}
+						{/each}
+						<Pagination.Item>
+							<Pagination.NextButton onclick={() => table.nextPage()}>
+								<span class="hidden sm:block">Next</span>
+								<ChevronRight class="h-4 w-4" />
+							</Pagination.NextButton>
+						</Pagination.Item>
+					</Pagination.Content>
+				{/snippet}
+			</Pagination.Root>
 		</div>
 	</div>
 </div>

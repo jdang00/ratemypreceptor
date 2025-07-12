@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { useConvexClient } from 'convex-svelte';
+	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { api } from '../../convex/_generated/api.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 
@@ -15,20 +16,27 @@
 	let { isOpen, onClose, onSuccess }: Props = $props();
 
 	const client = useConvexClient();
+	const programTypesQuery = useQuery(api.programTypes.get, {});
 
 	let formData = $state({
 		name: '',
-		city: '',
-		state: ''
+		programTypeId: '',
+		description: ''
 	});
 
 	let isSubmitting = $state(false);
 	let submitError = $state('');
 
+	const programTypes = $derived(programTypesQuery.data ?? []);
+
+	const programTypeTriggerContent = $derived(
+		programTypes.find((p) => p._id === formData.programTypeId)?.name ?? 'Select program type'
+	);
+
 	async function handleSubmit() {
 		if (isSubmitting) return;
 
-		if (!formData.name.trim() || !formData.city.trim() || !formData.state.trim()) {
+		if (!formData.name.trim() || !formData.programTypeId) {
 			submitError = 'Please fill in all required fields';
 			return;
 		}
@@ -37,22 +45,22 @@
 			isSubmitting = true;
 			submitError = '';
 
-			await client.mutation(api.practiceSites.insertPracticeSite, {
+			await client.mutation(api.experienceTypes.insertExperienceType, {
 				name: formData.name.trim(),
-				city: formData.city.trim(),
-				state: formData.state.trim()
+				programTypeId: formData.programTypeId as any,
+				description: formData.description.trim() || undefined
 			});
 			
 			formData = {
 				name: '',
-				city: '',
-				state: ''
+				programTypeId: '',
+				description: ''
 			};
 			
 			onSuccess?.();
 			onClose();
 		} catch (error) {
-			submitError = error instanceof Error ? error.message : 'Failed to add practice site';
+			submitError = error instanceof Error ? error.message : 'Failed to add experience type';
 		} finally {
 			isSubmitting = false;
 		}
@@ -61,8 +69,8 @@
 	function handleClose() {
 		formData = {
 			name: '',
-			city: '',
-			state: ''
+			programTypeId: '',
+			description: ''
 		};
 		submitError = '';
 		onClose();
@@ -72,52 +80,53 @@
 <Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && handleClose()}>
 	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-md p-4 sm:p-6">
 		<Dialog.Header>
-			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New Practice Site</Dialog.Title>
+			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New Experience Type</Dialog.Title>
 			<Dialog.Description class="text-sm text-muted-foreground">
-				Add a new practice site to the system.
+				Add a new experience type to the system.
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="space-y-4">
 			<div class="space-y-2">
+				<Label class="text-sm font-medium">Program Type *</Label>
+				<Select.Root type="single" bind:value={formData.programTypeId}>
+					<Select.Trigger class="h-9 w-full text-sm">
+						{programTypeTriggerContent}
+					</Select.Trigger>
+					<Select.Content>
+						{#each programTypes as programType (programType._id)}
+							<Select.Item value={programType._id} label={programType.name}>
+								{programType.name}
+							</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</div>
+
+			<div class="space-y-2">
 				<Label for="name" class="text-sm font-medium">
-					Site Name *
+					Experience Type Name *
 				</Label>
 				<Input
 					id="name"
-					placeholder="Enter site name"
+					placeholder="e.g., IPPE, APPE, Clinical Rotation"
 					bind:value={formData.name}
 					disabled={isSubmitting}
 					class="h-9 text-sm"
 				/>
 			</div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-				<div class="space-y-2">
-					<Label for="city" class="text-sm font-medium">
-						City *
-					</Label>
-					<Input
-						id="city"
-						placeholder="City"
-						bind:value={formData.city}
-						disabled={isSubmitting}
-						class="h-9 text-sm"
-					/>
-				</div>
-
-				<div class="space-y-2">
-					<Label for="state" class="text-sm font-medium">
-						State *
-					</Label>
-					<Input
-						id="state"
-						placeholder="State"
-						bind:value={formData.state}
-						disabled={isSubmitting}
-						class="h-9 text-sm"
-					/>
-				</div>
+			<div class="space-y-2">
+				<Label for="description" class="text-sm font-medium">
+					Description
+				</Label>
+				<Input
+					id="description"
+					placeholder="Optional description of this experience type"
+					bind:value={formData.description}
+					disabled={isSubmitting}
+					class="h-9 text-sm"
+				/>
 			</div>
 
 			{#if submitError}
@@ -132,7 +141,7 @@
 				Cancel
 			</Button>
 			<Button onclick={handleSubmit} disabled={isSubmitting}>
-				{isSubmitting ? 'Adding...' : 'Add Practice Site'}
+				{isSubmitting ? 'Adding...' : 'Add Experience Type'}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

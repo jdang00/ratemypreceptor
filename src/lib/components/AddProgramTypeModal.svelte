@@ -18,8 +18,8 @@
 
 	let formData = $state({
 		name: '',
-		city: '',
-		state: ''
+		abbreviation: '',
+		yearLabels: ''
 	});
 
 	let isSubmitting = $state(false);
@@ -28,7 +28,7 @@
 	async function handleSubmit() {
 		if (isSubmitting) return;
 
-		if (!formData.name.trim() || !formData.city.trim() || !formData.state.trim()) {
+		if (!formData.name.trim() || !formData.abbreviation.trim() || !formData.yearLabels.trim()) {
 			submitError = 'Please fill in all required fields';
 			return;
 		}
@@ -37,22 +37,24 @@
 			isSubmitting = true;
 			submitError = '';
 
-			await client.mutation(api.practiceSites.insertPracticeSite, {
+			const yearLabelsArray = formData.yearLabels.split(',').map(label => label.trim()).filter(label => label.length > 0);
+
+			await client.mutation(api.programTypes.insertProgramType, {
 				name: formData.name.trim(),
-				city: formData.city.trim(),
-				state: formData.state.trim()
+				abbreviation: formData.abbreviation.trim(),
+				yearLabels: yearLabelsArray
 			});
 			
 			formData = {
 				name: '',
-				city: '',
-				state: ''
+				abbreviation: '',
+				yearLabels: ''
 			};
 			
 			onSuccess?.();
 			onClose();
 		} catch (error) {
-			submitError = error instanceof Error ? error.message : 'Failed to add practice site';
+			submitError = error instanceof Error ? error.message : 'Failed to add program type';
 		} finally {
 			isSubmitting = false;
 		}
@@ -61,8 +63,8 @@
 	function handleClose() {
 		formData = {
 			name: '',
-			city: '',
-			state: ''
+			abbreviation: '',
+			yearLabels: ''
 		};
 		submitError = '';
 		onClose();
@@ -72,52 +74,51 @@
 <Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && handleClose()}>
 	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-md p-4 sm:p-6">
 		<Dialog.Header>
-			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New Practice Site</Dialog.Title>
+			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New Program Type</Dialog.Title>
 			<Dialog.Description class="text-sm text-muted-foreground">
-				Add a new practice site to the system.
+				Add a new program type to the system.
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="space-y-4">
 			<div class="space-y-2">
 				<Label for="name" class="text-sm font-medium">
-					Site Name *
+					Program Name *
 				</Label>
 				<Input
 					id="name"
-					placeholder="Enter site name"
+					placeholder="e.g., Pharmacy, Medicine, Optometry"
 					bind:value={formData.name}
 					disabled={isSubmitting}
 					class="h-9 text-sm"
 				/>
 			</div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-				<div class="space-y-2">
-					<Label for="city" class="text-sm font-medium">
-						City *
-					</Label>
-					<Input
-						id="city"
-						placeholder="City"
-						bind:value={formData.city}
-						disabled={isSubmitting}
-						class="h-9 text-sm"
-					/>
-				</div>
+			<div class="space-y-2">
+				<Label for="abbreviation" class="text-sm font-medium">
+					Abbreviation *
+				</Label>
+				<Input
+					id="abbreviation"
+					placeholder="e.g., PharmD, MD, OD"
+					bind:value={formData.abbreviation}
+					disabled={isSubmitting}
+					class="h-9 text-sm"
+				/>
+			</div>
 
-				<div class="space-y-2">
-					<Label for="state" class="text-sm font-medium">
-						State *
-					</Label>
-					<Input
-						id="state"
-						placeholder="State"
-						bind:value={formData.state}
-						disabled={isSubmitting}
-						class="h-9 text-sm"
-					/>
-				</div>
+			<div class="space-y-2">
+				<Label for="yearLabels" class="text-sm font-medium">
+					Year Labels *
+				</Label>
+				<Input
+					id="yearLabels"
+					placeholder="e.g., P1,P2,P3,P4 or M1,M2,M3,M4"
+					bind:value={formData.yearLabels}
+					disabled={isSubmitting}
+					class="h-9 text-sm"
+				/>
+				<p class="text-xs text-muted-foreground">Separate multiple years with commas</p>
 			</div>
 
 			{#if submitError}
@@ -132,7 +133,7 @@
 				Cancel
 			</Button>
 			<Button onclick={handleSubmit} disabled={isSubmitting}>
-				{isSubmitting ? 'Adding...' : 'Add Practice Site'}
+				{isSubmitting ? 'Adding...' : 'Add Program Type'}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

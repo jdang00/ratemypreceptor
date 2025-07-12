@@ -4,6 +4,7 @@
 	import * as Dialog from './ui/dialog/index.js';
 	import { Button } from './ui/button/index.js';
 	import { Input } from './ui/input/index.js';
+	import { Textarea } from './ui/textarea/index.js';
 	import * as Select from './ui/select/index.js';
 	import { Checkbox } from './ui/checkbox/index.js';
 	import { Label } from './ui/label/index.js';
@@ -12,7 +13,7 @@
 	type FieldConfig = {
 		key: string;
 		label: string;
-		type: 'text' | 'select' | 'number' | 'boolean' | 'preceptor_combobox' | 'comment';
+		type: 'text' | 'textarea' | 'select' | 'number' | 'boolean' | 'preceptor_combobox' | 'comment' | 'array';
 		options?: { label: string; value: string }[];
 		preceptors?: { _id: string; fullName: string }[];
 		required?: boolean;
@@ -37,7 +38,26 @@
 
 	$effect(() => {
 		if (entity) {
-			formData = { ...entity };
+			console.log('EditModal - Original entity:', entity);
+			console.log('EditModal - Field keys:', fields.map(f => f.key));
+			
+			const fieldKeys = new Set(fields.map(f => f.key));
+			const filteredEntity = Object.fromEntries(
+				Object.entries(entity).filter(([key]) => fieldKeys.has(key))
+			);
+			
+			console.log('EditModal - Filtered entity:', filteredEntity);
+			
+			const processedEntity = { ...filteredEntity };
+			
+			for (const field of fields) {
+				if (field.type === 'array' && Array.isArray(processedEntity[field.key])) {
+					processedEntity[field.key] = processedEntity[field.key].join(', ');
+				}
+			}
+			
+			console.log('EditModal - Final formData:', processedEntity);
+			formData = processedEntity;
 		} else {
 			formData = {};
 		}
@@ -60,6 +80,8 @@
 					processedValue = newValue === 'true';
 				} else if (field.type === 'number' && typeof newValue === 'string') {
 					processedValue = Number(newValue);
+				} else if (field.type === 'array' && typeof newValue === 'string') {
+					processedValue = newValue.split(',').map(s => s.trim()).filter(s => s.length > 0);
 				}
 
 				if (processedValue !== oldValue) {
@@ -89,14 +111,14 @@
 	}
 
 	function getSelectTriggerContent(field: FieldConfig, value: any): string {
-		if (!value) return `Select ${field.label.toLowerCase()}`;
+		if (!value && value !== 0) return `Select ${field.label.toLowerCase()}`;
 
 		if (field.options) {
 			const option = field.options.find((opt) => opt.value === value);
 			if (option) return option.label;
 		}
 
-		return value.toString();
+		return value?.toString() || `Select ${field.label.toLowerCase()}`;
 	}
 
 	function getFieldOptions(field: FieldConfig): { label: string; value: string }[] {
@@ -124,7 +146,7 @@
 					style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));"
 				>
 					{#each fields as field (field.key)}
-						{#if field.type !== 'comment'}
+						{#if field.type !== 'comment' && field.type !== 'textarea'}
 							<div class="flex flex-col space-y-2">
 								<Label for={field.key} class="text-foreground text-sm font-medium">
 									{field.label}
@@ -152,7 +174,17 @@
 										class="h-9 text-sm"
 										placeholder="Enter {field.label.toLowerCase()}"
 									/>
+								{:else if field.type === 'array'}
+									<Input
+										id={field.key}
+										value={formData[field.key] || ''}
+										oninput={(e) => handleFieldChange(field.key, e.currentTarget.value)}
+										required={field.required}
+										class="h-9 text-sm"
+										placeholder="Enter comma-separated values"
+									/>
 								{:else if field.type === 'select'}
+									{console.log(`Select field ${field.key}:`, formData[field.key])}
 									<Select.Root
 										type="single"
 										bind:value={formData[field.key]}
@@ -194,6 +226,29 @@
 						{/if}
 					{/each}
 				</div>
+
+				{#each fields as field (field.key)}
+					{#if field.type === 'textarea'}
+						<div class="mt-6">
+							<Label for={field.key} class="text-foreground text-sm font-medium">
+								{field.label}
+								{#if field.required}
+									<span class="ml-1 text-red-500">*</span>
+								{/if}
+							</Label>
+							<div class="mt-2">
+								<Textarea
+									id={field.key}
+									value={formData[field.key] || ''}
+									oninput={(e) => handleFieldChange(field.key, e.currentTarget.value)}
+									required={field.required}
+									class="min-h-[80px] text-sm"
+									placeholder="Enter {field.label.toLowerCase()}"
+								/>
+							</div>
+						</div>
+					{/if}
+				{/each}
 
 				{#if fields.find(f => f.type === 'comment')}
 					<div class="mt-8">

@@ -2,26 +2,27 @@ import type { ColumnDef } from '@tanstack/table-core';
 import { renderSnippet } from '$lib/components/ui/data-table/index.js';
 import { createRawSnippet } from 'svelte';
 
-export type RotationType = {
+export type SchoolProgram = {
 	_id: string;
+	schoolId: string;
 	programTypeId: string;
+	schoolName: string;
 	programTypeName: string;
-	name: string;
 	_creationTime: number;
 };
 
-export const rotationTypesColumns: ColumnDef<RotationType>[] = [
+export const schoolProgramsColumns: ColumnDef<SchoolProgram>[] = [
 	{
-		accessorKey: 'name',
-		header: 'Rotation Type',
+		accessorKey: 'schoolName',
+		header: 'School',
 		cell: ({ row }) => {
-			const nameSnippet = createRawSnippet<[string]>((getName) => {
-				const name = getName();
+			const schoolSnippet = createRawSnippet<[string]>((getSchoolName) => {
+				const schoolName = getSchoolName();
 				return {
-					render: () => `<div class="font-medium">${name}</div>`
+					render: () => `<div class="font-medium">${schoolName}</div>`
 				};
 			});
-			return renderSnippet(nameSnippet, row.getValue('name'));
+			return renderSnippet(schoolSnippet, row.getValue('schoolName'));
 		}
 	},
 	{
@@ -60,14 +61,14 @@ export const rotationTypesColumns: ColumnDef<RotationType>[] = [
 		id: 'actions',
 		header: 'Actions',
 		cell: ({ row }) => {
-			const actionsSnippet = createRawSnippet<[RotationType]>((getRotationType) => {
-				const rotationType = getRotationType();
+			const actionsSnippet = createRawSnippet<[SchoolProgram]>((getSchoolProgram) => {
+				const schoolProgram = getSchoolProgram();
 				return {
 					render: () => `
 						<div class="flex items-center gap-2">
 							<button 
 								class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8"
-								data-edit-rotation-type='${JSON.stringify(rotationType)}'
+								data-edit-school-program='${JSON.stringify(schoolProgram)}'
 								title="Edit"
 								type="button"
 							>
@@ -75,7 +76,7 @@ export const rotationTypesColumns: ColumnDef<RotationType>[] = [
 							</button>
 							<button 
 								class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-destructive/10 hover:text-destructive h-8 w-8"
-								data-delete-rotation-type="${rotationType._id}"
+								data-delete-school-program="${schoolProgram._id}"
 								title="Delete"
 								type="button"
 							>

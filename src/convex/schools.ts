@@ -4,8 +4,34 @@ import { v } from 'convex/values';
 export const get = query({
 	args: {},
 	handler: async (ctx) => {
-		const preceptors = await ctx.db.query('schools').collect();
-		return preceptors;
+		return await ctx.db.query('schools').collect();
+	}
+});
+
+export const getWithPrograms = query({
+	args: {},
+	handler: async (ctx) => {
+		const schools = await ctx.db.query('schools').collect();
+		const schoolPrograms = await ctx.db.query('schoolPrograms').collect();
+		const programTypes = await ctx.db.query('programTypes').collect();
+		
+		const programTypeMap = new Map(programTypes.map(p => [p._id, p.name]));
+		const schoolProgramsMap = new Map();
+		
+		schoolPrograms.forEach(sp => {
+			if (!schoolProgramsMap.has(sp.schoolId)) {
+				schoolProgramsMap.set(sp.schoolId, []);
+			}
+			schoolProgramsMap.get(sp.schoolId).push({
+				programTypeId: sp.programTypeId,
+				programTypeName: programTypeMap.get(sp.programTypeId) || 'Unknown Program'
+			});
+		});
+		
+		return schools.map(school => ({
+			...school,
+			programs: schoolProgramsMap.get(school._id) || []
+		}));
 	}
 });
 

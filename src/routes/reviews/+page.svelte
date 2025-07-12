@@ -5,8 +5,9 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import { goto } from '$app/navigation';
+	import ReviewCard from '$lib/components/ReviewCard.svelte';
 
-	const reviewsQuery = useQuery(api.reviews.get, {});
+	const reviewsQuery = useQuery(api.reviews.get);
 
 	const reviews = $derived(reviewsQuery.data ?? []);
 
@@ -26,8 +27,6 @@
 			<p class="mt-2">Browse preceptor reviews from other students</p>
 		</div>
 		<Button onclick={() => goto('/reviews/new')}>Submit Review</Button>
-
-
 	</div>
 
 	{#if reviewsQuery.isLoading}
@@ -71,95 +70,11 @@
 	{:else}
 		<div class="space-y-4">
 			{#each reviews as review (review._id)}
-				<Card.Root>
-					<Card.Header class="pb-4">
-						<div class="flex items-start justify-between">
-							<div>
-								<Card.Title class="text-base font-semibold">
-									<a href="/preceptors/{review.preceptorName}" class="hover:underline ">
-										{review.preceptorName}
-									</a>
-								</Card.Title>
-								<Card.Description class="flex items-center gap-2 mt-1">
-									<span class="font-medium">{review.rotationTypeName}</span>
-									<span>•</span>
-									<span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-										review.ippeAppe === 'IPPE' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary-foreground'
-									}`}>
-										{review.ippeAppe}
-									</span>
-									<span>•</span>
-									<span>{review.schoolYear}</span>
-									<span>•</span>
-									<span class="text-muted-foreground">{review.priorExperience} experience</span>
-								</Card.Description>
-							</div>
-							<div class="flex items-center gap-3">
-								<div class="flex items-center gap-1">
-									<span class="text-primary">⭐</span>
-									<span class="text-sm font-semibold">{review.starRating.toFixed(1)}</span>
-								</div>
-								<span
-									class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-										review.wouldRecommend
-											? 'bg-primary/10 text-primary'
-											: 'bg-destructive/10 text-destructive'
-									}`}
-								>
-									{review.wouldRecommend ? '👍 Recommends' : '👎 Doesn\'t recommend'}
-								</span>
-							</div>
-						</div>
-					</Card.Header>
-					<Card.Content class="space-y-4">
-						<div class="grid grid-cols-5 gap-3 text-center text-sm">
-							<div>
-								<div class="font-medium text-muted-foreground text-xs">Flexibility</div>
-								<div class="text-base font-semibold">{review.schedulingFlexibility}/5</div>
-							</div>
-							<div>
-								<div class="font-medium text-muted-foreground text-xs">Workload</div>
-								<div class="text-base font-semibold">{review.workload}/5</div>
-							</div>
-							<div>
-								<div class="font-medium text-muted-foreground text-xs">Expectations</div>
-								<div class="text-base font-semibold">{review.expectations}/5</div>
-							</div>
-							<div>
-								<div class="font-medium text-muted-foreground text-xs">Mentorship</div>
-								<div class="text-base font-semibold">{review.mentorship}/5</div>
-							</div>
-							<div>
-								<div class="font-medium text-muted-foreground text-xs">Enjoyment</div>
-								<div class="text-base font-semibold">{review.enjoyment}/5</div>
-							</div>
-						</div>
-
-						{#if review.extraHours}
-							<div class="text-sm text-muted-foreground">
-								Extra hours per week: <span class="font-medium">{review.extraHours}</span>
-							</div>
-						{/if}
-
-						{#if review.comment}
-							<div class="bg-muted rounded-lg p-3 ">
-								<p class="text-sm leading-relaxed">{review.comment}</p>
-							</div>
-						{/if}
-
-						{#if review.isOutlier && review.outlierReason}
-							<div class="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950">
-								<div class="flex items-center gap-2 mb-1">
-									<span class="text-xs font-bold text-amber-800 dark:text-amber-200">⚠️ OUTLIER EXPERIENCE</span>
-								</div>
-								<p class="text-sm text-amber-700 dark:text-amber-300">{review.outlierReason}</p>
-							</div>
-						{/if}
-					</Card.Content>
-					<Card.Footer class="text-xs text-muted-foreground pt-3 border-t">
-						Submitted {formatDate(review.updatedAt)}
-					</Card.Footer>
-				</Card.Root>
+				<ReviewCard 
+					{review} 
+					showPreceptorName={true} 
+					preceptorLink="/preceptors/{review.preceptorName}" 
+				/>
 			{/each}
 		</div>
 	{/if}

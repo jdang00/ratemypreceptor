@@ -2,18 +2,18 @@ import type { ColumnDef } from '@tanstack/table-core';
 import { renderSnippet } from '$lib/components/ui/data-table/index.js';
 import { createRawSnippet } from 'svelte';
 
-export type RotationType = {
+export type ProgramType = {
 	_id: string;
-	programTypeId: string;
-	programTypeName: string;
 	name: string;
+	abbreviation: string;
+	yearLabels: string[];
 	_creationTime: number;
 };
 
-export const rotationTypesColumns: ColumnDef<RotationType>[] = [
+export const programTypesColumns: ColumnDef<ProgramType>[] = [
 	{
 		accessorKey: 'name',
-		header: 'Rotation Type',
+		header: 'Program Name',
 		cell: ({ row }) => {
 			const nameSnippet = createRawSnippet<[string]>((getName) => {
 				const name = getName();
@@ -25,16 +25,30 @@ export const rotationTypesColumns: ColumnDef<RotationType>[] = [
 		}
 	},
 	{
-		accessorKey: 'programTypeName',
-		header: 'Program Type',
+		accessorKey: 'abbreviation',
+		header: 'Abbreviation',
 		cell: ({ row }) => {
-			const programSnippet = createRawSnippet<[string]>((getProgramName) => {
-				const programName = getProgramName();
+			const abbrevSnippet = createRawSnippet<[string]>((getAbbrev) => {
+				const abbrev = getAbbrev();
 				return {
-					render: () => `<div class="text-sm">${programName}</div>`
+					render: () => `<div class="text-sm">${abbrev}</div>`
 				};
 			});
-			return renderSnippet(programSnippet, row.getValue('programTypeName'));
+			return renderSnippet(abbrevSnippet, row.getValue('abbreviation'));
+		}
+	},
+	{
+		accessorKey: 'yearLabels',
+		header: 'Year Labels',
+		cell: ({ row }) => {
+			const yearLabelsSnippet = createRawSnippet<[string[]]>((getYearLabels) => {
+				const yearLabels = getYearLabels();
+				const labelsText = yearLabels.join(', ');
+				return {
+					render: () => `<div class="text-sm">${labelsText}</div>`
+				};
+			});
+			return renderSnippet(yearLabelsSnippet, row.getValue('yearLabels'));
 		}
 	},
 	{
@@ -60,14 +74,14 @@ export const rotationTypesColumns: ColumnDef<RotationType>[] = [
 		id: 'actions',
 		header: 'Actions',
 		cell: ({ row }) => {
-			const actionsSnippet = createRawSnippet<[RotationType]>((getRotationType) => {
-				const rotationType = getRotationType();
+			const actionsSnippet = createRawSnippet<[ProgramType]>((getProgramType) => {
+				const programType = getProgramType();
 				return {
 					render: () => `
 						<div class="flex items-center gap-2">
 							<button 
 								class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8"
-								data-edit-rotation-type='${JSON.stringify(rotationType)}'
+								data-edit-program-type='${JSON.stringify(programType)}'
 								title="Edit"
 								type="button"
 							>
@@ -75,7 +89,7 @@ export const rotationTypesColumns: ColumnDef<RotationType>[] = [
 							</button>
 							<button 
 								class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-destructive/10 hover:text-destructive h-8 w-8"
-								data-delete-rotation-type="${rotationType._id}"
+								data-delete-program-type="${programType._id}"
 								title="Delete"
 								type="button"
 							>

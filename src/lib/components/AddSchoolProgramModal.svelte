@@ -2,7 +2,6 @@
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { api } from '../../convex/_generated/api.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Select from '$lib/components/ui/select/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
@@ -16,17 +15,23 @@
 	let { isOpen, onClose, onSuccess }: Props = $props();
 
 	const client = useConvexClient();
+	const schoolsQuery = useQuery(api.schools.get, {});
 	const programTypesQuery = useQuery(api.programTypes.get, {});
 
 	let formData = $state({
-		name: '',
+		schoolId: '',
 		programTypeId: ''
 	});
 
 	let isSubmitting = $state(false);
 	let submitError = $state('');
 
+	const schools = $derived(schoolsQuery.data ?? []);
 	const programTypes = $derived(programTypesQuery.data ?? []);
+
+	const schoolTriggerContent = $derived(
+		schools.find((s) => s._id === formData.schoolId)?.name ?? 'Select school'
+	);
 
 	const programTypeTriggerContent = $derived(
 		programTypes.find((p) => p._id === formData.programTypeId)?.name ?? 'Select program type'
@@ -35,8 +40,8 @@
 	async function handleSubmit() {
 		if (isSubmitting) return;
 
-		if (!formData.name.trim() || !formData.programTypeId) {
-			submitError = 'Please fill in all required fields';
+		if (!formData.schoolId || !formData.programTypeId) {
+			submitError = 'Please select both a school and program type';
 			return;
 		}
 
@@ -44,23 +49,30 @@
 			isSubmitting = true;
 			submitError = '';
 
-			await client.mutation(api.rotationTypes.insertRotationType, {
-				name: formData.name.trim(),
+			await client.mutation(api.schoolPrograms.insertSchoolProgram, {
+				schoolId: formData.schoolId as any,
 				programTypeId: formData.programTypeId as any
 			});
 			
-			formData = { name: '', programTypeId: '' };
+			formData = {
+				schoolId: '',
+				programTypeId: ''
+			};
+			
 			onSuccess?.();
 			onClose();
 		} catch (error) {
-			submitError = error instanceof Error ? error.message : 'Failed to add rotation type';
+			submitError = error instanceof Error ? error.message : 'Failed to add school program';
 		} finally {
 			isSubmitting = false;
 		}
 	}
 
 	function handleClose() {
-		formData = { name: '', programTypeId: '' };
+		formData = {
+			schoolId: '',
+			programTypeId: ''
+		};
 		submitError = '';
 		onClose();
 	}
@@ -69,13 +81,29 @@
 <Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && handleClose()}>
 	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-md p-4 sm:p-6">
 		<Dialog.Header>
-			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New Rotation Type</Dialog.Title>
+			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add School Program</Dialog.Title>
 			<Dialog.Description class="text-sm text-muted-foreground">
-				Add a new rotation type to the system.
+				Link a school to a program type.
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="space-y-4">
+			<div class="space-y-2">
+				<Label class="text-sm font-medium">School *</Label>
+				<Select.Root type="single" bind:value={formData.schoolId}>
+					<Select.Trigger class="h-9 w-full text-sm">
+						{schoolTriggerContent}
+					</Select.Trigger>
+					<Select.Content>
+						{#each schools as school (school._id)}
+							<Select.Item value={school._id} label={school.name}>
+								{school.name}
+							</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</div>
+
 			<div class="space-y-2">
 				<Label class="text-sm font-medium">Program Type *</Label>
 				<Select.Root type="single" bind:value={formData.programTypeId}>
@@ -92,19 +120,6 @@
 				</Select.Root>
 			</div>
 
-			<div class="space-y-2">
-				<Label for="name" class="text-sm font-medium">
-					Rotation Type Name *
-				</Label>
-				<Input
-					id="name"
-					placeholder="Enter rotation type name"
-					bind:value={formData.name}
-					disabled={isSubmitting}
-					class="h-9 text-sm"
-				/>
-			</div>
-
 			{#if submitError}
 				<div class="rounded-md border border-red-200 bg-red-50 p-3">
 					<p class="text-sm text-red-800">{submitError}</p>
@@ -117,7 +132,7 @@
 				Cancel
 			</Button>
 			<Button onclick={handleSubmit} disabled={isSubmitting}>
-				{isSubmitting ? 'Adding...' : 'Add Rotation Type'}
+				{isSubmitting ? 'Adding...' : 'Add School Program'}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

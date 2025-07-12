@@ -2,18 +2,19 @@ import type { ColumnDef } from '@tanstack/table-core';
 import { renderSnippet } from '$lib/components/ui/data-table/index.js';
 import { createRawSnippet } from 'svelte';
 
-export type RotationType = {
+export type ExperienceType = {
 	_id: string;
 	programTypeId: string;
 	programTypeName: string;
 	name: string;
+	description?: string;
 	_creationTime: number;
 };
 
-export const rotationTypesColumns: ColumnDef<RotationType>[] = [
+export const experienceTypesColumns: ColumnDef<ExperienceType>[] = [
 	{
 		accessorKey: 'name',
-		header: 'Rotation Type',
+		header: 'Experience Type',
 		cell: ({ row }) => {
 			const nameSnippet = createRawSnippet<[string]>((getName) => {
 				const name = getName();
@@ -35,6 +36,21 @@ export const rotationTypesColumns: ColumnDef<RotationType>[] = [
 				};
 			});
 			return renderSnippet(programSnippet, row.getValue('programTypeName'));
+		}
+	},
+	{
+		accessorKey: 'description',
+		header: 'Description',
+		cell: ({ row }) => {
+			const descriptionSnippet = createRawSnippet<[string | undefined]>((getDescription) => {
+				const description = getDescription();
+				if (!description) return { render: () => `<div class="text-xs opacity-50">No description</div>` };
+				const truncated = description.length > 50 ? description.slice(0, 50) + '...' : description;
+				return {
+					render: () => `<div class="text-sm" title="${description.replace(/"/g, '&quot;')}">${truncated}</div>`
+				};
+			});
+			return renderSnippet(descriptionSnippet, row.getValue('description'));
 		}
 	},
 	{
@@ -60,14 +76,14 @@ export const rotationTypesColumns: ColumnDef<RotationType>[] = [
 		id: 'actions',
 		header: 'Actions',
 		cell: ({ row }) => {
-			const actionsSnippet = createRawSnippet<[RotationType]>((getRotationType) => {
-				const rotationType = getRotationType();
+			const actionsSnippet = createRawSnippet<[ExperienceType]>((getExperienceType) => {
+				const experienceType = getExperienceType();
 				return {
 					render: () => `
 						<div class="flex items-center gap-2">
 							<button 
 								class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8"
-								data-edit-rotation-type='${JSON.stringify(rotationType)}'
+								data-edit-experience-type='${JSON.stringify(experienceType)}'
 								title="Edit"
 								type="button"
 							>
@@ -75,7 +91,7 @@ export const rotationTypesColumns: ColumnDef<RotationType>[] = [
 							</button>
 							<button 
 								class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-destructive/10 hover:text-destructive h-8 w-8"
-								data-delete-rotation-type="${rotationType._id}"
+								data-delete-experience-type="${experienceType._id}"
 								title="Delete"
 								type="button"
 							>

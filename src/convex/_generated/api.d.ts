@@ -13,12 +13,16 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as experienceTypes from "../experienceTypes.js";
 import type * as practiceSites from "../practiceSites.js";
 import type * as preceptorReviews from "../preceptorReviews.js";
 import type * as preceptors from "../preceptors.js";
+import type * as programTypes from "../programTypes.js";
 import type * as reviews from "../reviews.js";
 import type * as rotationTypes from "../rotationTypes.js";
+import type * as schoolPrograms from "../schoolPrograms.js";
 import type * as schools from "../schools.js";
+import type * as seed from "../seed.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -29,12 +33,16 @@ import type * as schools from "../schools.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  experienceTypes: typeof experienceTypes;
   practiceSites: typeof practiceSites;
   preceptorReviews: typeof preceptorReviews;
   preceptors: typeof preceptors;
+  programTypes: typeof programTypes;
   reviews: typeof reviews;
   rotationTypes: typeof rotationTypes;
+  schoolPrograms: typeof schoolPrograms;
   schools: typeof schools;
+  seed: typeof seed;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

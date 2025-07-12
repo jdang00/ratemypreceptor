@@ -19,6 +19,7 @@
 	const client = useConvexClient();
 	const schoolsQuery = useQuery(api.schools.get, {});
 	const practiceSitesQuery = useQuery(api.practiceSites.get, {});
+	const programTypesQuery = useQuery(api.programTypes.get, {});
 
 	let formData = $state({
 		title: '',
@@ -26,6 +27,7 @@
 		lastName: '',
 		degree: '',
 		schoolId: '',
+		programTypeId: '',
 		siteId: ''
 	});
 
@@ -34,27 +36,24 @@
 
 	const schools = $derived(schoolsQuery.data ?? []);
 	const practiceSites = $derived(practiceSitesQuery.data ?? []);
+	const programTypes = $derived(programTypesQuery.data ?? []);
 
 	const schoolTriggerContent = $derived(
 		schools.find((s) => s._id === formData.schoolId)?.name ?? 'Select school'
+	);
+
+	const programTypeTriggerContent = $derived(
+		programTypes.find((p) => p._id === formData.programTypeId)?.name ?? 'Select program type'
 	);
 
 	const practiceSiteTriggerContent = $derived(
 		practiceSites.find((p) => p._id === formData.siteId)?.name ?? 'Select practice site'
 	);
 
-	// Filter practice sites by selected school
-	const filteredPracticeSites = $derived(
-		formData.schoolId 
-			? practiceSites.filter((site) => site.schoolId === formData.schoolId)
-			: practiceSites
-	);
-
 	async function handleSubmit() {
 		if (isSubmitting) return;
 
-		// Validate required fields
-		if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.schoolId || !formData.siteId) {
+		if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.schoolId || !formData.programTypeId || !formData.siteId) {
 			submitError = 'Please fill in all required fields';
 			return;
 		}
@@ -68,18 +67,19 @@
 			const preceptorData = {
 				fullName: fullName,
 				schoolId: formData.schoolId as any,
+				programTypeId: formData.programTypeId as any,
 				siteId: formData.siteId as any
 			};
 
 			await client.mutation(api.preceptors.insertPreceptor, preceptorData);
 			
-			// Reset form
 			formData = {
 				title: '',
 				firstName: '',
 				lastName: '',
 				degree: '',
 				schoolId: '',
+				programTypeId: '',
 				siteId: ''
 			};
 			
@@ -92,20 +92,14 @@
 		}
 	}
 
-	function handleSchoolChange(schoolId: string) {
-		formData.schoolId = schoolId;
-		// Reset site selection when school changes
-		formData.siteId = '';
-	}
-
 	function handleClose() {
-		// Reset form when closing
 		formData = {
 			title: '',
 			firstName: '',
 			lastName: '',
 			degree: '',
 			schoolId: '',
+			programTypeId: '',
 			siteId: ''
 		};
 		submitError = '';
@@ -195,7 +189,7 @@
 
 			<div class="space-y-2">
 				<Label class="text-sm font-medium">School *</Label>
-				<Select.Root type="single" bind:value={formData.schoolId} onValueChange={handleSchoolChange}>
+				<Select.Root type="single" bind:value={formData.schoolId}>
 					<Select.Trigger class="w-full h-9 text-sm">
 						{schoolTriggerContent}
 					</Select.Trigger>
@@ -210,22 +204,35 @@
 			</div>
 
 			<div class="space-y-2">
+				<Label class="text-sm font-medium">Program Type *</Label>
+				<Select.Root type="single" bind:value={formData.programTypeId}>
+					<Select.Trigger class="w-full h-9 text-sm">
+						{programTypeTriggerContent}
+					</Select.Trigger>
+					<Select.Content>
+						{#each programTypes as programType (programType._id)}
+							<Select.Item value={programType._id} label={programType.name}>
+								{programType.name}
+							</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</div>
+
+			<div class="space-y-2">
 				<Label class="text-sm font-medium">Practice Site *</Label>
 				<Select.Root type="single" bind:value={formData.siteId}>
 					<Select.Trigger class="w-full h-9 text-sm" disabled={!formData.schoolId}>
 						{practiceSiteTriggerContent}
 					</Select.Trigger>
 					<Select.Content>
-						{#each filteredPracticeSites as site (site._id)}
+						{#each practiceSites as site (site._id)}
 							<Select.Item value={site._id} label={site.name}>
 								{site.name} - {site.city}, {site.state}
 							</Select.Item>
 						{/each}
 					</Select.Content>
 				</Select.Root>
-				{#if !formData.schoolId}
-					<p class="text-xs text-muted-foreground">Select a school first</p>
-				{/if}
 			</div>
 
 			{#if submitError}

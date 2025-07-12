@@ -72,6 +72,7 @@
 								<PreceptorResults
 									fullName={preceptor.fullName}
 									schoolName={preceptor.schoolName}
+									programTypeName={preceptor.programTypeName}
 									siteName={preceptor.siteName}
 									totalReviews={preceptor.totalReviews}
 									averageStarRating={preceptor.averageStarRating}
@@ -116,6 +117,7 @@
 								<PreceptorResults
 									fullName={preceptor.fullName}
 									schoolName={preceptor.schoolName}
+									programTypeName={preceptor.programTypeName}
 									siteName={preceptor.siteName}
 									totalReviews={preceptor.totalReviews}
 									averageStarRating={preceptor.averageStarRating}

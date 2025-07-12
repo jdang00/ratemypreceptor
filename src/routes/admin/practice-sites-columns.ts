@@ -4,8 +4,6 @@ import { createRawSnippet } from 'svelte';
 
 export type PracticeSite = {
 	_id: string;
-	schoolId: string;
-	schoolName: string;
 	name: string;
 	city: string;
 	state: string;
@@ -33,7 +31,7 @@ export const practiceSitesColumns: ColumnDef<PracticeSite>[] = [
 			const citySnippet = createRawSnippet<[string]>((getCity) => {
 				const city = getCity();
 				return {
-					render: () => `<div>${city}</div>`
+					render: () => `<div class="text-sm">${city}</div>`
 				};
 			});
 			return renderSnippet(citySnippet, row.getValue('city'));
@@ -46,60 +44,51 @@ export const practiceSitesColumns: ColumnDef<PracticeSite>[] = [
 			const stateSnippet = createRawSnippet<[string]>((getState) => {
 				const state = getState();
 				return {
-					render: () => `<div class="font-medium">${state}</div>`
+					render: () => `<div class="text-sm">${state}</div>`
 				};
 			});
 			return renderSnippet(stateSnippet, row.getValue('state'));
 		}
 	},
 	{
-		accessorKey: 'location',
-		header: 'Location',
+		accessorKey: '_creationTime',
+		header: 'Created',
 		cell: ({ row }) => {
-			const locationSnippet = createRawSnippet<[string]>((getLocation) => {
-				const location = getLocation();
+			const dateSnippet = createRawSnippet<[number]>((getDate) => {
+				const timestamp = getDate();
+				const date = new Date(timestamp);
+				const formatted = date.toLocaleDateString('en-US', {
+					month: 'short',
+					day: 'numeric',
+					year: 'numeric'
+				});
 				return {
-					render: () => `<div class="text-sm">${location}</div>`
+					render: () => `<div class="text-xs">${formatted}</div>`
 				};
 			});
-			const city = row.getValue('city') as string;
-			const state = row.getValue('state') as string;
-			return renderSnippet(locationSnippet, `${city}, ${state}`);
-		}
-	},
-	{
-		accessorKey: 'schoolName',
-		header: 'School',
-		cell: ({ row }) => {
-			const schoolSnippet = createRawSnippet<[string]>((getSchoolName) => {
-				const schoolName = getSchoolName();
-				return {
-					render: () => `<div class="text-sm">${schoolName}</div>`
-				};
-			});
-			return renderSnippet(schoolSnippet, row.getValue('schoolName'));
+			return renderSnippet(dateSnippet, row.getValue('_creationTime'));
 		}
 	},
 	{
 		id: 'actions',
 		header: 'Actions',
 		cell: ({ row }) => {
-			const actionsSnippet = createRawSnippet<[PracticeSite]>((getPracticeSite) => {
-				const practiceSite = getPracticeSite();
+			const actionsSnippet = createRawSnippet<[PracticeSite]>((getSite) => {
+				const site = getSite();
 				return {
 					render: () => `
 						<div class="flex items-center gap-2">
-							<button
+							<button 
 								class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8"
-								data-edit-practice-site='${JSON.stringify(practiceSite)}'
+								data-edit-practice-site='${JSON.stringify(site)}'
 								title="Edit"
 								type="button"
 							>
 								<svg class="h-4 w-4" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
 							</button>
-							<button
+							<button 
 								class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-destructive/10 hover:text-destructive h-8 w-8"
-								data-delete-practice-site="${practiceSite._id}"
+								data-delete-practice-site="${site._id}"
 								title="Delete"
 								type="button"
 							>

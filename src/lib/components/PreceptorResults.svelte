@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { Card, CardHeader, CardContent } from '$lib/components/ui/card/index.js';
 	import { formatNameWithCredentials } from '$lib/utils.js';
-	import { MapPin, School, Star, Users, ThumbsUp } from '@lucide/svelte';
+	import { MapPin, School, Star, Users, ThumbsUp, GraduationCap } from '@lucide/svelte';
 
 	interface Props {
 		fullName: string;
 		schoolName: string;
+		programTypeName: string;
 		siteName: string;
 		totalReviews?: number;
 		averageStarRating?: number;
@@ -16,6 +17,7 @@
 	let { 
 		fullName, 
 		schoolName, 
+		programTypeName,
 		siteName, 
 		totalReviews, 
 		averageStarRating, 
@@ -30,7 +32,7 @@
 <div class="w-full py-1 {className}">
 	<a href="/preceptors/{fullName}">
 		<Card class="cursor-pointer transition-all duration-200 hover:shadow-md">
-			<CardContent class="p-6">
+			<CardContent class="p-4">
 				<div class="flex items-start justify-between gap-4">
 					<div class="flex-1 min-w-0">
 						<div class="flex items-start gap-2 mb-2">
@@ -46,6 +48,10 @@
 							<div class="flex items-center gap-1.5 text-sm text-muted-foreground">
 								<School class="h-3.5 w-3.5 flex-shrink-0" />
 								<span class="truncate">{schoolName}</span>
+							</div>
+							<div class="flex items-center gap-1.5 text-sm text-muted-foreground">
+								<GraduationCap class="h-3.5 w-3.5 flex-shrink-0" />
+								<span class="truncate">{programTypeName}</span>
 							</div>
 							<div class="flex items-center gap-1.5 text-sm text-muted-foreground">
 								<MapPin class="h-3.5 w-3.5 flex-shrink-0" />

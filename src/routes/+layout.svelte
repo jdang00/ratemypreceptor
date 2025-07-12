@@ -12,6 +12,7 @@
 	import type { Snippet } from 'svelte';
 	import { ClerkProvider } from 'svelte-clerk/client';
 	import { PUBLIC_CLERK_PUBLISHABLE_KEY } from '$env/static/public';
+	import { page } from '$app/stores';
 	const { children }: { children: Snippet } = $props();
 
 	setupConvex(PUBLIC_CONVEX_URL);
@@ -40,7 +41,7 @@
 			showThemeButton={true}
 		/>
 
-		<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+		<main class="mx-auto w-full flex-1 px-4 py-8" class:max-w-5xl={$page.url.pathname !== '/admin'} class:max-w-7xl={$page.url.pathname === '/admin'}>
 			{@render children()}
 		</main>
 

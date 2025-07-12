@@ -20,11 +20,13 @@
 	const client = useConvexClient();
 	const preceptorsQuery = useQuery(api.preceptors.get, {});
 	const rotationTypesQuery = useQuery(api.rotationTypes.get, {});
+	const experienceTypesQuery = useQuery(api.experienceTypes.get, {});
+	const programTypesQuery = useQuery(api.programTypes.get, {});
 
 	let formData = $state({
 		preceptorId: '',
 		rotationTypeId: '',
-		ippeAppe: '',
+		experienceTypeId: '',
 		schoolYear: '',
 		priorExperience: '',
 		extraHours: '',
@@ -45,9 +47,20 @@
 
 	const preceptors = $derived(preceptorsQuery.data ?? []);
 	const rotationTypes = $derived(rotationTypesQuery.data ?? []);
+	const experienceTypes = $derived(experienceTypesQuery.data ?? []);
+	const programTypes = $derived(programTypesQuery.data ?? []);
+
+	const selectedPreceptor = $derived(preceptors.find(p => p._id === formData.preceptorId));
+	const selectedProgramType = $derived(selectedPreceptor ? programTypes.find(pt => pt._id === selectedPreceptor.programTypeId) : null);
+	const filteredRotationTypes = $derived(selectedPreceptor ? rotationTypes.filter(rt => rt.programTypeId === selectedPreceptor.programTypeId) : []);
+	const filteredExperienceTypes = $derived(selectedPreceptor ? experienceTypes.filter(et => et.programTypeId === selectedPreceptor.programTypeId) : []);
 
 	const rotationTypeTriggerContent = $derived(
 		rotationTypes.find((r) => r._id === formData.rotationTypeId)?.name ?? 'Select rotation type'
+	);
+
+	const experienceTypeTriggerContent = $derived(
+		experienceTypes.find((e) => e._id === formData.experienceTypeId)?.name ?? 'Select experience type'
 	);
 
 	async function handleSubmit() {
@@ -56,7 +69,7 @@
 		if (
 			!formData.preceptorId ||
 			!formData.rotationTypeId ||
-			!formData.ippeAppe ||
+			!formData.experienceTypeId ||
 			!formData.schoolYear ||
 			!formData.priorExperience ||
 			!formData.schedulingFlexibility ||
@@ -82,7 +95,7 @@
 			const reviewData = {
 				preceptorId: formData.preceptorId as any,
 				rotationTypeId: formData.rotationTypeId as any,
-				ippeAppe: formData.ippeAppe as any,
+				experienceTypeId: formData.experienceTypeId as any,
 				schoolYear: formData.schoolYear as any,
 				priorExperience: formData.priorExperience as any,
 				schedulingFlexibility: Number(formData.schedulingFlexibility),
@@ -104,7 +117,7 @@
 			formData = {
 				preceptorId: '',
 				rotationTypeId: '',
-				ippeAppe: '',
+				experienceTypeId: '',
 				schoolYear: '',
 				priorExperience: '',
 				extraHours: '',
@@ -133,7 +146,7 @@
 		formData = {
 			preceptorId: '',
 			rotationTypeId: '',
-			ippeAppe: '',
+			experienceTypeId: '',
 			schoolYear: '',
 			priorExperience: '',
 			extraHours: '',
@@ -169,7 +182,12 @@
 					<PreceptorComboBox
 						{preceptors}
 						value={formData.preceptorId}
-						onValueChange={(value) => (formData.preceptorId = value)}
+						onValueChange={(value) => {
+							formData.preceptorId = value;
+							formData.rotationTypeId = '';
+							formData.experienceTypeId = '';
+							formData.schoolYear = '';
+						}}
 						placeholder="Select preceptor"
 						searchPlaceholder="Search preceptors..."
 						class="h-9 text-sm"
@@ -179,47 +197,58 @@
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Rotation Type *</Label>
 					<Select.Root type="single" bind:value={formData.rotationTypeId}>
-						<Select.Trigger class="h-9 w-full text-sm">
+						<Select.Trigger class="h-9 w-full text-sm" disabled={!selectedPreceptor}>
 							{rotationTypeTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
-							{#each rotationTypes as rotationType (rotationType._id)}
+							{#each filteredRotationTypes as rotationType (rotationType._id)}
 								<Select.Item value={rotationType._id} label={rotationType.name}>
 									{rotationType.name}
 								</Select.Item>
 							{/each}
 						</Select.Content>
 					</Select.Root>
+					{#if !selectedPreceptor}
+						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+					{/if}
 				</div>
 			</div>
 
 			<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
 				<div class="space-y-2">
-					<Label class="text-sm font-medium">Type *</Label>
-					<Select.Root type="single" bind:value={formData.ippeAppe}>
-						<Select.Trigger class="h-9 w-full text-sm">
-							{formData.ippeAppe || 'Select type'}
+					<Label class="text-sm font-medium">Experience Type *</Label>
+					<Select.Root type="single" bind:value={formData.experienceTypeId}>
+						<Select.Trigger class="h-9 w-full text-sm" disabled={!selectedPreceptor}>
+							{experienceTypeTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
-							<Select.Item value="IPPE" label="IPPE">IPPE</Select.Item>
-							<Select.Item value="APPE" label="APPE">APPE</Select.Item>
+							{#each filteredExperienceTypes as experienceType (experienceType._id)}
+								<Select.Item value={experienceType._id} label={experienceType.name}>
+									{experienceType.name}
+								</Select.Item>
+							{/each}
 						</Select.Content>
 					</Select.Root>
+					{#if !selectedPreceptor}
+						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+					{/if}
 				</div>
 
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">School Year *</Label>
 					<Select.Root type="single" bind:value={formData.schoolYear}>
-						<Select.Trigger class="h-9 w-full text-sm">
+						<Select.Trigger class="h-9 w-full text-sm" disabled={!selectedProgramType}>
 							{formData.schoolYear || 'Select year'}
 						</Select.Trigger>
 						<Select.Content>
-							<Select.Item value="P1" label="P1">P1</Select.Item>
-							<Select.Item value="P2" label="P2">P2</Select.Item>
-							<Select.Item value="P3" label="P3">P3</Select.Item>
-							<Select.Item value="P4" label="P4">P4</Select.Item>
+							{#each (selectedProgramType?.yearLabels || []) as year}
+								<Select.Item value={year} label={year}>{year}</Select.Item>
+							{/each}
 						</Select.Content>
 					</Select.Root>
+					{#if !selectedProgramType}
+						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+					{/if}
 				</div>
 
 				<div class="space-y-2">

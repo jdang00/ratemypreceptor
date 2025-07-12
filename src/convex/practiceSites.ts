@@ -4,16 +4,29 @@ import { v } from 'convex/values';
 export const get = query({
 	args: {},
 	handler: async (ctx) => {
-		const practiceSites = await ctx.db.query('practiceSites').collect();
-		
-		const schools = await ctx.db.query('schools').collect();
-		
-		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
-		
-		return practiceSites.map(site => ({
-			...site,
-			schoolName: schoolMap.get(site.schoolId) || 'Unknown School'
-		}));
+		return await ctx.db.query('practiceSites').collect();
+	}
+});
+
+export const getByLocation = query({
+	args: { 
+		state: v.optional(v.string()),
+		city: v.optional(v.string())
+	},
+	handler: async (ctx, { state, city }) => {
+		if (state && city) {
+			return await ctx.db
+				.query('practiceSites')
+				.withIndex('by_location', (q) => q.eq('state', state).eq('city', city))
+				.collect();
+		} else if (state) {
+			return await ctx.db
+				.query('practiceSites')
+				.withIndex('by_location', (q) => q.eq('state', state))
+				.collect();
+		} else {
+			return await ctx.db.query('practiceSites').collect();
+		}
 	}
 });
 
@@ -21,15 +34,13 @@ export const insertPracticeSite = mutation({
 	args: {
 		name: v.string(),
 		city: v.string(),
-		state: v.string(),
-		schoolId: v.id('schools')
+		state: v.string()
 	},
-	handler: async (ctx, { name, city, state, schoolId }) => {
+	handler: async (ctx, { name, city, state }) => {
 		await ctx.db.insert('practiceSites', {
 			name,
 			city,
-			state,
-			schoolId
+			state
 		});
 	}
 });
@@ -44,7 +55,6 @@ export const deletePracticeSite = mutation({
 export const updatePracticeSite = mutation({
 	args: { 
 		id: v.id('practiceSites'),
-		schoolId: v.optional(v.id('schools')),
 		name: v.optional(v.string()),
 		city: v.optional(v.string()),
 		state: v.optional(v.string())
