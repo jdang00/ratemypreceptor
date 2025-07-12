@@ -1,6 +1,7 @@
 <script lang="ts" generics="T extends Record<string, any>">
 	import { useConvexClient } from 'convex-svelte';
 	import { api } from '../../convex/_generated/api.js';
+	import { toTitleCase } from '$lib/utils.js';
 	import * as Dialog from './ui/dialog/index.js';
 	import { Button } from './ui/button/index.js';
 	import { Input } from './ui/input/index.js';
@@ -132,7 +133,7 @@
 	>
 		<Dialog.Header class="pb-4">
 			<Dialog.Title class="text-lg font-semibold sm:text-xl">
-				Edit {mutationName.split('.')[0]}
+				Edit {toTitleCase(mutationName.split('.')[0])}
 			</Dialog.Title>
 			<Dialog.Description class="text-muted-foreground text-sm">
 				Update the information below and click save to apply changes.
