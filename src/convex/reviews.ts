@@ -1,44 +1,5 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
-import { paginationOptsValidator } from 'convex/server';
-
-export const getPaginated = query({
-	args: {
-		paginationOpts: paginationOptsValidator,
-		searchTerm: v.optional(v.string())
-	},
-	handler: async (ctx, { paginationOpts }) => {
-		// For now, ignore search term to focus on pagination working
-		// We'll implement proper search later
-		const results = await ctx.db
-			.query('reviews')
-			.withIndex('by_recent_reviews')
-			.order('desc')
-			.paginate(paginationOpts);
-
-		const reviewsWithDetails = await Promise.all(
-			results.page.map(async (review) => {
-				const [preceptor, rotationType, experienceType] = await Promise.all([
-					ctx.db.get(review.preceptorId),
-					ctx.db.get(review.rotationTypeId),
-					ctx.db.get(review.experienceTypeId)
-				]);
-
-				return {
-					...review,
-					preceptorName: preceptor?.fullName || 'Unknown Preceptor',
-					rotationTypeName: rotationType?.name || 'Unknown Rotation',
-					experienceTypeName: experienceType?.name || 'Unknown Experience'
-				};
-			})
-		);
-
-		return {
-			...results,
-			page: reviewsWithDetails
-		};
-	}
-});
 
 export const getReviewsCount = query({
 	args: {
