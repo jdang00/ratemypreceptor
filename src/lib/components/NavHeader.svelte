@@ -3,23 +3,16 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { cn } from '$lib/utils.js';
 	import { navigationMenuTriggerStyle } from '$lib/components/ui/navigation-menu/navigation-menu-trigger.svelte';
-	import { toggleMode } from 'mode-watcher';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
 	import type { HTMLAttributes } from 'svelte/elements';
-
-	interface NavLink {
-		title: string;
-		href: string;
-		description?: string;
-	}
-
-	interface Props {
-		title: string;
-		links?: NavLink[];
-		showThemeButton?: boolean;
-		class?: string;
-	}
+	import {
+		SignedIn,
+		SignedOut,
+		SignInButton,
+		UserButton,
+		useClerkContext
+	} from 'svelte-clerk/client';
 
 	type ListItemProps = HTMLAttributes<HTMLAnchorElement> & {
 		title: string;
@@ -28,13 +21,21 @@
 		class?: string;
 	};
 
-	let { title, links = [], showThemeButton = true, class: className = '' }: Props = $props();
+	let {
+		themeProvider,
+		title,
+		links = [],
+		showThemeButton = true,
+		class: className = ''
+	} = $props();
 
 	let mobileOpen = $state(false);
 
 	function handleMobileNavClick() {
 		mobileOpen = false;
 	}
+
+	const ctx = useClerkContext();
 </script>
 
 {#snippet NavItem({ title, description, href, class: itemClass = '', ...restProps }: ListItemProps)}
@@ -68,14 +69,13 @@
 	)}
 >
 	<div class="flex h-16 w-full items-center justify-between">
-		<!-- logo + desktop links -->
 		<div class="flex items-center space-x-8">
 			<a href="/" class="hover:text-primary text-xl font-bold transition-colors">
 				{title}
 			</a>
 			<NavigationMenu.Root viewport={false} class="hidden md:flex">
 				<NavigationMenu.List class="flex items-center space-x-1">
-					{#each links as link (link.href)}
+					{#each links.filter(link => !(link.href === '/admin' && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
 						<NavigationMenu.Item>
 							<NavigationMenu.Link>
 								{#snippet child()}
@@ -90,7 +90,6 @@
 			</NavigationMenu.Root>
 		</div>
 
-		<!-- mobile burger + theme toggle -->
 		<div class="flex items-center space-x-4">
 			<Button
 				variant="ghost"
@@ -130,7 +129,7 @@
 				<Button
 					variant="ghost"
 					size="sm"
-					onclick={toggleMode}
+					onclick={themeProvider.handleThemeToggle}
 					class="h-9 w-9 p-0"
 					aria-label="Toggle theme"
 				>
@@ -140,17 +139,23 @@
 					/>
 				</Button>
 			{/if}
+
+			<SignedOut>
+				<SignInButton><Button variant="outline">Sign In</Button></SignInButton>
+			</SignedOut>
+			<SignedIn>
+				<UserButton />
+			</SignedIn>
 		</div>
 	</div>
 
-	<!-- mobile dropdown -->
 	{#if mobileOpen}
 		<div
 			id="mobile-menu"
 			class="bg-background animate-in slide-in-from-top-2 border-t duration-200 md:hidden"
 		>
 			<ul class="flex flex-col space-y-1 py-4">
-				{#each links as link (link.href)}
+				{#each links.filter(link => !(link.href === '/admin' && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
 					<li>
 						<a
 							href={link.href}

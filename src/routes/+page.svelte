@@ -5,6 +5,7 @@
 	import PreceptorResults from '$lib/components/PreceptorResults.svelte';
 	import { Search } from '@lucide/svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 
 	let searchTerm = $state('');
 
@@ -38,9 +39,20 @@
 	<div class="w-full max-w-4xl">
 		{#if searchTerm}
 			{#if searchResults.isLoading}
-				<div class="flex items-center justify-center py-8">
-					<div class="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600"></div>
-					<span class="ml-2 text-muted-foreground">Searching...</span>
+				<div class="space-y-3">
+					{#each Array(3) as _, i}
+						<div class="flex items-center space-x-4 p-4 border rounded-lg">
+							<div class="space-y-2 flex-1">
+								<Skeleton class="h-5 w-[200px]" />
+								<Skeleton class="h-4 w-[150px]" />
+								<Skeleton class="h-4 w-[100px]" />
+							</div>
+							<div class="space-y-1">
+								<Skeleton class="h-4 w-[60px]" />
+								<Skeleton class="h-4 w-[40px]" />
+							</div>
+						</div>
+					{/each}
 				</div>
 			{:else if searchResults.error}
 				<div class="text-center text-red-500">Error: {searchResults.error.toString()}</div>
@@ -72,9 +84,20 @@
 			{/if}
 		{:else}
 			{#if allPreceptors.isLoading}
-				<div class="flex items-center justify-center py-8">
-					<div class="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600"></div>
-					<span class="ml-2 text-muted-foreground">Loading preceptors...</span>
+				<div class="space-y-3">
+					{#each Array(5) as _, i}
+						<div class="flex items-center space-x-4 p-4 border rounded-lg">
+							<div class="space-y-2 flex-1">
+								<Skeleton class="h-5 w-[200px]" />
+								<Skeleton class="h-4 w-[150px]" />
+								<Skeleton class="h-4 w-[100px]" />
+							</div>
+							<div class="space-y-1">
+								<Skeleton class="h-4 w-[60px]" />
+								<Skeleton class="h-4 w-[40px]" />
+							</div>
+						</div>
+					{/each}
 				</div>
 			{:else if allPreceptors.error}
 				<div class="text-center text-red-500">Error: {allPreceptors.error.toString()}</div>

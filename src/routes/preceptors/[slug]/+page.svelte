@@ -6,6 +6,7 @@
 	import { aggregateReviews, formatNameWithCredentials } from '$lib/utils.js';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Plus, School, MapPin } from '@lucide/svelte';
+	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -129,9 +130,28 @@
 
 
 	{#if reviewsQuery.isLoading}
-		<div class="flex items-center justify-center py-12">
-			<div class="h-8 w-8 animate-spin rounded-full"></div>
-			<span class="ml-2">Loading reviews...</span>
+		<div class="space-y-4">
+			{#each Array(3) as _, i}
+				<Card.Root>
+					<Card.Header>
+						<div class="space-y-2">
+							<Skeleton class="h-6 w-[200px]" />
+							<Skeleton class="h-4 w-[150px]" />
+						</div>
+					</Card.Header>
+					<Card.Content>
+						<div class="space-y-3">
+							<div class="flex space-x-4">
+								<Skeleton class="h-4 w-[80px]" />
+								<Skeleton class="h-4 w-[60px]" />
+								<Skeleton class="h-4 w-[70px]" />
+							</div>
+							<Skeleton class="h-20 w-full" />
+							<Skeleton class="h-4 w-[100px]" />
+						</div>
+					</Card.Content>
+				</Card.Root>
+			{/each}
 		</div>
 	{:else if reviewsQuery.error}
 		<div class="rounded-md border border-red-200 bg-red-50 p-4">

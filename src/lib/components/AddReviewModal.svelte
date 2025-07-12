@@ -53,10 +53,19 @@
 	async function handleSubmit() {
 		if (isSubmitting) return;
 
-		if (!formData.preceptorId || !formData.rotationTypeId || !formData.ippeAppe || 
-			!formData.schoolYear || !formData.priorExperience || !formData.schedulingFlexibility ||
-			!formData.workload || !formData.expectations || !formData.mentorship || 
-			!formData.enjoyment || !formData.starRating) {
+		if (
+			!formData.preceptorId ||
+			!formData.rotationTypeId ||
+			!formData.ippeAppe ||
+			!formData.schoolYear ||
+			!formData.priorExperience ||
+			!formData.schedulingFlexibility ||
+			!formData.workload ||
+			!formData.expectations ||
+			!formData.mentorship ||
+			!formData.enjoyment ||
+			!formData.starRating
+		) {
 			submitError = 'Please fill in all required fields';
 			return;
 		}
@@ -86,11 +95,12 @@
 				isOutlier: formData.isOutlier,
 				...(formData.extraHours && { extraHours: Number(formData.extraHours) }),
 				...(formData.comment.trim() && { comment: formData.comment.trim() }),
-				...(formData.isOutlier && formData.outlierReason.trim() && { outlierReason: formData.outlierReason.trim() })
+				...(formData.isOutlier &&
+					formData.outlierReason.trim() && { outlierReason: formData.outlierReason.trim() })
 			};
 
 			await client.mutation(api.reviews.insertReview, reviewData);
-			
+
 			formData = {
 				preceptorId: '',
 				rotationTypeId: '',
@@ -109,7 +119,7 @@
 				isOutlier: false,
 				outlierReason: ''
 			};
-			
+
 			onSuccess?.();
 			onClose();
 		} catch (error) {
@@ -144,22 +154,22 @@
 </script>
 
 <Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-hidden p-4 sm:p-6">
+	<Dialog.Content class="max-h-[90vh] w-full max-w-[95vw] overflow-hidden p-4 sm:max-w-2xl sm:p-6">
 		<Dialog.Header>
-			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New Review</Dialog.Title>
-			<Dialog.Description class="text-sm text-muted-foreground">
+			<Dialog.Title class="text-lg font-semibold sm:text-xl">Add New Review</Dialog.Title>
+			<Dialog.Description class="text-muted-foreground text-sm">
 				Add a new preceptor review to the system.
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+		<div class="max-h-[60vh] space-y-4 overflow-y-auto pr-2">
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Preceptor *</Label>
-					<PreceptorComboBox 
+					<PreceptorComboBox
 						{preceptors}
 						value={formData.preceptorId}
-						onValueChange={(value) => formData.preceptorId = value}
+						onValueChange={(value) => (formData.preceptorId = value)}
 						placeholder="Select preceptor"
 						searchPlaceholder="Search preceptors..."
 						class="h-9 text-sm"
@@ -169,7 +179,7 @@
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Rotation Type *</Label>
 					<Select.Root type="single" bind:value={formData.rotationTypeId}>
-						<Select.Trigger class="w-full h-9 text-sm">
+						<Select.Trigger class="h-9 w-full text-sm">
 							{rotationTypeTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
@@ -183,11 +193,11 @@
 				</div>
 			</div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Type *</Label>
 					<Select.Root type="single" bind:value={formData.ippeAppe}>
-						<Select.Trigger class="w-full h-9 text-sm">
+						<Select.Trigger class="h-9 w-full text-sm">
 							{formData.ippeAppe || 'Select type'}
 						</Select.Trigger>
 						<Select.Content>
@@ -200,7 +210,7 @@
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">School Year *</Label>
 					<Select.Root type="single" bind:value={formData.schoolYear}>
-						<Select.Trigger class="w-full h-9 text-sm">
+						<Select.Trigger class="h-9 w-full text-sm">
 							{formData.schoolYear || 'Select year'}
 						</Select.Trigger>
 						<Select.Content>
@@ -215,7 +225,7 @@
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Prior Experience *</Label>
 					<Select.Root type="single" bind:value={formData.priorExperience}>
-						<Select.Trigger class="w-full h-9 text-sm">
+						<Select.Trigger class="h-9 w-full text-sm">
 							{formData.priorExperience || 'Select experience'}
 						</Select.Trigger>
 						<Select.Content>
@@ -228,7 +238,7 @@
 				</div>
 			</div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 				<div class="space-y-2">
 					<Label for="extraHours" class="text-sm font-medium">Extra Hours</Label>
 					<Input
@@ -256,9 +266,12 @@
 				</div>
 			</div>
 
-			<div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-				<div class="space-y-2">
-					<Label for="schedulingFlexibility" class="text-sm font-medium">Scheduling (1-5) *</Label>
+			<div class="grid grid-cols-2 gap-3 sm:grid-cols-5">
+				<div class="space-y-1">
+					<Label
+						for="schedulingFlexibility"
+						class="flex min-h-[2.5rem] items-start text-sm font-medium">Scheduling (1-5) *</Label
+					>
 					<Input
 						id="schedulingFlexibility"
 						type="number"
@@ -271,8 +284,10 @@
 					/>
 				</div>
 
-				<div class="space-y-2">
-					<Label for="workload" class="text-sm font-medium">Workload (1-5) *</Label>
+				<div class="space-y-1">
+					<Label for="workload" class="flex min-h-[2.5rem] items-start text-sm font-medium"
+						>Workload (1-5) *</Label
+					>
 					<Input
 						id="workload"
 						type="number"
@@ -285,8 +300,10 @@
 					/>
 				</div>
 
-				<div class="space-y-2">
-					<Label for="expectations" class="text-sm font-medium">Expectations (1-5) *</Label>
+				<div class="space-y-1">
+					<Label for="expectations" class="flex min-h-[2.5rem] items-start text-sm font-medium"
+						>Expectations (1-5) *</Label
+					>
 					<Input
 						id="expectations"
 						type="number"
@@ -299,8 +316,10 @@
 					/>
 				</div>
 
-				<div class="space-y-2">
-					<Label for="mentorship" class="text-sm font-medium">Mentorship (1-5) *</Label>
+				<div class="space-y-1">
+					<Label for="mentorship" class="flex min-h-[2.5rem] items-start text-sm font-medium"
+						>Mentorship (1-5) *</Label
+					>
 					<Input
 						id="mentorship"
 						type="number"
@@ -313,8 +332,10 @@
 					/>
 				</div>
 
-				<div class="space-y-2">
-					<Label for="enjoyment" class="text-sm font-medium">Enjoyment (1-5) *</Label>
+				<div class="space-y-1">
+					<Label for="enjoyment" class="flex min-h-[2.5rem] items-start text-sm font-medium"
+						>Enjoyment (1-5) *</Label
+					>
 					<Input
 						id="enjoyment"
 						type="number"
@@ -328,7 +349,7 @@
 				</div>
 			</div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 				<div class="flex items-center space-x-2">
 					<Checkbox bind:checked={formData.wouldRecommend} disabled={isSubmitting} />
 					<Label class="text-sm font-medium">Would Recommend</Label>
@@ -371,13 +392,11 @@
 			{/if}
 		</div>
 
-		<Dialog.Footer class="flex justify-end gap-3 pt-4 border-t">
-			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>
-				Cancel
-			</Button>
+		<Dialog.Footer class="flex justify-end gap-3 border-t pt-4">
+			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>Cancel</Button>
 			<Button onclick={handleSubmit} disabled={isSubmitting}>
 				{isSubmitting ? 'Adding...' : 'Add Review'}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
-</Dialog.Root> 
+</Dialog.Root>

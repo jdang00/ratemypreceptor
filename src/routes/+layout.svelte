@@ -2,55 +2,48 @@
 	import { PUBLIC_CONVEX_URL } from '$env/static/public';
 	import { setupConvex } from 'convex-svelte';
 	import NavHeader from '$lib/components/NavHeader.svelte';
+	import Footer from '$lib/components/Footer.svelte';
 	import { ModeWatcher } from 'mode-watcher';
 	import '../app.css';
-	import { Toaster } from "$lib/components/ui/sonner/index.js";
+	import { Toaster } from '$lib/components/ui/sonner/index.js';
+	import { dark } from '@clerk/themes';
+	import { Theme } from './theme.svelte';
 
-	const { children } = $props();
+	import type { Snippet } from 'svelte';
+	import { ClerkProvider } from 'svelte-clerk/client';
+	import { PUBLIC_CLERK_PUBLISHABLE_KEY } from '$env/static/public';
+	const { children }: { children: Snippet } = $props();
+
 	setupConvex(PUBLIC_CONVEX_URL);
 
 	const navLinks = [
 		{ title: 'Home', href: '/' },
 		{ title: 'Preceptors', href: '/preceptors' },
-		{ title: 'Reviews', href: '/reviews' }
+		{ title: 'Reviews', href: '/reviews' },
+		{ title: 'Admin Dashboard', href: '/admin' }
 	];
+
+	let theme = $state(new Theme());
 </script>
 
-<div class="flex min-h-screen flex-col">
-	<Toaster />
-	<ModeWatcher />
-	<NavHeader title="RateMyPreceptor" links={navLinks} showThemeButton={true} />
+<ModeWatcher />
+<ClerkProvider
+	publishableKey={PUBLIC_CLERK_PUBLISHABLE_KEY}
+	appearance={{ baseTheme: theme.currentMode === 'dark' ? dark : undefined }}
+>
+	<div class="flex min-h-screen flex-col">
+		<Toaster />
+		<NavHeader
+			themeProvider={theme}
+			title="RateMyPreceptor"
+			links={navLinks}
+			showThemeButton={true}
+		/>
 
-	<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-		{@render children()}
-	</main>
+		<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+			{@render children()}
+		</main>
 
-	<footer
-		class="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-t backdrop-blur"
-	>
-		<div class="mx-auto max-w-2xl px-4 py-6">
-			<div
-				class="flex flex-col items-center space-y-4 text-center sm:flex-row sm:justify-between sm:space-y-0"
-			>
-				<div class="text-muted-foreground text-sm">
-					© 2025 RateMyPreceptor. All rights reserved.
-				</div>
-				<div class="flex space-x-6 text-sm">
-					<a href="/admin" class="text-muted-foreground hover:text-foreground transition-colors">
-						Admin
-					</a>
-					<a href="/terms" class="text-muted-foreground hover:text-foreground transition-colors">
-						Terms
-					</a>
-					<a href="/privacy" class="text-muted-foreground hover:text-foreground transition-colors">
-						Privacy
-					</a>	
-					
-					<a href="/guidelines" class="text-muted-foreground hover:text-foreground transition-colors">
-						Guidelines
-					</a>
-				</div>
-			</div>
-		</div>
-	</footer>
-</div>
+		<Footer />
+	</div>
+</ClerkProvider>

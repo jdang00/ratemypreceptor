@@ -3,6 +3,7 @@
 	import { api } from '../../convex/_generated/api.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import { goto } from '$app/navigation';
 
 	const reviewsQuery = useQuery(api.reviews.get, {});
@@ -30,9 +31,28 @@
 	</div>
 
 	{#if reviewsQuery.isLoading}
-		<div class="flex items-center justify-center py-12">
-			<div class="h-8 w-8 animate-spin rounded-full"></div>
-			<span class="ml-2">Loading reviews...</span>
+		<div class="space-y-4">
+			{#each Array(3) as _, i}
+				<Card.Root>
+					<Card.Header>
+						<div class="space-y-2">
+							<Skeleton class="h-6 w-[200px]" />
+							<Skeleton class="h-4 w-[150px]" />
+						</div>
+					</Card.Header>
+					<Card.Content>
+						<div class="space-y-3">
+							<div class="flex space-x-4">
+								<Skeleton class="h-4 w-[80px]" />
+								<Skeleton class="h-4 w-[60px]" />
+								<Skeleton class="h-4 w-[70px]" />
+							</div>
+							<Skeleton class="h-20 w-full" />
+							<Skeleton class="h-4 w-[100px]" />
+						</div>
+					</Card.Content>
+				</Card.Root>
+			{/each}
 		</div>
 	{:else if reviewsQuery.error}
 		<div class="rounded-md border border-red-200 bg-red-50 p-4">
@@ -64,7 +84,7 @@
 									<span class="font-medium">{review.rotationTypeName}</span>
 									<span>•</span>
 									<span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-										review.ippeAppe === 'IPPE' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+										review.ippeAppe === 'IPPE' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary-foreground'
 									}`}>
 										{review.ippeAppe}
 									</span>
@@ -76,14 +96,14 @@
 							</div>
 							<div class="flex items-center gap-3">
 								<div class="flex items-center gap-1">
-									<span class="text-yellow-500">⭐</span>
+									<span class="text-primary">⭐</span>
 									<span class="text-sm font-semibold">{review.starRating.toFixed(1)}</span>
 								</div>
 								<span
 									class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
 										review.wouldRecommend
-											? 'bg-green-100 text-green-800'
-											: 'bg-red-100 text-red-800'
+											? 'bg-primary/10 text-primary'
+											: 'bg-destructive/10 text-destructive'
 									}`}
 								>
 									{review.wouldRecommend ? '👍 Recommends' : '👎 Doesn\'t recommend'}
@@ -92,7 +112,6 @@
 						</div>
 					</Card.Header>
 					<Card.Content class="space-y-4">
-						<!-- Condensed ratings grid -->
 						<div class="grid grid-cols-5 gap-3 text-center text-sm">
 							<div>
 								<div class="font-medium text-muted-foreground text-xs">Flexibility</div>
@@ -129,11 +148,11 @@
 						{/if}
 
 						{#if review.isOutlier && review.outlierReason}
-							<div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+							<div class="rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-950">
 								<div class="flex items-center gap-2 mb-1">
-									<span class="text-xs font-bold text-amber-800">⚠️ OUTLIER EXPERIENCE</span>
+									<span class="text-xs font-bold text-amber-800 dark:text-amber-200">⚠️ OUTLIER EXPERIENCE</span>
 								</div>
-								<p class="text-sm text-amber-700">{review.outlierReason}</p>
+								<p class="text-sm text-amber-700 dark:text-amber-300">{review.outlierReason}</p>
 							</div>
 						{/if}
 					</Card.Content>

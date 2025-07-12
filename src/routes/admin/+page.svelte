@@ -15,6 +15,7 @@
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 	import { Plus } from '@lucide/svelte';
 	import { toast } from 'svelte-sonner';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 
 	import { reviewsColumns } from './reviews-columns.js';
 	import { schoolsColumns, type School } from './schools-columns.js';
@@ -179,7 +180,7 @@
 		{ key: 'enjoyment', label: 'Enjoyment', type: 'number' as const, required: true },
 		{ key: 'wouldRecommend', label: 'Would Recommend', type: 'boolean' as const, required: true },
 		{ key: 'starRating', label: 'Star Rating', type: 'number' as const, required: true },
-		{ key: 'comment', label: 'Comment', type: 'text' as const }
+		{ key: 'comment', label: 'Comment', type: 'comment' as const }
 	]);
 
 	function openEditModal(entity: any, mutationName: string, fields: any[]) {
@@ -418,7 +419,7 @@
 	<div>
 		<div class="mx-auto max-w-7xl">
 			<div class="mb-6 sm:mb-8">
-				<h1 class="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
+				<h1 class="text-2xl font-bold sm:text-3xl">Admin Dashboard</h1>
 				<p class="mt-2 text-sm sm:text-base">Manage all your preceptor review data</p>
 			</div>
 
@@ -426,9 +427,9 @@
 				<Tabs.Root value="Preceptors" class="w-full">
 					<Tabs.List class="flex flex-wrap gap-1 sm:gap-0">
 						{#each tabs as tab (tab.id)}
-							<Tabs.Trigger 
+							<Tabs.Trigger
 								value={tab.label}
-								class="flex-1 sm:flex-none text-xs sm:text-sm px-2 sm:px-3 py-2"
+								class="flex-1 px-2 py-2 text-xs sm:flex-none sm:px-3 sm:text-sm"
 							>
 								<span class="hidden sm:inline">{tab.label}</span>
 								<span class="sm:hidden">{tab.label.slice(0, 3)}</span>
@@ -441,18 +442,20 @@
 						{/each}
 					</Tabs.List>
 
-					<div class="rounded-lg shadow mt-4">
+					<div class="mt-4 rounded-lg shadow">
 						<Tabs.Content value="Reviews">
 							<div class="p-3 sm:p-6">
-								<div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+								<div
+									class="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between"
+								>
 									<div>
-										<h2 class="text-lg sm:text-xl font-semibold">Reviews</h2>
+										<h2 class="text-lg font-semibold sm:text-xl">Reviews</h2>
 										<p class="text-sm sm:text-base">All preceptor reviews and ratings</p>
 									</div>
 
 									<div class="flex flex-row gap-2">
 										<Button onclick={openAddReviewModal} class="w-full sm:w-auto">
-											<Plus class="h-4 w-4" /> 
+											<Plus class="h-4 w-4" />
 											<span class="hidden sm:inline">Add Review</span>
 											<span class="sm:hidden">Add</span>
 										</Button>
@@ -461,14 +464,28 @@
 
 								{#if reviewsError}
 									<div class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 sm:p-4">
-										<p class="text-red-800 text-sm">{reviewsError}</p>
+										<p class="text-sm text-red-800">{reviewsError}</p>
 									</div>
 								{/if}
 
 								{#if reviewsLoading}
-									<div class="flex items-center justify-center py-8 sm:py-12">
-										<div class="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-										<span class="ml-2 text-sm sm:text-base">Loading reviews...</span>
+									<div class="space-y-4">
+										{#each Array(5) as _, i}
+											<div class="flex items-center space-x-4 p-4 border rounded-lg">
+												<div class="space-y-2 flex-1">
+													<Skeleton class="h-4 w-[150px]" />
+													<Skeleton class="h-4 w-[100px]" />
+												</div>
+												<div class="space-y-1">
+													<Skeleton class="h-4 w-[80px]" />
+													<Skeleton class="h-4 w-[60px]" />
+												</div>
+												<div class="flex space-x-2">
+													<Skeleton class="h-8 w-16" />
+													<Skeleton class="h-8 w-16" />
+												</div>
+											</div>
+										{/each}
 									</div>
 								{:else}
 									<ReviewsDataTable data={reviewsData} columns={reviewsColumns} />
@@ -477,15 +494,17 @@
 						</Tabs.Content>
 						<Tabs.Content value="Preceptors">
 							<div class="p-3 sm:p-6">
-								<div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+								<div
+									class="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between"
+								>
 									<div>
-										<h2 class="text-lg sm:text-xl font-semibold">Preceptors</h2>
+										<h2 class="text-lg font-semibold sm:text-xl">Preceptors</h2>
 										<p class="text-sm sm:text-base">All registered preceptors</p>
 									</div>
 
 									<div class="flex flex-row gap-2">
 										<Button onclick={openAddPreceptorModal} class="w-full sm:w-auto">
-											<Plus class="h-4 w-4" /> 
+											<Plus class="h-4 w-4" />
 											<span class="hidden sm:inline">Add Preceptor</span>
 											<span class="sm:hidden">Add</span>
 										</Button>
@@ -494,14 +513,28 @@
 
 								{#if preceptorsError}
 									<div class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 sm:p-4">
-										<p class="text-red-800 text-sm">{preceptorsError}</p>
+										<p class="text-sm text-red-800">{preceptorsError}</p>
 									</div>
 								{/if}
 
 								{#if preceptorsLoading}
-									<div class="flex items-center justify-center py-8 sm:py-12">
-										<div class="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-										<span class="ml-2 text-sm sm:text-base">Loading preceptors...</span>
+									<div class="space-y-4">
+										{#each Array(5) as _, i}
+											<div class="flex items-center space-x-4 p-4 border rounded-lg">
+												<div class="space-y-2 flex-1">
+													<Skeleton class="h-4 w-[150px]" />
+													<Skeleton class="h-4 w-[100px]" />
+												</div>
+												<div class="space-y-1">
+													<Skeleton class="h-4 w-[80px]" />
+													<Skeleton class="h-4 w-[60px]" />
+												</div>
+												<div class="flex space-x-2">
+													<Skeleton class="h-8 w-16" />
+													<Skeleton class="h-8 w-16" />
+												</div>
+											</div>
+										{/each}
 									</div>
 								{:else}
 									<SimpleDataTable
@@ -515,15 +548,17 @@
 						</Tabs.Content>
 						<Tabs.Content value="Schools">
 							<div class="p-3 sm:p-6">
-								<div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+								<div
+									class="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between"
+								>
 									<div>
-										<h2 class="text-lg sm:text-xl font-semibold">Schools</h2>
+										<h2 class="text-lg font-semibold sm:text-xl">Schools</h2>
 										<p class="text-sm sm:text-base">All pharmacy schools</p>
 									</div>
 
 									<div class="flex flex-row gap-2">
 										<Button onclick={openAddSchoolModal} class="w-full sm:w-auto">
-											<Plus class="h-4 w-4" /> 
+											<Plus class="h-4 w-4" />
 											<span class="hidden sm:inline">Add School</span>
 											<span class="sm:hidden">Add</span>
 										</Button>
@@ -532,14 +567,24 @@
 
 								{#if schoolsError}
 									<div class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 sm:p-4">
-										<p class="text-red-800 text-sm">{schoolsError}</p>
+										<p class="text-sm text-red-800">{schoolsError}</p>
 									</div>
 								{/if}
 
 								{#if schoolsLoading}
-									<div class="flex items-center justify-center py-8 sm:py-12">
-										<div class="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-										<span class="ml-2 text-sm sm:text-base">Loading schools...</span>
+									<div class="space-y-4">
+										{#each Array(5) as _, i}
+											<div class="flex items-center space-x-4 p-4 border rounded-lg">
+												<div class="space-y-2 flex-1">
+													<Skeleton class="h-4 w-[150px]" />
+													<Skeleton class="h-4 w-[100px]" />
+												</div>
+												<div class="flex space-x-2">
+													<Skeleton class="h-8 w-16" />
+													<Skeleton class="h-8 w-16" />
+												</div>
+											</div>
+										{/each}
 									</div>
 								{:else}
 									<SimpleDataTable
@@ -553,15 +598,17 @@
 						</Tabs.Content>
 						<Tabs.Content value="Practice Sites">
 							<div class="p-3 sm:p-6">
-								<div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+								<div
+									class="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between"
+								>
 									<div>
-										<h2 class="text-lg sm:text-xl font-semibold">Practice Sites</h2>
+										<h2 class="text-lg font-semibold sm:text-xl">Practice Sites</h2>
 										<p class="text-sm sm:text-base">All practice sites and locations</p>
 									</div>
 
 									<div class="flex flex-row gap-2">
 										<Button onclick={openAddPracticeSiteModal} class="w-full sm:w-auto">
-											<Plus class="h-4 w-4" /> 
+											<Plus class="h-4 w-4" />
 											<span class="hidden sm:inline">Add Practice Site</span>
 											<span class="sm:hidden">Add</span>
 										</Button>
@@ -570,14 +617,24 @@
 
 								{#if sitesError}
 									<div class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 sm:p-4">
-										<p class="text-red-800 text-sm">{sitesError}</p>
+										<p class="text-sm text-red-800">{sitesError}</p>
 									</div>
 								{/if}
 
 								{#if sitesLoading}
-									<div class="flex items-center justify-center py-8 sm:py-12">
-										<div class="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-										<span class="ml-2 text-sm sm:text-base">Loading sites...</span>
+									<div class="space-y-4">
+										{#each Array(5) as _, i}
+											<div class="flex items-center space-x-4 p-4 border rounded-lg">
+												<div class="space-y-2 flex-1">
+													<Skeleton class="h-4 w-[150px]" />
+													<Skeleton class="h-4 w-[100px]" />
+												</div>
+												<div class="flex space-x-2">
+													<Skeleton class="h-8 w-16" />
+													<Skeleton class="h-8 w-16" />
+												</div>
+											</div>
+										{/each}
 									</div>
 								{:else}
 									<SimpleDataTable
@@ -591,15 +648,17 @@
 						</Tabs.Content>
 						<Tabs.Content value="Rotation Types">
 							<div class="p-3 sm:p-6">
-								<div class="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+								<div
+									class="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between"
+								>
 									<div>
-										<h2 class="text-lg sm:text-xl font-semibold">Rotation Types</h2>
+										<h2 class="text-lg font-semibold sm:text-xl">Rotation Types</h2>
 										<p class="text-sm sm:text-base">All available rotation types</p>
 									</div>
 
 									<div class="flex flex-row gap-2">
 										<Button onclick={openAddRotationTypeModal} class="w-full sm:w-auto">
-											<Plus class="h-4 w-4" /> 
+											<Plus class="h-4 w-4" />
 											<span class="hidden sm:inline">Add Rotation Type</span>
 											<span class="sm:hidden">Add</span>
 										</Button>
@@ -608,14 +667,24 @@
 
 								{#if rotationsError}
 									<div class="mb-4 rounded-md border border-red-200 bg-red-50 p-3 sm:p-4">
-										<p class="text-red-800 text-sm">{rotationsError}</p>
+										<p class="text-sm text-red-800">{rotationsError}</p>
 									</div>
 								{/if}
 
 								{#if rotationsLoading}
-									<div class="flex items-center justify-center py-8 sm:py-12">
-										<div class="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
-										<span class="ml-2 text-sm sm:text-base">Loading rotation types...</span>
+									<div class="space-y-4">
+										{#each Array(5) as _, i}
+											<div class="flex items-center space-x-4 p-4 border rounded-lg">
+												<div class="space-y-2 flex-1">
+													<Skeleton class="h-4 w-[150px]" />
+													<Skeleton class="h-4 w-[100px]" />
+												</div>
+												<div class="flex space-x-2">
+													<Skeleton class="h-8 w-16" />
+													<Skeleton class="h-8 w-16" />
+												</div>
+											</div>
+										{/each}
 									</div>
 								{:else}
 									<SimpleDataTable
