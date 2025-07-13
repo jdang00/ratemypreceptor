@@ -105,6 +105,18 @@
 	);
 	const commentCharCount = $derived(formData.comment ? formData.comment.length : 0);
 
+	const outlierReasonWordCount = $derived(
+		formData.outlierReason
+			? formData.outlierReason
+					.trim()
+					.split(/\s+/)
+					.filter((word) => word.length > 0).length
+			: 0
+	);
+	const outlierReasonCharCount = $derived(
+		formData.outlierReason ? formData.outlierReason.length : 0
+	);
+
 	const dispatch = createEventDispatcher();
 
 	onMount(() => {
@@ -116,88 +128,48 @@
 		}
 	});
 
-	$effect(() => {
-		if (prefillPreceptorName && preceptors.length > 0 && !formData.preceptorId) {
-			const match = preceptors.find((p) => p.fullName === prefillPreceptorName);
-			if (match) {
-				formData.preceptorId = match._id;
-			}
-		}
-	});
+	import { reviewSchema } from '../schemas/review';
 
 	function clearValidationErrors() {
 		validationErrors = [];
-	}
-
-	function validateForm() {
-		const errors = [];
-
-		if (!formData.preceptorId) errors.push('Please select a preceptor');
-		if (!formData.rotationTypeId) errors.push('Please select a rotation type');
-		if (!formData.experienceTypeId) errors.push('Please select an experience type');
-		if (!formData.schoolYear) errors.push('Please select a school year');
-		if (!formData.priorExperience) errors.push('Please select your prior experience level');
-		if (!formData.schedulingFlexibility) errors.push('Please rate scheduling flexibility');
-		if (!formData.workload) errors.push('Please rate workload');
-		if (!formData.expectations) errors.push('Please rate expectations');
-		if (!formData.mentorship) errors.push('Please rate mentorship');
-		if (!formData.enjoyment) errors.push('Please rate enjoyment');
-		if (!formData.wouldRecommend) errors.push('Please select recommendation');
-		if (!formData.starRating) errors.push('Please provide a star rating');
-		if (!formData.agreedToPolicies) errors.push('Please agree to the review policies');
-
-		if (formData.isOutlier === 'true' && !formData.outlierReason?.trim()) {
-			errors.push('Please explain why this is an outlier experience');
-		}
-
-		if (
-			formData.extraHours &&
-			(isNaN(Number(formData.extraHours)) || Number(formData.extraHours) < 0)
-		) {
-			errors.push('Extra hours must be a valid number');
-		}
-
-		return errors;
 	}
 
 	async function handleSubmit() {
 		if (isSubmitting) return;
 
 		clearValidationErrors();
-		const errors = validateForm();
-
-		if (errors.length > 0) {
-			validationErrors = errors;
-			return;
-		}
 
 		try {
+			const validatedData = reviewSchema.parse(formData);
 			isSubmitting = true;
 			submitError = '';
 
-			const reviewData = {
-				preceptorId: formData.preceptorId,
-				rotationTypeId: formData.rotationTypeId,
-				experienceTypeId: formData.experienceTypeId,
-				schoolYear: formData.schoolYear,
-				priorExperience: formData.priorExperience,
-				extraHours: formData.extraHours ? Number(formData.extraHours) : undefined,
-				schedulingFlexibility: Number(formData.schedulingFlexibility),
-				workload: Number(formData.workload),
-				expectations: Number(formData.expectations),
-				mentorship: Number(formData.mentorship),
-				enjoyment: Number(formData.enjoyment),
-				wouldRecommend: formData.wouldRecommend === 'true',
-				starRating: Number(formData.starRating),
-				comment: formData.comment?.trim() || undefined,
-				isOutlier: formData.isOutlier === 'true',
-				outlierReason: formData.isOutlier === 'true' ? formData.outlierReason?.trim() : undefined
-			};
+			const { agreedToPolicies, ...reviewDataToSend } = validatedData;
 
-			await client.mutation(api.reviews.insertReview, reviewData);
+			await client.mutation(api.reviews.insertReview, {
+				...reviewDataToSend,
+				extraHours: reviewDataToSend.extraHours,
+				schedulingFlexibility: Number(reviewDataToSend.schedulingFlexibility),
+				workload: Number(reviewDataToSend.workload),
+				expectations: Number(reviewDataToSend.expectations),
+				mentorship: Number(reviewDataToSend.mentorship),
+				enjoyment: Number(reviewDataToSend.enjoyment),
+				wouldRecommend: reviewDataToSend.wouldRecommend === 'true',
+				starRating: Number(reviewDataToSend.starRating),
+				comment: reviewDataToSend.comment?.trim() || undefined,
+				isOutlier: reviewDataToSend.isOutlier === 'true',
+				outlierReason:
+					reviewDataToSend.isOutlier === 'true'
+						? reviewDataToSend.outlierReason?.trim()
+						: undefined
+			});
 			dispatch('submitted');
 		} catch (error) {
-			submitError = error instanceof Error ? error.message : 'Failed to submit review';
+			if (error.errors) {
+				validationErrors = error.errors.map((err) => err.message);
+			} else {
+				submitError = error instanceof Error ? error.message : 'Failed to submit review';
+			}
 		} finally {
 			isSubmitting = false;
 		}
@@ -239,8 +211,9 @@
 						type="single"
 						bind:value={formData.rotationTypeId}
 						onValueChange={clearValidationErrors}
+						disabled={!selectedPreceptor}
 					>
-						<Select.Trigger class="w-full" disabled={!selectedPreceptor}>
+						<Select.Trigger class="w-full">
 							{rotationTypeTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
@@ -262,8 +235,9 @@
 						type="single"
 						bind:value={formData.experienceTypeId}
 						onValueChange={clearValidationErrors}
+						disabled={!selectedPreceptor}
 					>
-						<Select.Trigger class="w-full" disabled={!selectedPreceptor}>
+						<Select.Trigger class="w-full">
 							{experienceTypeTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
@@ -285,12 +259,13 @@
 						type="single"
 						bind:value={formData.schoolYear}
 						onValueChange={clearValidationErrors}
+						disabled={!selectedProgramType}
 					>
-						<Select.Trigger class="w-full" disabled={!selectedProgramType}>
+						<Select.Trigger class="w-full">
 							{schoolYearTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
-							{#each availableYears as year}
+							{#each availableYears as year (year)}
 								<Select.Item value={year} label={year}>
 									{year}
 								</Select.Item>
@@ -475,8 +450,19 @@
 							bind:value={formData.outlierReason}
 							placeholder="Explain what made this experience unusual..."
 							class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-							oninput={clearValidationErrors}
+							oninput={(e) => {
+								const target = e.target as HTMLTextAreaElement;
+								if (target.value.length > 500) {
+									target.value = target.value.slice(0, 500);
+									formData.outlierReason = target.value;
+								}
+								clearValidationErrors();
+							}}
+							maxlength="500"
 						></textarea>
+						<p class="text-muted-foreground text-xs">
+							{outlierReasonCharCount}/500 characters • {outlierReasonWordCount} words
+						</p>
 					</div>
 				{/if}
 			</div>
@@ -487,8 +473,19 @@
 					onCheckedChange={clearValidationErrors}
 				/>
 				<Label class="text-sm">
-					I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Terms of Service</a>
-					and <a href="/privacy" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Privacy Policy</a>
+					I agree to the <a
+						href="/terms"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-primary hover:underline">Terms of Service</a
+					>
+					and
+					<a
+						href="/privacy"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-primary hover:underline">Privacy Policy</a
+					>
 				</Label>
 			</div>
 
@@ -496,7 +493,7 @@
 				<div class="rounded-md border border-red-200 bg-red-50 p-4">
 					<h4 class="text-sm font-medium text-red-800">Please fix the following errors:</h4>
 					<ul class="mt-2 text-sm text-red-700">
-						{#each validationErrors as error}
+						{#each validationErrors as error (error)}
 							<li>• {error}</li>
 						{/each}
 					</ul>
