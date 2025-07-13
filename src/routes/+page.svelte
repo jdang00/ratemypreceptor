@@ -16,8 +16,11 @@
 	const allPreceptors = useQuery(api.preceptors.getWithReviews, {});
 </script>
 
+
+
 <h1 class="mt-8 mb-4 text-center text-3xl font-bold">RateMyPreceptor</h1>
 <p class="text-center text-lg">Enter a preceptor, school, or rotation to get started.</p>
+
 
 <div class="mt-12 flex flex-col items-center gap-6">
 	<div class="relative w-full max-w-2xl">

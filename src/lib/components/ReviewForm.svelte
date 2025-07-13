@@ -432,7 +432,15 @@
 						bind:value={formData.comment}
 						placeholder="Share specific details about your experience..."
 						class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-[100px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-						oninput={clearValidationErrors}
+						oninput={(e) => {
+							const target = e.target as HTMLTextAreaElement;
+							if (target.value.length > 2000) {
+								target.value = target.value.slice(0, 2000);
+								formData.comment = target.value;
+							}
+							clearValidationErrors();
+						}}
+						maxlength="2000"
 					></textarea>
 					<p class="text-muted-foreground text-xs">
 						{commentCharCount}/2000 characters • {commentWordCount} words
@@ -479,8 +487,8 @@
 					onCheckedChange={clearValidationErrors}
 				/>
 				<Label class="text-sm">
-					I agree to the <a href="/terms" class="text-primary hover:underline">Terms of Service</a>
-					and <a href="/privacy" class="text-primary hover:underline">Privacy Policy</a>
+					I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Terms of Service</a>
+					and <a href="/privacy" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">Privacy Policy</a>
 				</Label>
 			</div>
 

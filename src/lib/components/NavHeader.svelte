@@ -70,8 +70,9 @@
 >
 	<div class="flex h-16 w-full items-center justify-between">
 		<div class="flex items-center space-x-8">
-			<a href="/" class="hover:text-primary text-xl font-bold transition-colors">
-				{title}
+			<a href="/" class="hover:text-primary text-xl font-semibold transition-colors flex items-center space-x-2">
+				<img src="/RateMyPreceptorLogo.svg" alt="RateMyPreceptor Logo" class="h-6 w-6" />
+				<span>{title}</span>
 			</a>
 			<NavigationMenu.Root viewport={false} class="hidden md:flex">
 				<NavigationMenu.List class="flex items-center space-x-1">
