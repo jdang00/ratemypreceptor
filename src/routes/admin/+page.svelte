@@ -610,15 +610,11 @@
 				<Tabs.Root value="Preceptors" class="w-full">
 					<Tabs.List class="flex ">
 						{#each tabs as tab (tab.id)}
-<<<<<<< HEAD
 							<Tabs.Trigger
 								value={tab.label}
 								class="flex-1 text-xs sm:text-sm"
 							>
 							
-=======
-							<Tabs.Trigger value={tab.label} class="flex-1 py-2 text-xs sm:flex-none  sm:text-sm">
->>>>>>> 2670efc6742408a465b02e854b59819bd18960f2
 								<span class="hidden sm:inline">{tab.label}</span>
 								<span class="sm:hidden">{tab.label.slice(0, 3)}</span>
 								{#if tab.count > 0}
