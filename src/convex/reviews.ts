@@ -3,26 +3,26 @@ import { v } from 'convex/values';
 
 export const getReviewsCount = query({
 	args: {
-		filters: v.optional(v.object({
-			experienceType: v.optional(v.string()),
-			wouldRecommend: v.optional(v.boolean()),
-			comment: v.optional(v.string())
-		}))
+		filters: v.optional(
+			v.object({
+				experienceType: v.optional(v.string()),
+				wouldRecommend: v.optional(v.boolean()),
+				comment: v.optional(v.string())
+			})
+		)
 	},
 	handler: async (ctx, { filters }) => {
 		const allReviews = await ctx.db.query('reviews').collect();
-		
+
 		if (!filters) {
 			return allReviews.length;
 		}
 
-		const [experienceTypes] = await Promise.all([
-			ctx.db.query('experienceTypes').collect()
-		]);
+		const [experienceTypes] = await Promise.all([ctx.db.query('experienceTypes').collect()]);
 
-		const experienceTypeMap = new Map(experienceTypes.map(e => [e.name, e._id]));
+		const experienceTypeMap = new Map(experienceTypes.map((e) => [e.name, e._id]));
 
-		const filteredReviews = allReviews.filter(review => {
+		const filteredReviews = allReviews.filter((review) => {
 			if (filters.experienceType && filters.experienceType !== '') {
 				const experienceTypeId = experienceTypeMap.get(filters.experienceType);
 				if (experienceTypeId && review.experienceTypeId !== experienceTypeId) {
@@ -30,7 +30,10 @@ export const getReviewsCount = query({
 				}
 			}
 
-			if (filters.wouldRecommend !== undefined && review.wouldRecommend !== filters.wouldRecommend) {
+			if (
+				filters.wouldRecommend !== undefined &&
+				review.wouldRecommend !== filters.wouldRecommend
+			) {
 				return false;
 			}
 
@@ -52,29 +55,26 @@ export const getReviewsWithOffset = query({
 	args: {
 		offset: v.number(),
 		limit: v.number(),
-		filters: v.optional(v.object({
-			experienceType: v.optional(v.string()),
-			wouldRecommend: v.optional(v.boolean()),
-			comment: v.optional(v.string())
-		}))
+		filters: v.optional(
+			v.object({
+				experienceType: v.optional(v.string()),
+				wouldRecommend: v.optional(v.boolean()),
+				comment: v.optional(v.string())
+			})
+		)
 	},
 	handler: async (ctx, { offset, limit, filters }) => {
-		const reviewsQuery = ctx.db
-			.query('reviews')
-			.withIndex('by_recent_reviews')
-			.order('desc');
+		const reviewsQuery = ctx.db.query('reviews').withIndex('by_recent_reviews').order('desc');
 
 		const allReviews = await reviewsQuery.collect();
 		let filteredReviews = allReviews;
 
 		if (filters) {
-			const [experienceTypes] = await Promise.all([
-				ctx.db.query('experienceTypes').collect()
-			]);
+			const [experienceTypes] = await Promise.all([ctx.db.query('experienceTypes').collect()]);
 
-			const experienceTypeMap = new Map(experienceTypes.map(e => [e.name, e._id]));
+			const experienceTypeMap = new Map(experienceTypes.map((e) => [e.name, e._id]));
 
-			filteredReviews = allReviews.filter(review => {
+			filteredReviews = allReviews.filter((review) => {
 				if (filters.experienceType && filters.experienceType !== '') {
 					const experienceTypeId = experienceTypeMap.get(filters.experienceType);
 					if (experienceTypeId && review.experienceTypeId !== experienceTypeId) {
@@ -82,7 +82,10 @@ export const getReviewsWithOffset = query({
 					}
 				}
 
-				if (filters.wouldRecommend !== undefined && review.wouldRecommend !== filters.wouldRecommend) {
+				if (
+					filters.wouldRecommend !== undefined &&
+					review.wouldRecommend !== filters.wouldRecommend
+				) {
 					return false;
 				}
 
@@ -167,10 +170,10 @@ export const getByPreceptor = query({
 			ctx.db.query('experienceTypes').collect()
 		]);
 
-		const rotationTypeMap = new Map(rotationTypes.map(r => [r._id, r.name]));
-		const experienceTypeMap = new Map(experienceTypes.map(e => [e._id, e.name]));
+		const rotationTypeMap = new Map(rotationTypes.map((r) => [r._id, r.name]));
+		const experienceTypeMap = new Map(experienceTypes.map((e) => [e._id, e.name]));
 
-		return reviews.map(review => ({
+		return reviews.map((review) => ({
 			...review,
 			rotationTypeName: rotationTypeMap.get(review.rotationTypeId) || 'Unknown Rotation',
 			experienceTypeName: experienceTypeMap.get(review.experienceTypeId) || 'Unknown Experience'
@@ -202,13 +205,14 @@ export const getPreceptorStats = query({
 		}
 
 		const totalReviews = reviews.length;
-		const recommendedCount = reviews.filter(r => r.wouldRecommend).length;
+		const recommendedCount = reviews.filter((r) => r.wouldRecommend).length;
 
 		return {
 			totalReviews,
 			averageStarRating: reviews.reduce((sum, r) => sum + r.starRating, 0) / totalReviews,
 			recommendationRate: (recommendedCount / totalReviews) * 100,
-			averageSchedulingFlexibility: reviews.reduce((sum, r) => sum + r.schedulingFlexibility, 0) / totalReviews,
+			averageSchedulingFlexibility:
+				reviews.reduce((sum, r) => sum + r.schedulingFlexibility, 0) / totalReviews,
 			averageWorkload: reviews.reduce((sum, r) => sum + r.workload, 0) / totalReviews,
 			averageExpectations: reviews.reduce((sum, r) => sum + r.expectations, 0) / totalReviews,
 			averageMentorship: reviews.reduce((sum, r) => sum + r.mentorship, 0) / totalReviews,
@@ -248,7 +252,7 @@ export const getTopReviews = query({
 });
 
 export const searchPreceptorsByReviews = query({
-	args: { 
+	args: {
 		searchTerm: v.string(),
 		limit: v.optional(v.number())
 	},
@@ -258,7 +262,7 @@ export const searchPreceptorsByReviews = query({
 		}
 
 		const searchLower = searchTerm.toLowerCase();
-		
+
 		const [preceptors, schools, practiceSites, programTypes] = await Promise.all([
 			ctx.db.query('preceptors').collect(),
 			ctx.db.query('schools').collect(),
@@ -266,21 +270,25 @@ export const searchPreceptorsByReviews = query({
 			ctx.db.query('programTypes').collect()
 		]);
 
-		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
-		const practiceSiteMap = new Map(practiceSites.map(s => [s._id, s.name]));
-		const programTypeMap = new Map(programTypes.map(p => [p._id, p.name]));
+		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
+		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
+		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
 
-		const matchingPreceptors = preceptors.filter(preceptor => {
-			const preceptorName = preceptor.fullName.toLowerCase();
-			const schoolName = schoolMap.get(preceptor.schoolId)?.toLowerCase() || '';
-			const siteName = practiceSiteMap.get(preceptor.siteId)?.toLowerCase() || '';
-			const programTypeName = programTypeMap.get(preceptor.programTypeId)?.toLowerCase() || '';
-			
-			return preceptorName.includes(searchLower) || 
-				schoolName.includes(searchLower) || 
-				siteName.includes(searchLower) ||
-				programTypeName.includes(searchLower);
-		}).slice(0, limit);
+		const matchingPreceptors = preceptors
+			.filter((preceptor) => {
+				const preceptorName = preceptor.fullName.toLowerCase();
+				const schoolName = schoolMap.get(preceptor.schoolId)?.toLowerCase() || '';
+				const siteName = practiceSiteMap.get(preceptor.siteId)?.toLowerCase() || '';
+				const programTypeName = programTypeMap.get(preceptor.programTypeId)?.toLowerCase() || '';
+
+				return (
+					preceptorName.includes(searchLower) ||
+					schoolName.includes(searchLower) ||
+					siteName.includes(searchLower) ||
+					programTypeName.includes(searchLower)
+				);
+			})
+			.slice(0, limit);
 
 		const preceptorResults = await Promise.all(
 			matchingPreceptors.map(async (preceptor) => {
@@ -290,12 +298,12 @@ export const searchPreceptorsByReviews = query({
 					.collect();
 
 				const totalReviews = stats.length;
-				const averageStarRating = totalReviews > 0 
-					? stats.reduce((sum, r) => sum + r.starRating, 0) / totalReviews 
-					: 0;
-				const recommendationRate = totalReviews > 0 
-					? (stats.filter(r => r.wouldRecommend).length / totalReviews) * 100 
-					: 0;
+				const averageStarRating =
+					totalReviews > 0 ? stats.reduce((sum, r) => sum + r.starRating, 0) / totalReviews : 0;
+				const recommendationRate =
+					totalReviews > 0
+						? (stats.filter((r) => r.wouldRecommend).length / totalReviews) * 100
+						: 0;
 
 				return {
 					...preceptor,
@@ -351,16 +359,18 @@ export const getFilteredReviews = query({
 			]);
 
 			if (filters.experienceType) {
-				const experienceTypeId = experienceTypes.find(e => e.name === filters.experienceType)?._id;
+				const experienceTypeId = experienceTypes.find(
+					(e) => e.name === filters.experienceType
+				)?._id;
 				if (experienceTypeId) {
-					reviews = reviews.filter(r => r.experienceTypeId === experienceTypeId);
+					reviews = reviews.filter((r) => r.experienceTypeId === experienceTypeId);
 				}
 			}
 
 			if (filters.rotationType) {
-				const rotationTypeId = rotationTypes.find(r => r.name === filters.rotationType)?._id;
+				const rotationTypeId = rotationTypes.find((r) => r.name === filters.rotationType)?._id;
 				if (rotationTypeId) {
-					reviews = reviews.filter(r => r.rotationTypeId === rotationTypeId);
+					reviews = reviews.filter((r) => r.rotationTypeId === rotationTypeId);
 				}
 			}
 		}
@@ -427,18 +437,20 @@ export const insertReview = mutation({
 });
 
 export const updateReview = mutation({
-	args: { 
+	args: {
 		id: v.id('reviews'),
 		preceptorId: v.optional(v.id('preceptors')),
 		rotationTypeId: v.optional(v.id('rotationTypes')),
 		experienceTypeId: v.optional(v.id('experienceTypes')),
 		schoolYear: v.optional(v.string()),
-		priorExperience: v.optional(v.union(
-			v.literal('None'),
-			v.literal('Little'),
-			v.literal('Moderate'),
-			v.literal('Significant')
-		)),
+		priorExperience: v.optional(
+			v.union(
+				v.literal('None'),
+				v.literal('Little'),
+				v.literal('Moderate'),
+				v.literal('Significant')
+			)
+		),
 		extraHours: v.optional(v.number()),
 		schedulingFlexibility: v.optional(v.number()),
 		workload: v.optional(v.number()),
@@ -474,10 +486,10 @@ export const upvoteReview = mutation({
 	handler: async (ctx, { id }) => {
 		const review = await ctx.db.get(id);
 		if (!review) throw new Error('Review not found');
-		
+
 		const upvoteCount = review.upvoteCount + 1;
 		const netScore = upvoteCount - review.downvoteCount;
-		
+
 		await ctx.db.patch(id, {
 			upvoteCount,
 			netScore,
@@ -491,10 +503,10 @@ export const downvoteReview = mutation({
 	handler: async (ctx, { id }) => {
 		const review = await ctx.db.get(id);
 		if (!review) throw new Error('Review not found');
-		
+
 		const downvoteCount = review.downvoteCount + 1;
 		const netScore = review.upvoteCount - downvoteCount;
-		
+
 		await ctx.db.patch(id, {
 			downvoteCount,
 			netScore,
@@ -502,5 +514,3 @@ export const downvoteReview = mutation({
 		});
 	}
 });
-
-

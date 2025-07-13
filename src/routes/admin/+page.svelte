@@ -161,7 +161,12 @@
 	const programTypeFields = $derived([
 		{ key: 'name', label: 'Program Name', type: 'text' as const, required: true },
 		{ key: 'abbreviation', label: 'Abbreviation', type: 'text' as const, required: true },
-		{ key: 'yearLabels', label: 'Year Labels (comma-separated)', type: 'array' as const, required: true }
+		{
+			key: 'yearLabels',
+			label: 'Year Labels (comma-separated)',
+			type: 'array' as const,
+			required: true
+		}
 	]);
 
 	const experienceTypeFields = $derived([
@@ -495,7 +500,9 @@
 				const schoolProgram = schoolProgramsData.find((sp) => sp._id === deleteSchoolProgram);
 				openDeleteModal(
 					deleteSchoolProgram,
-					schoolProgram ? `${schoolProgram.schoolName} - ${schoolProgram.programTypeName}` : 'Unknown School Program',
+					schoolProgram
+						? `${schoolProgram.schoolName} - ${schoolProgram.programTypeName}`
+						: 'Unknown School Program',
 					'School Program',
 					'schoolPrograms.deleteSchoolProgram'
 				);
@@ -603,11 +610,15 @@
 				<Tabs.Root value="Preceptors" class="w-full">
 					<Tabs.List class="flex ">
 						{#each tabs as tab (tab.id)}
+<<<<<<< HEAD
 							<Tabs.Trigger
 								value={tab.label}
 								class="flex-1 text-xs sm:text-sm"
 							>
 							
+=======
+							<Tabs.Trigger value={tab.label} class="flex-1 py-2 text-xs sm:flex-none  sm:text-sm">
+>>>>>>> 2670efc6742408a465b02e854b59819bd18960f2
 								<span class="hidden sm:inline">{tab.label}</span>
 								<span class="sm:hidden">{tab.label.slice(0, 3)}</span>
 								{#if tab.count > 0}
@@ -648,8 +659,8 @@
 								{#if reviewsLoading}
 									<div class="space-y-4">
 										{#each Array(5) as _, i (i)}
-											<div class="flex items-center space-x-4 p-4 border rounded-lg">
-												<div class="space-y-2 flex-1">
+											<div class="flex items-center space-x-4 rounded-lg border p-4">
+												<div class="flex-1 space-y-2">
 													<Skeleton class="h-4 w-[150px]" />
 													<Skeleton class="h-4 w-[100px]" />
 												</div>
@@ -702,8 +713,8 @@
 								{#if preceptorsLoading}
 									<div class="space-y-4">
 										{#each Array(5) as _, i (i)}
-											<div class="flex items-center space-x-4 p-4 border rounded-lg">
-												<div class="space-y-2 flex-1">
+											<div class="flex items-center space-x-4 rounded-lg border p-4">
+												<div class="flex-1 space-y-2">
 													<Skeleton class="h-4 w-[150px]" />
 													<Skeleton class="h-4 w-[100px]" />
 												</div>
@@ -756,8 +767,8 @@
 								{#if schoolsLoading}
 									<div class="space-y-4">
 										{#each Array(5) as _, i (i)}
-											<div class="flex items-center space-x-4 p-4 border rounded-lg">
-												<div class="space-y-2 flex-1">
+											<div class="flex items-center space-x-4 rounded-lg border p-4">
+												<div class="flex-1 space-y-2">
 													<Skeleton class="h-4 w-[150px]" />
 													<Skeleton class="h-4 w-[100px]" />
 												</div>
@@ -806,8 +817,8 @@
 								{#if sitesLoading}
 									<div class="space-y-4">
 										{#each Array(5) as _, i (i)}
-											<div class="flex items-center space-x-4 p-4 border rounded-lg">
-												<div class="space-y-2 flex-1">
+											<div class="flex items-center space-x-4 rounded-lg border p-4">
+												<div class="flex-1 space-y-2">
 													<Skeleton class="h-4 w-[150px]" />
 													<Skeleton class="h-4 w-[100px]" />
 												</div>
@@ -856,8 +867,8 @@
 								{#if rotationsLoading}
 									<div class="space-y-4">
 										{#each Array(5) as _, i (i)}
-											<div class="flex items-center space-x-4 p-4 border rounded-lg">
-												<div class="space-y-2 flex-1">
+											<div class="flex items-center space-x-4 rounded-lg border p-4">
+												<div class="flex-1 space-y-2">
 													<Skeleton class="h-4 w-[150px]" />
 													<Skeleton class="h-4 w-[100px]" />
 												</div>
@@ -906,8 +917,8 @@
 								{#if programTypesLoading}
 									<div class="space-y-4">
 										{#each Array(5) as _, i (i)}
-											<div class="flex items-center space-x-4 p-4 border rounded-lg">
-												<div class="space-y-2 flex-1">
+											<div class="flex items-center space-x-4 rounded-lg border p-4">
+												<div class="flex-1 space-y-2">
 													<Skeleton class="h-4 w-[150px]" />
 													<Skeleton class="h-4 w-[100px]" />
 												</div>
@@ -956,8 +967,8 @@
 								{#if experienceTypesLoading}
 									<div class="space-y-4">
 										{#each Array(5) as _, i (i)}
-											<div class="flex items-center space-x-4 p-4 border rounded-lg">
-												<div class="space-y-2 flex-1">
+											<div class="flex items-center space-x-4 rounded-lg border p-4">
+												<div class="flex-1 space-y-2">
 													<Skeleton class="h-4 w-[150px]" />
 													<Skeleton class="h-4 w-[100px]" />
 												</div>
@@ -1006,8 +1017,8 @@
 								{#if schoolProgramsLoading}
 									<div class="space-y-4">
 										{#each Array(5) as _, i (i)}
-											<div class="flex items-center space-x-4 p-4 border rounded-lg">
-												<div class="space-y-2 flex-1">
+											<div class="flex items-center space-x-4 rounded-lg border p-4">
+												<div class="flex-1 space-y-2">
 													<Skeleton class="h-4 w-[150px]" />
 													<Skeleton class="h-4 w-[100px]" />
 												</div>
@@ -1036,11 +1047,16 @@
 									>
 										<div>
 											<h2 class="text-lg font-semibold sm:text-xl">Database Seeding</h2>
-											<p class="text-sm sm:text-base">Seed the database with sample data for development</p>
+											<p class="text-sm sm:text-base">
+												Seed the database with sample data for development
+											</p>
 										</div>
 
 										<div class="flex flex-row gap-2">
-											<Button onclick={openSeedDatabaseModal} class="w-full sm:w-auto bg-orange-600 hover:bg-orange-700">
+											<Button
+												onclick={openSeedDatabaseModal}
+												class="w-full bg-orange-600 hover:bg-orange-700 sm:w-auto"
+											>
 												<Database class="h-4 w-4" />
 												<span class="hidden sm:inline">Seed Database</span>
 												<span class="sm:hidden">Seed</span>
@@ -1048,17 +1064,20 @@
 										</div>
 									</div>
 
-									<div class="rounded-lg border p-4 bg-muted/50">
-										<div class="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+									<div class="bg-muted/50 rounded-lg border p-4">
+										<div
+											class="text-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium"
+										>
 											<Database class="h-4 w-4" />
 											Development Tool
 										</div>
-										<p class="text-sm text-muted-foreground mb-3">
-											This tool allows you to populate the database with realistic sample data for testing and development purposes.
+										<p class="text-muted-foreground mb-3 text-sm">
+											This tool allows you to populate the database with realistic sample data for
+											testing and development purposes.
 										</p>
-										<div class="text-sm text-muted-foreground space-y-1">
+										<div class="text-muted-foreground space-y-1 text-sm">
 											<p><strong>Features:</strong></p>
-											<ul class="list-disc list-inside space-y-1 ml-2">
+											<ul class="ml-2 list-inside list-disc space-y-1">
 												<li>Configurable record counts (preceptors, schools, practice sites)</li>
 												<li>Customizable review generation settings</li>
 												<li>Realistic rating distributions</li>

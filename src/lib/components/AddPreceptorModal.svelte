@@ -53,7 +53,13 @@
 	async function handleSubmit() {
 		if (isSubmitting) return;
 
-		if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.schoolId || !formData.programTypeId || !formData.siteId) {
+		if (
+			!formData.firstName.trim() ||
+			!formData.lastName.trim() ||
+			!formData.schoolId ||
+			!formData.programTypeId ||
+			!formData.siteId
+		) {
 			submitError = 'Please fill in all required fields';
 			return;
 		}
@@ -62,8 +68,13 @@
 			isSubmitting = true;
 			submitError = '';
 
-			const fullName = formatFullName(formData.title, formData.firstName.trim(), formData.lastName.trim(), formData.degree);
-			
+			const fullName = formatFullName(
+				formData.title,
+				formData.firstName.trim(),
+				formData.lastName.trim(),
+				formData.degree
+			);
+
 			const preceptorData = {
 				fullName: fullName,
 				schoolId: formData.schoolId as any,
@@ -72,7 +83,7 @@
 			};
 
 			await client.mutation(api.preceptors.insertPreceptor, preceptorData);
-			
+
 			formData = {
 				title: '',
 				firstName: '',
@@ -82,7 +93,7 @@
 				programTypeId: '',
 				siteId: ''
 			};
-			
+
 			onSuccess?.();
 			onClose();
 		} catch (error) {
@@ -108,20 +119,22 @@
 </script>
 
 <Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-hidden p-4 sm:p-6">
+	<Dialog.Content
+		class="max-h-[90vh] w-full max-w-[95vw] overflow-hidden p-4 sm:max-h-[85vh] sm:max-w-md sm:p-6"
+	>
 		<Dialog.Header>
-			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New Preceptor</Dialog.Title>
-			<Dialog.Description class="text-sm text-muted-foreground">
+			<Dialog.Title class="text-lg font-semibold sm:text-xl">Add New Preceptor</Dialog.Title>
+			<Dialog.Description class="text-muted-foreground text-sm">
 				Add a new preceptor to the system. First and last name are required.
 			</Dialog.Description>
 		</Dialog.Header>
 
-		<div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+		<div class="max-h-[60vh] space-y-4 overflow-y-auto pr-2">
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Title</Label>
 					<Select.Root type="single" bind:value={formData.title}>
-						<Select.Trigger class="w-full h-9 text-sm">
+						<Select.Trigger class="h-9 w-full text-sm">
 							{formData.title || 'Select title'}
 						</Select.Trigger>
 						<Select.Content>
@@ -137,7 +150,7 @@
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Degree</Label>
 					<Select.Root type="single" bind:value={formData.degree}>
-						<Select.Trigger class="w-full h-9 text-sm">
+						<Select.Trigger class="h-9 w-full text-sm">
 							{formData.degree || 'Select degree'}
 						</Select.Trigger>
 						<Select.Content>
@@ -151,11 +164,9 @@
 				</div>
 			</div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 				<div class="space-y-2">
-					<Label for="firstName" class="text-sm font-medium">
-						First Name *
-					</Label>
+					<Label for="firstName" class="text-sm font-medium">First Name *</Label>
 					<Input
 						id="firstName"
 						placeholder="First name"
@@ -166,9 +177,7 @@
 				</div>
 
 				<div class="space-y-2">
-					<Label for="lastName" class="text-sm font-medium">
-						Last Name *
-					</Label>
+					<Label for="lastName" class="text-sm font-medium">Last Name *</Label>
 					<Input
 						id="lastName"
 						placeholder="Last name"
@@ -182,7 +191,8 @@
 			{#if formData.title || formData.firstName || formData.lastName || formData.degree}
 				<div class="rounded-md border border-blue-200 bg-blue-50 p-3">
 					<p class="text-sm text-blue-800">
-						<strong>Preview:</strong> {formatFullName(formData.title, formData.firstName, formData.lastName, formData.degree)}
+						<strong>Preview:</strong>
+						{formatFullName(formData.title, formData.firstName, formData.lastName, formData.degree)}
 					</p>
 				</div>
 			{/if}
@@ -190,7 +200,7 @@
 			<div class="space-y-2">
 				<Label class="text-sm font-medium">School *</Label>
 				<Select.Root type="single" bind:value={formData.schoolId}>
-					<Select.Trigger class="w-full h-9 text-sm">
+					<Select.Trigger class="h-9 w-full text-sm">
 						{schoolTriggerContent}
 					</Select.Trigger>
 					<Select.Content>
@@ -206,7 +216,7 @@
 			<div class="space-y-2">
 				<Label class="text-sm font-medium">Program Type *</Label>
 				<Select.Root type="single" bind:value={formData.programTypeId}>
-					<Select.Trigger class="w-full h-9 text-sm">
+					<Select.Trigger class="h-9 w-full text-sm">
 						{programTypeTriggerContent}
 					</Select.Trigger>
 					<Select.Content>
@@ -222,7 +232,7 @@
 			<div class="space-y-2">
 				<Label class="text-sm font-medium">Practice Site *</Label>
 				<Select.Root type="single" bind:value={formData.siteId}>
-					<Select.Trigger class="w-full h-9 text-sm" disabled={!formData.schoolId}>
+					<Select.Trigger class="h-9 w-full text-sm" disabled={!formData.schoolId}>
 						{practiceSiteTriggerContent}
 					</Select.Trigger>
 					<Select.Content>
@@ -242,13 +252,11 @@
 			{/if}
 		</div>
 
-		<Dialog.Footer class="flex justify-end gap-3 pt-4 border-t">
-			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>
-				Cancel
-			</Button>
+		<Dialog.Footer class="flex justify-end gap-3 border-t pt-4">
+			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>Cancel</Button>
 			<Button onclick={handleSubmit} disabled={isSubmitting}>
 				{isSubmitting ? 'Adding...' : 'Add Preceptor'}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
-</Dialog.Root> 
+</Dialog.Root>

@@ -38,7 +38,7 @@
 			await client.mutation(api.schools.insertSchool, {
 				name: formData.name.trim()
 			});
-			
+
 			formData = { name: '' };
 			onSuccess?.();
 			onClose();
@@ -57,19 +57,17 @@
 </script>
 
 <Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-md p-4 sm:p-6">
+	<Dialog.Content class="w-full max-w-[95vw] p-4 sm:max-w-md sm:p-6">
 		<Dialog.Header>
-			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New School</Dialog.Title>
-			<Dialog.Description class="text-sm text-muted-foreground">
+			<Dialog.Title class="text-lg font-semibold sm:text-xl">Add New School</Dialog.Title>
+			<Dialog.Description class="text-muted-foreground text-sm">
 				Add a new pharmacy school to the system.
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="space-y-4">
 			<div class="space-y-2">
-				<Label for="name" class="text-sm font-medium">
-					School Name *
-				</Label>
+				<Label for="name" class="text-sm font-medium">School Name *</Label>
 				<Input
 					id="name"
 					placeholder="Enter school name"
@@ -86,13 +84,11 @@
 			{/if}
 		</div>
 
-		<Dialog.Footer class="flex justify-end gap-3 pt-4 border-t">
-			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>
-				Cancel
-			</Button>
+		<Dialog.Footer class="flex justify-end gap-3 border-t pt-4">
+			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>Cancel</Button>
 			<Button onclick={handleSubmit} disabled={isSubmitting}>
 				{isSubmitting ? 'Adding...' : 'Add School'}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
-</Dialog.Root> 
+</Dialog.Root>

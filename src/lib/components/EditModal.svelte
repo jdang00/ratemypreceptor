@@ -1,6 +1,7 @@
 <script lang="ts" generics="T extends Record<string, any>">
 	import { useConvexClient } from 'convex-svelte';
 	import { api } from '../../convex/_generated/api.js';
+	import { toTitleCase } from '$lib/utils.js';
 	import * as Dialog from './ui/dialog/index.js';
 	import { Button } from './ui/button/index.js';
 	import { Input } from './ui/input/index.js';
@@ -13,7 +14,15 @@
 	type FieldConfig = {
 		key: string;
 		label: string;
-		type: 'text' | 'textarea' | 'select' | 'number' | 'boolean' | 'preceptor_combobox' | 'comment' | 'array';
+		type:
+			| 'text'
+			| 'textarea'
+			| 'select'
+			| 'number'
+			| 'boolean'
+			| 'preceptor_combobox'
+			| 'comment'
+			| 'array';
 		options?: { label: string; value: string }[];
 		preceptors?: { _id: string; fullName: string }[];
 		required?: boolean;
@@ -39,23 +48,26 @@
 	$effect(() => {
 		if (entity) {
 			console.log('EditModal - Original entity:', entity);
-			console.log('EditModal - Field keys:', fields.map(f => f.key));
-			
-			const fieldKeys = new Set(fields.map(f => f.key));
+			console.log(
+				'EditModal - Field keys:',
+				fields.map((f) => f.key)
+			);
+
+			const fieldKeys = new Set(fields.map((f) => f.key));
 			const filteredEntity = Object.fromEntries(
 				Object.entries(entity).filter(([key]) => fieldKeys.has(key))
 			);
-			
+
 			console.log('EditModal - Filtered entity:', filteredEntity);
-			
+
 			const processedEntity = { ...filteredEntity };
-			
+
 			for (const field of fields) {
 				if (field.type === 'array' && Array.isArray(processedEntity[field.key])) {
 					processedEntity[field.key] = processedEntity[field.key].join(', ');
 				}
 			}
-			
+
 			console.log('EditModal - Final formData:', processedEntity);
 			formData = processedEntity;
 		} else {
@@ -81,7 +93,10 @@
 				} else if (field.type === 'number' && typeof newValue === 'string') {
 					processedValue = Number(newValue);
 				} else if (field.type === 'array' && typeof newValue === 'string') {
-					processedValue = newValue.split(',').map(s => s.trim()).filter(s => s.length > 0);
+					processedValue = newValue
+						.split(',')
+						.map((s) => s.trim())
+						.filter((s) => s.length > 0);
 				}
 
 				if (processedValue !== oldValue) {
@@ -132,7 +147,7 @@
 	>
 		<Dialog.Header class="pb-4">
 			<Dialog.Title class="text-lg font-semibold sm:text-xl">
-				Edit {mutationName.split('.')[0]}
+				Edit {toTitleCase(mutationName.split('.')[0])}
 			</Dialog.Title>
 			<Dialog.Description class="text-muted-foreground text-sm">
 				Update the information below and click save to apply changes.
@@ -250,9 +265,9 @@
 					{/if}
 				{/each}
 
-				{#if fields.find(f => f.type === 'comment')}
+				{#if fields.find((f) => f.type === 'comment')}
 					<div class="mt-8">
-						<Label class="text-foreground text-sm font-medium mb-2 block">Comment</Label>
+						<Label class="text-foreground mb-2 block text-sm font-medium">Comment</Label>
 						<div class="bg-muted rounded-lg p-3">
 							<p class="text-sm leading-relaxed">{formData['comment'] || 'No comment provided'}</p>
 						</div>

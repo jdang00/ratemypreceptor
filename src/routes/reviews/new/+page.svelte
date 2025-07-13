@@ -1,10 +1,10 @@
 <script lang="ts">
-import ReviewForm from '$lib/components/ReviewForm.svelte';
-import { goto } from '$app/navigation';
+	import ReviewForm from '$lib/components/ReviewForm.svelte';
+	import { goto } from '$app/navigation';
 
-function handleSubmitted() {
-	goto('/reviews');
-}
+	function handleSubmitted() {
+		goto('/reviews');
+	}
 </script>
 
 <div class="mx-auto max-w-4xl">
@@ -13,4 +13,4 @@ function handleSubmitted() {
 		<p class="mt-2">Share your experience with other students</p>
 	</div>
 	<ReviewForm prefillPreceptorName={null} on:submitted={handleSubmitted} />
-</div> 
+</div>

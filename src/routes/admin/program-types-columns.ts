@@ -102,4 +102,4 @@ export const programTypesColumns: ColumnDef<ProgramType>[] = [
 			return renderSnippet(actionsSnippet, row.original);
 		}
 	}
-]; 
+];

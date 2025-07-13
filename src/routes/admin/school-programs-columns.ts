@@ -89,4 +89,4 @@ export const schoolProgramsColumns: ColumnDef<SchoolProgram>[] = [
 			return renderSnippet(actionsSnippet, row.original);
 		}
 	}
-]; 
+];

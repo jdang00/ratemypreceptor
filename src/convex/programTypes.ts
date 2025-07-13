@@ -24,7 +24,7 @@ export const insertProgramType = mutation({
 });
 
 export const updateProgramType = mutation({
-	args: { 
+	args: {
 		id: v.id('programTypes'),
 		name: v.optional(v.string()),
 		yearLabels: v.optional(v.array(v.string())),
@@ -45,4 +45,4 @@ export const deleteProgramType = mutation({
 	handler: async (ctx, { id }) => {
 		await ctx.db.delete(id);
 	}
-}); 
+});

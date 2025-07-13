@@ -6,9 +6,9 @@ export const get = query({
 	handler: async (ctx) => {
 		const rotationTypes = await ctx.db.query('rotationTypes').collect();
 		const programTypes = await ctx.db.query('programTypes').collect();
-		const programTypeMap = new Map(programTypes.map(p => [p._id, p.name]));
-		
-		return rotationTypes.map(rt => ({
+		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
+
+		return rotationTypes.map((rt) => ({
 			...rt,
 			programTypeName: programTypeMap.get(rt.programTypeId) || 'Unknown Program'
 		}));
@@ -43,7 +43,7 @@ export const deleteRotationType = mutation({
 });
 
 export const updateRotationType = mutation({
-	args: { 
+	args: {
 		id: v.id('rotationTypes'),
 		programTypeId: v.optional(v.id('programTypes')),
 		name: v.optional(v.string())

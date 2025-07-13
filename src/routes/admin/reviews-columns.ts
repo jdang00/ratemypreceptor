@@ -31,33 +31,33 @@ export type Review = {
 export const reviewsColumns: ColumnDef<Review>[] = [
 	{
 		accessorKey: 'preceptorName',
-		header: 'Preceptor',
+		header: 'Preceptor'
 	},
 	{
 		accessorKey: 'rotationTypeName',
-		header: 'Rotation',
+		header: 'Rotation'
 	},
 	{
 		accessorKey: 'experienceTypeName',
-		header: 'Experience',
+		header: 'Experience'
 	},
 	{
 		accessorKey: 'schoolYear',
-		header: 'Year',
+		header: 'Year'
 	},
 	{
 		accessorKey: 'starRating',
 		header: 'Rating',
-		cell: ({ row }) => `${row.getValue('starRating')}/5`,
+		cell: ({ row }) => `${row.getValue('starRating')}/5`
 	},
 	{
 		accessorKey: 'wouldRecommend',
 		header: 'Recommend',
-		cell: ({ row }) => row.getValue('wouldRecommend') ? 'Yes' : 'No',
+		cell: ({ row }) => (row.getValue('wouldRecommend') ? 'Yes' : 'No')
 	},
 	{
 		accessorKey: 'netScore',
-		header: 'Score',
+		header: 'Score'
 	},
 	{
 		accessorKey: 'comment',
@@ -66,7 +66,7 @@ export const reviewsColumns: ColumnDef<Review>[] = [
 			const comment = row.getValue('comment') as string | undefined;
 			if (!comment) return '';
 			return comment.length > 50 ? comment.slice(0, 50) + '...' : comment;
-		},
+		}
 	},
 	{
 		accessorKey: 'createdAt',
@@ -75,6 +75,6 @@ export const reviewsColumns: ColumnDef<Review>[] = [
 			const timestamp = row.getValue('createdAt') as number;
 			const date = new Date(timestamp);
 			return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-		},
-	},
+		}
+	}
 ];
