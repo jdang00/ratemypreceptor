@@ -9,7 +9,7 @@
 		required?: boolean;
 	}
 
-	let { label, value, onChange, required = false }: Props = $props();
+	let { label, value = $bindable(), onChange, required = false }: Props = $props();
 
 	const currentValue = $derived(Number(value) || 0);
 

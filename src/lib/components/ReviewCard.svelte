@@ -139,7 +139,10 @@
 
 		{#if review.comment}
 			<div class="bg-muted rounded-lg p-3 text-sm leading-relaxed">
-				{@html review.comment.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>')}
+				{@html review.comment.replace(
+					/(https?:\/\/[^\s]+)/g,
+					'<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>'
+				)}
 			</div>
 		{/if}
 
