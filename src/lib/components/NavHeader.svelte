@@ -64,7 +64,7 @@
 
 <nav
 	class={cn(
-		'bg-background/95 supports-[backdrop-filter]:bg-background/60 border-b px-6 backdrop-blur',
+		'sticky top-0 z-50 bg-background/80 supports-[backdrop-filter]:bg-background/60 border-b px-6 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md',
 		className
 	)}
 >
@@ -159,7 +159,7 @@
 					<li>
 						<a
 							href={link.href}
-							class="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block rounded px-4 py-2 transition-colors outline-none"
+							class="hover:bg-secondary/20 focus:bg-secondary/20 block rounded px-4 py-2 transition-colors outline-none"
 							onclick={handleMobileNavClick}
 						>
 							{link.title}

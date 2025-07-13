@@ -601,16 +601,17 @@
 
 			<div class="mb-4">
 				<Tabs.Root value="Preceptors" class="w-full">
-					<Tabs.List class="flex flex-wrap gap-1 sm:gap-0">
+					<Tabs.List class="flex ">
 						{#each tabs as tab (tab.id)}
 							<Tabs.Trigger
 								value={tab.label}
-								class="flex-1 py-2 text-xs sm:flex-none  sm:text-sm"
+								class="flex-1 text-xs sm:text-sm"
 							>
+							
 								<span class="hidden sm:inline">{tab.label}</span>
 								<span class="sm:hidden">{tab.label.slice(0, 3)}</span>
 								{#if tab.count > 0}
-									<span class="ml-1 rounded-full text-xs opacity-70">
+									<span class="rounded-full text-xs opacity-70">
 										{tab.count}
 									</span>
 								{/if}
