@@ -6,9 +6,9 @@ export const get = query({
 	handler: async (ctx) => {
 		const experienceTypes = await ctx.db.query('experienceTypes').collect();
 		const programTypes = await ctx.db.query('programTypes').collect();
-		const programTypeMap = new Map(programTypes.map(p => [p._id, p.name]));
-		
-		return experienceTypes.map(et => ({
+		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
+
+		return experienceTypes.map((et) => ({
 			...et,
 			programTypeName: programTypeMap.get(et.programTypeId) || 'Unknown Program'
 		}));
@@ -29,19 +29,19 @@ export const insertExperienceType = mutation({
 	args: {
 		programTypeId: v.id('programTypes'),
 		name: v.string(),
-		description: v.optional(v.string())
+		description: v.string()
 	},
 	handler: async (ctx, { programTypeId, name, description }) => {
 		await ctx.db.insert('experienceTypes', {
 			programTypeId,
 			name,
-			description
+			description: description ?? 'No description provided'
 		});
 	}
 });
 
 export const updateExperienceType = mutation({
-	args: { 
+	args: {
 		id: v.id('experienceTypes'),
 		programTypeId: v.optional(v.id('programTypes')),
 		name: v.optional(v.string()),
@@ -51,6 +51,11 @@ export const updateExperienceType = mutation({
 		const cleanUpdates = Object.fromEntries(
 			Object.entries(updates).filter(([, value]) => value !== undefined)
 		);
+
+		if (cleanUpdates.description === null || cleanUpdates.description === undefined) {
+			cleanUpdates.description = 'No description provided';
+		}
+
 		if (Object.keys(cleanUpdates).length > 0) {
 			await ctx.db.patch(id, cleanUpdates);
 		}
@@ -62,4 +67,4 @@ export const deleteExperienceType = mutation({
 	handler: async (ctx, { id }) => {
 		await ctx.db.delete(id);
 	}
-}); 
+});

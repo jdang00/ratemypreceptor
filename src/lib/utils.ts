@@ -1,12 +1,12 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export type WithoutChild<T> = T extends { child?: unknown } ? Omit<T, "child"> : T;
-export type WithoutChildren<T> = T extends { children?: unknown } ? Omit<T, "children"> : T;
+export type WithoutChild<T> = T extends { child?: unknown } ? Omit<T, 'child'> : T;
+export type WithoutChildren<T> = T extends { children?: unknown } ? Omit<T, 'children'> : T;
 export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null };
 
@@ -21,15 +21,17 @@ export interface ReviewAggregation {
 	averageEnjoyment: number;
 }
 
-export function aggregateReviews(reviews: Array<{
-	starRating: number;
-	wouldRecommend: boolean;
-	schedulingFlexibility: number;
-	workload: number;
-	expectations: number;
-	mentorship: number;
-	enjoyment: number;
-}>): ReviewAggregation {
+export function aggregateReviews(
+	reviews: Array<{
+		starRating: number;
+		wouldRecommend: boolean;
+		schedulingFlexibility: number;
+		workload: number;
+		expectations: number;
+		mentorship: number;
+		enjoyment: number;
+	}>
+): ReviewAggregation {
 	if (reviews.length === 0) {
 		return {
 			averageStarRating: 0,
@@ -44,13 +46,14 @@ export function aggregateReviews(reviews: Array<{
 	}
 
 	const totalReviews = reviews.length;
-	const recommendedCount = reviews.filter(r => r.wouldRecommend).length;
+	const recommendedCount = reviews.filter((r) => r.wouldRecommend).length;
 
 	return {
 		averageStarRating: reviews.reduce((sum, r) => sum + r.starRating, 0) / totalReviews,
 		totalReviews,
 		recommendationRate: (recommendedCount / totalReviews) * 100,
-		averageSchedulingFlexibility: reviews.reduce((sum, r) => sum + r.schedulingFlexibility, 0) / totalReviews,
+		averageSchedulingFlexibility:
+			reviews.reduce((sum, r) => sum + r.schedulingFlexibility, 0) / totalReviews,
 		averageWorkload: reviews.reduce((sum, r) => sum + r.workload, 0) / totalReviews,
 		averageExpectations: reviews.reduce((sum, r) => sum + r.expectations, 0) / totalReviews,
 		averageMentorship: reviews.reduce((sum, r) => sum + r.mentorship, 0) / totalReviews,
@@ -99,7 +102,9 @@ export function formatName(fullName: string, includeCredentials: boolean = true)
 
 export function extractCredentials(fullName: string): { name: string; credentials: string } {
 	if (!fullName) return { name: '', credentials: '' };
-	const credentials = fullName.match(/\b(PharmD|Ph\.D\.|MD|DO|OD|RN|NP|PA|BCPS|BCACP|BCGP|BCPP|FASHP|FCCP|FCCM)\b/gi);
+	const credentials = fullName.match(
+		/\b(PharmD|Ph\.D\.|MD|DO|OD|RN|NP|PA|BCPS|BCACP|BCGP|BCPP|FASHP|FCCP|FCCM)\b/gi
+	);
 	let nameWithoutCredentials = formatName(fullName, false);
 	nameWithoutCredentials = nameWithoutCredentials.replace(/,+\s*$/, '').trim();
 	return {
@@ -108,7 +113,10 @@ export function extractCredentials(fullName: string): { name: string; credential
 	};
 }
 
-export function formatNameWithCredentials(fullName: string): { displayName: string; credentials: string } {
+export function formatNameWithCredentials(fullName: string): {
+	displayName: string;
+	credentials: string;
+} {
 	const { name, credentials } = extractCredentials(fullName);
 	return {
 		displayName: name,
@@ -143,14 +151,19 @@ export const DEGREES = [
 	{ value: 'FCCM', label: 'FCCM' }
 ];
 
-export function formatFullName(title: string, firstName: string, lastName: string, degree: string): string {
+export function formatFullName(
+	title: string,
+	firstName: string,
+	lastName: string,
+	degree: string
+): string {
 	const parts = [];
-	
+
 	if (title) parts.push(title);
 	if (firstName) parts.push(firstName);
 	if (lastName) parts.push(lastName);
 	if (degree) parts.push(degree);
-	
+
 	return parts.join(' ');
 }
 

@@ -1,11 +1,11 @@
 <script lang="ts">
-	import CheckIcon from "@lucide/svelte/icons/check";
-	import ChevronsUpDownIcon from "@lucide/svelte/icons/chevrons-up-down";
-	import { tick } from "svelte";
-	import * as Command from "$lib/components/ui/command/index.js";
-	import * as Popover from "$lib/components/ui/popover/index.js";
-	import { Button } from "$lib/components/ui/button/index.js";
-	import { cn } from "$lib/utils.js";
+	import CheckIcon from '@lucide/svelte/icons/check';
+	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
+	import { tick } from 'svelte';
+	import * as Command from '$lib/components/ui/command/index.js';
+	import * as Popover from '$lib/components/ui/popover/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { cn } from '$lib/utils.js';
 
 	type Preceptor = {
 		_id: string;
@@ -26,20 +26,17 @@
 		preceptors,
 		value,
 		onValueChange,
-		placeholder = "Select preceptor...",
-		searchPlaceholder = "Search preceptors...",
-		class: className = "",
+		placeholder = 'Select preceptor...',
+		searchPlaceholder = 'Search preceptors...',
+		class: className = '',
 		disabled = false
 	}: Props = $props();
 
 	let open = $state(false);
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
-	const selectedValue = $derived(
-		preceptors.find((p) => p._id === value)?.fullName
-	);
+	const selectedValue = $derived(preceptors.find((p) => p._id === value)?.fullName);
 
-	
 	function closeAndFocusTrigger() {
 		open = false;
 		tick().then(() => {
@@ -58,7 +55,7 @@
 		{#snippet child({ props })}
 			<Button
 				variant="outline"
-				class={cn("w-full justify-between", className)}
+				class={cn('w-full justify-between', className)}
 				{...props}
 				role="combobox"
 				aria-expanded={open}
@@ -76,16 +73,8 @@
 				<Command.Empty>No preceptor found.</Command.Empty>
 				<Command.Group>
 					{#each preceptors as preceptor (preceptor._id)}
-						<Command.Item
-							value={preceptor.fullName}
-							onSelect={() => handleSelect(preceptor._id)}
-						>
-							<CheckIcon
-								class={cn(
-									"mr-2 size-4",
-									value !== preceptor._id && "text-transparent"
-								)}
-							/>
+						<Command.Item value={preceptor.fullName} onSelect={() => handleSelect(preceptor._id)}>
+							<CheckIcon class={cn('mr-2 size-4', value !== preceptor._id && 'text-transparent')} />
 							{preceptor.fullName}
 						</Command.Item>
 					{/each}
@@ -93,4 +82,4 @@
 			</Command.List>
 		</Command.Root>
 	</Popover.Content>
-</Popover.Root> 
+</Popover.Root>

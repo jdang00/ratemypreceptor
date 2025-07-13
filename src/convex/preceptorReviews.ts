@@ -26,11 +26,11 @@ export const get = query({
 			ctx.db.query('rotationTypes').collect(),
 			ctx.db.query('experienceTypes').collect()
 		]);
-		
-		const rotationTypeMap = new Map(rotationTypes.map(r => [r._id, r.name]));
-		const experienceTypeMap = new Map(experienceTypes.map(e => [e._id, e.name]));
-		
-		return reviews.map(review => ({
+
+		const rotationTypeMap = new Map(rotationTypes.map((r) => [r._id, r.name]));
+		const experienceTypeMap = new Map(experienceTypes.map((e) => [e._id, e.name]));
+
+		return reviews.map((review) => ({
 			...review,
 			rotationTypeName: rotationTypeMap.get(review.rotationTypeId) || 'Unknown Rotation',
 			experienceTypeName: experienceTypeMap.get(review.experienceTypeId) || 'Unknown Experience'
@@ -71,13 +71,14 @@ export const getStats = query({
 		}
 
 		const totalReviews = reviews.length;
-		const recommendedCount = reviews.filter(r => r.wouldRecommend).length;
+		const recommendedCount = reviews.filter((r) => r.wouldRecommend).length;
 
 		return {
 			totalReviews,
 			averageStarRating: reviews.reduce((sum, r) => sum + r.starRating, 0) / totalReviews,
 			recommendationRate: (recommendedCount / totalReviews) * 100,
-			averageSchedulingFlexibility: reviews.reduce((sum, r) => sum + r.schedulingFlexibility, 0) / totalReviews,
+			averageSchedulingFlexibility:
+				reviews.reduce((sum, r) => sum + r.schedulingFlexibility, 0) / totalReviews,
 			averageWorkload: reviews.reduce((sum, r) => sum + r.workload, 0) / totalReviews,
 			averageExpectations: reviews.reduce((sum, r) => sum + r.expectations, 0) / totalReviews,
 			averageMentorship: reviews.reduce((sum, r) => sum + r.mentorship, 0) / totalReviews,

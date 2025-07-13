@@ -9,7 +9,7 @@ export const get = query({
 });
 
 export const getByLocation = query({
-	args: { 
+	args: {
 		state: v.optional(v.string()),
 		city: v.optional(v.string())
 	},
@@ -53,7 +53,7 @@ export const deletePracticeSite = mutation({
 });
 
 export const updatePracticeSite = mutation({
-	args: { 
+	args: {
 		id: v.id('practiceSites'),
 		name: v.optional(v.string()),
 		city: v.optional(v.string()),

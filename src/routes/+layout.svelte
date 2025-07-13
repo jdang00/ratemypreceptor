@@ -41,7 +41,11 @@
 			showThemeButton={true}
 		/>
 
-		<main class="mx-auto w-full flex-1 px-4 py-8" class:max-w-5xl={$page.url.pathname !== '/admin'} class:max-w-7xl={$page.url.pathname === '/admin'}>
+		<main
+			class="mx-auto w-full flex-1 px-4 py-8"
+			class:max-w-5xl={$page.url.pathname !== '/admin'}
+			class:max-w-7xl={$page.url.pathname === '/admin'}
+		>
 			{@render children()}
 		</main>
 

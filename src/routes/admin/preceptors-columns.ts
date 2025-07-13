@@ -118,4 +118,4 @@ export const preceptorsColumns: ColumnDef<Preceptor>[] = [
 			return renderSnippet(actionsSnippet, row.original);
 		}
 	}
-]; 
+];

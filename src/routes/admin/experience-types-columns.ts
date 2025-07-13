@@ -7,7 +7,7 @@ export type ExperienceType = {
 	programTypeId: string;
 	programTypeName: string;
 	name: string;
-	description?: string;
+	description: string;
 	_creationTime: number;
 };
 
@@ -42,12 +42,12 @@ export const experienceTypesColumns: ColumnDef<ExperienceType>[] = [
 		accessorKey: 'description',
 		header: 'Description',
 		cell: ({ row }) => {
-			const descriptionSnippet = createRawSnippet<[string | undefined]>((getDescription) => {
-				const description = getDescription();
-				if (!description) return { render: () => `<div class="text-xs opacity-50">No description</div>` };
+			const descriptionSnippet = createRawSnippet<[string]>((getDescription) => {
+				const description = getDescription() || 'No description';
 				const truncated = description.length > 50 ? description.slice(0, 50) + '...' : description;
 				return {
-					render: () => `<div class="text-sm" title="${description.replace(/"/g, '&quot;')}">${truncated}</div>`
+					render: () =>
+						`<div class="text-sm" title="${description.replace(/"/g, '&quot;')}">${truncated}</div>`
 				};
 			});
 			return renderSnippet(descriptionSnippet, row.getValue('description'));
@@ -104,4 +104,4 @@ export const experienceTypesColumns: ColumnDef<ExperienceType>[] = [
 			return renderSnippet(actionsSnippet, row.original);
 		}
 	}
-]; 
+];

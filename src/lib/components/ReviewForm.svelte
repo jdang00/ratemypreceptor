@@ -48,19 +48,21 @@
 	const experienceTypes = $derived(experienceTypesQuery.data ?? []);
 	const programTypes = $derived(programTypesQuery.data ?? []);
 
-	const selectedPreceptor = $derived(preceptors.find(p => p._id === formData.preceptorId));
-	const selectedProgramType = $derived(selectedPreceptor ? programTypes.find(pt => pt._id === selectedPreceptor.programTypeId) : null);
+	const selectedPreceptor = $derived(preceptors.find((p) => p._id === formData.preceptorId));
+	const selectedProgramType = $derived(
+		selectedPreceptor ? programTypes.find((pt) => pt._id === selectedPreceptor.programTypeId) : null
+	);
 	const availableYears = $derived(selectedProgramType ? selectedProgramType.yearLabels : []);
 
 	const filteredRotationTypes = $derived(
 		selectedPreceptor && selectedPreceptor.programTypeId
-			? rotationTypes.filter(rt => rt.programTypeId === selectedPreceptor.programTypeId)
+			? rotationTypes.filter((rt) => rt.programTypeId === selectedPreceptor.programTypeId)
 			: rotationTypes
 	);
 
 	const filteredExperienceTypes = $derived(
 		selectedPreceptor && selectedPreceptor.programTypeId
-			? experienceTypes.filter(et => et.programTypeId === selectedPreceptor.programTypeId)
+			? experienceTypes.filter((et) => et.programTypeId === selectedPreceptor.programTypeId)
 			: experienceTypes
 	);
 
@@ -69,37 +71,45 @@
 	);
 
 	const experienceTypeTriggerContent = $derived(
-		filteredExperienceTypes.find((e) => e._id === formData.experienceTypeId)?.name ?? 'Select experience'
+		filteredExperienceTypes.find((e) => e._id === formData.experienceTypeId)?.name ??
+			'Select experience'
 	);
 
-	const schoolYearTriggerContent = $derived(
-		formData.schoolYear || 'Select year'
-	);
+	const schoolYearTriggerContent = $derived(formData.schoolYear || 'Select year');
 
-	const priorExperienceTriggerContent = $derived(
-		formData.priorExperience || 'Select experience'
-	);
+	const priorExperienceTriggerContent = $derived(formData.priorExperience || 'Select experience');
 
 	const wouldRecommendTriggerContent = $derived(
-		formData.wouldRecommend === 'true' ? 'Yes, I would recommend' : 
-		formData.wouldRecommend === 'false' ? 'No, I would not recommend' : 
-		'Select recommendation'
+		formData.wouldRecommend === 'true'
+			? 'Yes, I would recommend'
+			: formData.wouldRecommend === 'false'
+				? 'No, I would not recommend'
+				: 'Select recommendation'
 	);
 
 	const isOutlierTriggerContent = $derived(
-		formData.isOutlier === 'true' ? 'Yes, outlier experience' : 
-		formData.isOutlier === 'false' ? 'No, typical experience' : 
-		'Select outlier status'
+		formData.isOutlier === 'true'
+			? 'Yes, outlier experience'
+			: formData.isOutlier === 'false'
+				? 'No, typical experience'
+				: 'Select outlier status'
 	);
 
-	const commentWordCount = $derived(formData.comment ? formData.comment.trim().split(/\s+/).filter(word => word.length > 0).length : 0);
+	const commentWordCount = $derived(
+		formData.comment
+			? formData.comment
+					.trim()
+					.split(/\s+/)
+					.filter((word) => word.length > 0).length
+			: 0
+	);
 	const commentCharCount = $derived(formData.comment ? formData.comment.length : 0);
 
 	const dispatch = createEventDispatcher();
 
 	onMount(() => {
 		if (prefillPreceptorName && preceptors.length > 0) {
-			const match = preceptors.find(p => p.fullName === prefillPreceptorName);
+			const match = preceptors.find((p) => p.fullName === prefillPreceptorName);
 			if (match) {
 				formData.preceptorId = match._id;
 			}
@@ -108,7 +118,7 @@
 
 	$effect(() => {
 		if (prefillPreceptorName && preceptors.length > 0 && !formData.preceptorId) {
-			const match = preceptors.find(p => p.fullName === prefillPreceptorName);
+			const match = preceptors.find((p) => p.fullName === prefillPreceptorName);
 			if (match) {
 				formData.preceptorId = match._id;
 			}
@@ -140,7 +150,10 @@
 			errors.push('Please explain why this is an outlier experience');
 		}
 
-		if (formData.extraHours && (isNaN(Number(formData.extraHours)) || Number(formData.extraHours) < 0)) {
+		if (
+			formData.extraHours &&
+			(isNaN(Number(formData.extraHours)) || Number(formData.extraHours) < 0)
+		) {
 			errors.push('Extra hours must be a valid number');
 		}
 
@@ -152,7 +165,7 @@
 
 		clearValidationErrors();
 		const errors = validateForm();
-		
+
 		if (errors.length > 0) {
 			validationErrors = errors;
 			return;
@@ -211,7 +224,7 @@
 			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Preceptor *</Label>
-					<PreceptorComboBox 
+					<PreceptorComboBox
 						{preceptors}
 						value={formData.preceptorId}
 						onValueChange={handlePreceptorChange}
@@ -222,7 +235,11 @@
 
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Rotation Type *</Label>
-					<Select.Root type="single" bind:value={formData.rotationTypeId} onValueChange={clearValidationErrors}>
+					<Select.Root
+						type="single"
+						bind:value={formData.rotationTypeId}
+						onValueChange={clearValidationErrors}
+					>
 						<Select.Trigger class="w-full" disabled={!selectedPreceptor}>
 							{rotationTypeTriggerContent}
 						</Select.Trigger>
@@ -235,13 +252,17 @@
 						</Select.Content>
 					</Select.Root>
 					{#if !selectedPreceptor}
-						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+						<p class="text-muted-foreground text-xs">Select a preceptor first</p>
 					{/if}
 				</div>
 
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Experience Type *</Label>
-					<Select.Root type="single" bind:value={formData.experienceTypeId} onValueChange={clearValidationErrors}>
+					<Select.Root
+						type="single"
+						bind:value={formData.experienceTypeId}
+						onValueChange={clearValidationErrors}
+					>
 						<Select.Trigger class="w-full" disabled={!selectedPreceptor}>
 							{experienceTypeTriggerContent}
 						</Select.Trigger>
@@ -254,13 +275,17 @@
 						</Select.Content>
 					</Select.Root>
 					{#if !selectedPreceptor}
-						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+						<p class="text-muted-foreground text-xs">Select a preceptor first</p>
 					{/if}
 				</div>
 
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">School Year *</Label>
-					<Select.Root type="single" bind:value={formData.schoolYear} onValueChange={clearValidationErrors}>
+					<Select.Root
+						type="single"
+						bind:value={formData.schoolYear}
+						onValueChange={clearValidationErrors}
+					>
 						<Select.Trigger class="w-full" disabled={!selectedProgramType}>
 							{schoolYearTriggerContent}
 						</Select.Trigger>
@@ -273,13 +298,17 @@
 						</Select.Content>
 					</Select.Root>
 					{#if !selectedProgramType}
-						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+						<p class="text-muted-foreground text-xs">Select a preceptor first</p>
 					{/if}
 				</div>
 
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Prior Experience *</Label>
-					<Select.Root type="single" bind:value={formData.priorExperience} onValueChange={clearValidationErrors}>
+					<Select.Root
+						type="single"
+						bind:value={formData.priorExperience}
+						onValueChange={clearValidationErrors}
+					>
 						<Select.Trigger class="w-full">
 							{priorExperienceTriggerContent}
 						</Select.Trigger>
@@ -302,54 +331,74 @@
 						max="60"
 						oninput={clearValidationErrors}
 					/>
-					<p class="text-xs text-muted-foreground">Leave blank if no extra hours required</p>
+					<p class="text-muted-foreground text-xs">Leave blank if no extra hours required</p>
 				</div>
 			</div>
 
 			<div class="space-y-4">
 				<h3 class="text-lg font-semibold">Rate Your Experience</h3>
-				<p class="text-sm text-muted-foreground">Rate each aspect on a scale of 1-5 (1 = Poor, 5 = Excellent)</p>
-				
+				<p class="text-muted-foreground text-sm">
+					Rate each aspect on a scale of 1-5 (1 = Poor, 5 = Excellent)
+				</p>
+
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-					<RatingInput 
-						label="Scheduling Flexibility" 
-						bind:value={formData.schedulingFlexibility} 
-						onChange={(value) => { formData.schedulingFlexibility = value.toString(); clearValidationErrors(); }}
+					<RatingInput
+						label="Scheduling Flexibility"
+						bind:value={formData.schedulingFlexibility}
+						onChange={(value) => {
+							formData.schedulingFlexibility = value.toString();
+							clearValidationErrors();
+						}}
 						required={true}
 					/>
-					
-					<RatingInput 
-						label="Workload" 
-						bind:value={formData.workload} 
-						onChange={(value) => { formData.workload = value.toString(); clearValidationErrors(); }}
+
+					<RatingInput
+						label="Workload"
+						bind:value={formData.workload}
+						onChange={(value) => {
+							formData.workload = value.toString();
+							clearValidationErrors();
+						}}
 						required={true}
 					/>
-					
-					<RatingInput 
-						label="Expectations" 
-						bind:value={formData.expectations} 
-						onChange={(value) => { formData.expectations = value.toString(); clearValidationErrors(); }}
+
+					<RatingInput
+						label="Expectations"
+						bind:value={formData.expectations}
+						onChange={(value) => {
+							formData.expectations = value.toString();
+							clearValidationErrors();
+						}}
 						required={true}
 					/>
-					
-					<RatingInput 
-						label="Mentorship" 
-						bind:value={formData.mentorship} 
-						onChange={(value) => { formData.mentorship = value.toString(); clearValidationErrors(); }}
+
+					<RatingInput
+						label="Mentorship"
+						bind:value={formData.mentorship}
+						onChange={(value) => {
+							formData.mentorship = value.toString();
+							clearValidationErrors();
+						}}
 						required={true}
 					/>
-					
-					<RatingInput 
-						label="Enjoyment" 
-						bind:value={formData.enjoyment} 
-						onChange={(value) => { formData.enjoyment = value.toString(); clearValidationErrors(); }}
+
+					<RatingInput
+						label="Enjoyment"
+						bind:value={formData.enjoyment}
+						onChange={(value) => {
+							formData.enjoyment = value.toString();
+							clearValidationErrors();
+						}}
 						required={true}
 					/>
-					
-					<RatingInput 
-						label="Overall Rating" 
-						bind:value={formData.starRating} 
-						onChange={(value) => { formData.starRating = value.toString(); clearValidationErrors(); }}
+
+					<RatingInput
+						label="Overall Rating"
+						bind:value={formData.starRating}
+						onChange={(value) => {
+							formData.starRating = value.toString();
+							clearValidationErrors();
+						}}
 						required={true}
 					/>
 				</div>
@@ -358,13 +407,21 @@
 			<div class="space-y-4">
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Would you recommend this preceptor? *</Label>
-					<Select.Root type="single" bind:value={formData.wouldRecommend} onValueChange={clearValidationErrors}>
+					<Select.Root
+						type="single"
+						bind:value={formData.wouldRecommend}
+						onValueChange={clearValidationErrors}
+					>
 						<Select.Trigger class="w-full">
 							{wouldRecommendTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
-							<Select.Item value="true" label="Yes, I would recommend">Yes, I would recommend</Select.Item>
-							<Select.Item value="false" label="No, I would not recommend">No, I would not recommend</Select.Item>
+							<Select.Item value="true" label="Yes, I would recommend"
+								>Yes, I would recommend</Select.Item
+							>
+							<Select.Item value="false" label="No, I would not recommend"
+								>No, I would not recommend</Select.Item
+							>
 						</Select.Content>
 					</Select.Root>
 				</div>
@@ -374,23 +431,31 @@
 					<textarea
 						bind:value={formData.comment}
 						placeholder="Share specific details about your experience..."
-						class="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+						class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-[100px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 						oninput={clearValidationErrors}
 					></textarea>
-					<p class="text-xs text-muted-foreground">
+					<p class="text-muted-foreground text-xs">
 						{commentCharCount}/2000 characters • {commentWordCount} words
 					</p>
 				</div>
 
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Is this an outlier experience?</Label>
-					<Select.Root type="single" bind:value={formData.isOutlier} onValueChange={clearValidationErrors}>
+					<Select.Root
+						type="single"
+						bind:value={formData.isOutlier}
+						onValueChange={clearValidationErrors}
+					>
 						<Select.Trigger class="w-full">
 							{isOutlierTriggerContent}
 						</Select.Trigger>
 						<Select.Content>
-							<Select.Item value="false" label="No, typical experience">No, typical experience</Select.Item>
-							<Select.Item value="true" label="Yes, outlier experience">Yes, outlier experience</Select.Item>
+							<Select.Item value="false" label="No, typical experience"
+								>No, typical experience</Select.Item
+							>
+							<Select.Item value="true" label="Yes, outlier experience"
+								>Yes, outlier experience</Select.Item
+							>
 						</Select.Content>
 					</Select.Root>
 				</div>
@@ -401,7 +466,7 @@
 						<textarea
 							bind:value={formData.outlierReason}
 							placeholder="Explain what made this experience unusual..."
-							class="min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+							class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 							oninput={clearValidationErrors}
 						></textarea>
 					</div>
@@ -409,9 +474,13 @@
 			</div>
 
 			<div class="flex items-center space-x-2">
-				<Checkbox bind:checked={formData.agreedToPolicies} onCheckedChange={clearValidationErrors} />
+				<Checkbox
+					bind:checked={formData.agreedToPolicies}
+					onCheckedChange={clearValidationErrors}
+				/>
 				<Label class="text-sm">
-					I agree to the <a href="/terms" class="text-primary hover:underline">Terms of Service</a> and <a href="/privacy" class="text-primary hover:underline">Privacy Policy</a>
+					I agree to the <a href="/terms" class="text-primary hover:underline">Terms of Service</a>
+					and <a href="/privacy" class="text-primary hover:underline">Privacy Policy</a>
 				</Label>
 			</div>
 
@@ -437,4 +506,4 @@
 			</Button>
 		</form>
 	</Card.Content>
-</Card.Root> 
+</Card.Root>

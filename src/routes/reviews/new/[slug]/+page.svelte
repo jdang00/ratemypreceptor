@@ -16,4 +16,4 @@
 		<p class="mt-2">Share your experience with other students</p>
 	</div>
 	<ReviewForm prefillPreceptorName={data.fullName} on:submitted={handleSubmitted} />
-</div> 
+</div>

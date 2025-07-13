@@ -98,11 +98,10 @@
 		table.setPageSize(newPageSize);
 	}
 
-	let selectedPageSize = $state(pagination.pageSize.toString());
+	let selectedPageSize = $derived(pagination.pageSize.toString());
 
 	let count = $derived(table.getFilteredRowModel().rows.length);
 	let perPage = $derived(pagination.pageSize);
-	let currentPage = $derived(pagination.pageIndex + 1);
 	let siblingCount = 1;
 </script>
 
@@ -188,14 +187,14 @@
 							</Pagination.PrevButton>
 						</Pagination.Item>
 						{#each pages as page (page.key)}
-							{#if page.type === "ellipsis"}
+							{#if page.type === 'ellipsis'}
 								<Pagination.Item>
 									<Pagination.Ellipsis />
 								</Pagination.Item>
 							{:else}
 								<Pagination.Item>
-									<Pagination.Link 
-										{page} 
+									<Pagination.Link
+										{page}
 										isActive={currentPage === page.value}
 										onclick={() => table.setPageIndex(page.value - 1)}
 									>

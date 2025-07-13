@@ -16,12 +16,18 @@
 	function getRatingColor(ratingValue: number): string {
 		if (ratingValue <= currentValue) {
 			switch (ratingValue) {
-				case 1: return 'bg-red-500 border-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:border-red-600 dark:text-white dark:hover:bg-red-700';
-				case 2: return 'bg-orange-500 border-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:border-orange-600 dark:text-white dark:hover:bg-orange-700';
-				case 3: return 'bg-yellow-500 border-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-600 dark:border-yellow-600 dark:text-white dark:hover:bg-yellow-700';
-				case 4: return 'bg-lime-500 border-lime-500 text-white hover:bg-lime-600 dark:bg-lime-600 dark:border-lime-600 dark:text-white dark:hover:bg-lime-700';
-				case 5: return 'bg-green-500 border-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:border-green-600 dark:text-white dark:hover:bg-green-700';
-				default: return '';
+				case 1:
+					return 'bg-red-500 border-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:border-red-600 dark:text-white dark:hover:bg-red-700';
+				case 2:
+					return 'bg-orange-500 border-orange-500 text-white hover:bg-orange-600 dark:bg-orange-600 dark:border-orange-600 dark:text-white dark:hover:bg-orange-700';
+				case 3:
+					return 'bg-yellow-500 border-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-600 dark:border-yellow-600 dark:text-white dark:hover:bg-yellow-700';
+				case 4:
+					return 'bg-lime-500 border-lime-500 text-white hover:bg-lime-600 dark:bg-lime-600 dark:border-lime-600 dark:text-white dark:hover:bg-lime-700';
+				case 5:
+					return 'bg-green-500 border-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:border-green-600 dark:text-white dark:hover:bg-green-700';
+				default:
+					return '';
 			}
 		}
 		return '';
@@ -29,12 +35,18 @@
 
 	function getRatingText(rating: number): string {
 		switch (rating) {
-			case 1: return 'Poor';
-			case 2: return 'Fair'; 
-			case 3: return 'Good';
-			case 4: return 'Very Good';
-			case 5: return 'Excellent';
-			default: return '';
+			case 1:
+				return 'Poor';
+			case 2:
+				return 'Fair';
+			case 3:
+				return 'Good';
+			case 4:
+				return 'Very Good';
+			case 5:
+				return 'Excellent';
+			default:
+				return '';
 		}
 	}
 </script>
@@ -50,7 +62,9 @@
 				<Button
 					variant="outline"
 					size="sm"
-					class="w-10 h-10 rounded-full border-2 transition-all duration-200 font-medium {getRatingColor(ratingValue)} focus:ring-2 focus:ring-ring focus:ring-offset-2"
+					class="h-10 w-10 rounded-full border-2 font-medium transition-all duration-200 {getRatingColor(
+						ratingValue
+					)} focus:ring-ring focus:ring-2 focus:ring-offset-2"
 					onclick={() => onChange(ratingValue)}
 				>
 					{ratingValue}
@@ -58,14 +72,14 @@
 			{/each}
 		</div>
 		<div class="flex flex-col">
-			<span class="text-sm text-muted-foreground">
+			<span class="text-muted-foreground text-sm">
 				{currentValue > 0 ? `${currentValue}/5` : 'Click to rate'}
 			</span>
 			{#if currentValue > 0}
-				<span class="text-xs font-medium text-muted-foreground">
+				<span class="text-muted-foreground text-xs font-medium">
 					{getRatingText(currentValue)}
 				</span>
 			{/if}
 		</div>
 	</div>
-</div> 
+</div>
