@@ -165,8 +165,8 @@
 			});
 			dispatch('submitted');
 		} catch (error) {
-			if (error.errors) {
-				validationErrors = error.errors.map((err) => err.message);
+			if (error.issues) {
+				validationErrors = error.issues.map((issue) => issue.message);
 			} else {
 				submitError = error instanceof Error ? error.message : 'Failed to submit review';
 			}
