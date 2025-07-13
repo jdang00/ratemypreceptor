@@ -73,4 +73,4 @@ export const schoolsColumns: ColumnDef<School>[] = [
 			return renderSnippet(actionsSnippet, row.original);
 		}
 	}
-]; 
+];

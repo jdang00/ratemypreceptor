@@ -50,17 +50,28 @@
 	const experienceTypes = $derived(experienceTypesQuery.data ?? []);
 	const programTypes = $derived(programTypesQuery.data ?? []);
 
-	const selectedPreceptor = $derived(preceptors.find(p => p._id === formData.preceptorId));
-	const selectedProgramType = $derived(selectedPreceptor ? programTypes.find(pt => pt._id === selectedPreceptor.programTypeId) : null);
-	const filteredRotationTypes = $derived(selectedPreceptor ? rotationTypes.filter(rt => rt.programTypeId === selectedPreceptor.programTypeId) : []);
-	const filteredExperienceTypes = $derived(selectedPreceptor ? experienceTypes.filter(et => et.programTypeId === selectedPreceptor.programTypeId) : []);
+	const selectedPreceptor = $derived(preceptors.find((p) => p._id === formData.preceptorId));
+	const selectedProgramType = $derived(
+		selectedPreceptor ? programTypes.find((pt) => pt._id === selectedPreceptor.programTypeId) : null
+	);
+	const filteredRotationTypes = $derived(
+		selectedPreceptor
+			? rotationTypes.filter((rt) => rt.programTypeId === selectedPreceptor.programTypeId)
+			: []
+	);
+	const filteredExperienceTypes = $derived(
+		selectedPreceptor
+			? experienceTypes.filter((et) => et.programTypeId === selectedPreceptor.programTypeId)
+			: []
+	);
 
 	const rotationTypeTriggerContent = $derived(
 		rotationTypes.find((r) => r._id === formData.rotationTypeId)?.name ?? 'Select rotation type'
 	);
 
 	const experienceTypeTriggerContent = $derived(
-		experienceTypes.find((e) => e._id === formData.experienceTypeId)?.name ?? 'Select experience type'
+		experienceTypes.find((e) => e._id === formData.experienceTypeId)?.name ??
+			'Select experience type'
 	);
 
 	async function handleSubmit() {
@@ -209,7 +220,7 @@
 						</Select.Content>
 					</Select.Root>
 					{#if !selectedPreceptor}
-						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+						<p class="text-muted-foreground text-xs">Select a preceptor first</p>
 					{/if}
 				</div>
 			</div>
@@ -230,7 +241,7 @@
 						</Select.Content>
 					</Select.Root>
 					{#if !selectedPreceptor}
-						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+						<p class="text-muted-foreground text-xs">Select a preceptor first</p>
 					{/if}
 				</div>
 
@@ -241,13 +252,13 @@
 							{formData.schoolYear || 'Select year'}
 						</Select.Trigger>
 						<Select.Content>
-							{#each (selectedProgramType?.yearLabels || []) as year}
+							{#each selectedProgramType?.yearLabels || [] as year}
 								<Select.Item value={year} label={year}>{year}</Select.Item>
 							{/each}
 						</Select.Content>
 					</Select.Root>
 					{#if !selectedProgramType}
-						<p class="text-xs text-muted-foreground">Select a preceptor first</p>
+						<p class="text-muted-foreground text-xs">Select a preceptor first</p>
 					{/if}
 				</div>
 

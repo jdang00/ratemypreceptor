@@ -7,7 +7,7 @@ export const get = query({
 	},
 	handler: async (ctx, { limit = 500 }) => {
 		const preceptors = await ctx.db.query('preceptors').take(limit);
-		
+
 		const [schools, practiceSites, programTypes] = await Promise.all([
 			ctx.db.query('schools').collect(),
 			ctx.db.query('practiceSites').collect(),
@@ -33,7 +33,7 @@ export const getWithStats = query({
 	},
 	handler: async (ctx, { limit = 500 }) => {
 		const preceptors = await ctx.db.query('preceptors').take(limit);
-		
+
 		const [schools, practiceSites, programTypes] = await Promise.all([
 			ctx.db.query('schools').collect(),
 			ctx.db.query('practiceSites').collect(),
@@ -52,12 +52,12 @@ export const getWithStats = query({
 					.collect();
 
 				const totalReviews = reviews.length;
-				const averageStarRating = totalReviews > 0
-					? reviews.reduce((sum, r) => sum + r.starRating, 0) / totalReviews
-					: 0;
-				const recommendationRate = totalReviews > 0
-					? (reviews.filter(r => r.wouldRecommend).length / totalReviews) * 100
-					: 0;
+				const averageStarRating =
+					totalReviews > 0 ? reviews.reduce((sum, r) => sum + r.starRating, 0) / totalReviews : 0;
+				const recommendationRate =
+					totalReviews > 0
+						? (reviews.filter((r) => r.wouldRecommend).length / totalReviews) * 100
+						: 0;
 
 				return {
 					...preceptor,
@@ -81,7 +81,7 @@ export const getWithReviews = query({
 	},
 	handler: async (ctx, { limit = 200 }) => {
 		const preceptors = await ctx.db.query('preceptors').take(limit);
-		
+
 		const [schools, practiceSites, programTypes] = await Promise.all([
 			ctx.db.query('schools').collect(),
 			ctx.db.query('practiceSites').collect(),
@@ -100,12 +100,12 @@ export const getWithReviews = query({
 					.collect();
 
 				const totalReviews = reviews.length;
-				const averageStarRating = totalReviews > 0
-					? reviews.reduce((sum, r) => sum + r.starRating, 0) / totalReviews
-					: 0;
-				const recommendationRate = totalReviews > 0
-					? (reviews.filter(r => r.wouldRecommend).length / totalReviews) * 100
-					: 0;
+				const averageStarRating =
+					totalReviews > 0 ? reviews.reduce((sum, r) => sum + r.starRating, 0) / totalReviews : 0;
+				const recommendationRate =
+					totalReviews > 0
+						? (reviews.filter((r) => r.wouldRecommend).length / totalReviews) * 100
+						: 0;
 
 				return {
 					...preceptor,
@@ -124,7 +124,7 @@ export const getWithReviews = query({
 });
 
 export const getBySchoolProgram = query({
-	args: { 
+	args: {
 		schoolId: v.id('schools'),
 		programTypeId: v.id('programTypes'),
 		limit: v.optional(v.number())
@@ -132,12 +132,14 @@ export const getBySchoolProgram = query({
 	handler: async (ctx, { schoolId, programTypeId, limit = 500 }) => {
 		const preceptors = await ctx.db
 			.query('preceptors')
-			.withIndex('by_school_program', (q) => q.eq('schoolId', schoolId).eq('programTypeId', programTypeId))
+			.withIndex('by_school_program', (q) =>
+				q.eq('schoolId', schoolId).eq('programTypeId', programTypeId)
+			)
 			.take(limit);
-			
+
 		const practiceSites = await ctx.db.query('practiceSites').collect();
 		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
-		
+
 		return preceptors.map((preceptor) => ({
 			...preceptor,
 			siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site'
@@ -239,7 +241,7 @@ export const search = query({
 		}
 
 		const searchLower = searchTerm.toLowerCase();
-		
+
 		const preceptors = await ctx.db.query('preceptors').take(1000);
 		const [schools, practiceSites, programTypes] = await Promise.all([
 			ctx.db.query('schools').collect(),
@@ -247,23 +249,27 @@ export const search = query({
 			ctx.db.query('programTypes').collect()
 		]);
 
-		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
-		const practiceSiteMap = new Map(practiceSites.map(s => [s._id, s.name]));
-		const programTypeMap = new Map(programTypes.map(p => [p._id, p.name]));
+		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
+		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
+		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
 
-		const matchingPreceptors = preceptors.filter(preceptor => {
-			const preceptorName = preceptor.fullName.toLowerCase();
-			const schoolName = schoolMap.get(preceptor.schoolId)?.toLowerCase() || '';
-			const siteName = practiceSiteMap.get(preceptor.siteId)?.toLowerCase() || '';
-			const programTypeName = programTypeMap.get(preceptor.programTypeId)?.toLowerCase() || '';
-			
-			return preceptorName.includes(searchLower) || 
-				schoolName.includes(searchLower) || 
-				siteName.includes(searchLower) ||
-				programTypeName.includes(searchLower);
-		}).slice(0, limit);
+		const matchingPreceptors = preceptors
+			.filter((preceptor) => {
+				const preceptorName = preceptor.fullName.toLowerCase();
+				const schoolName = schoolMap.get(preceptor.schoolId)?.toLowerCase() || '';
+				const siteName = practiceSiteMap.get(preceptor.siteId)?.toLowerCase() || '';
+				const programTypeName = programTypeMap.get(preceptor.programTypeId)?.toLowerCase() || '';
 
-		return matchingPreceptors.map(preceptor => ({
+				return (
+					preceptorName.includes(searchLower) ||
+					schoolName.includes(searchLower) ||
+					siteName.includes(searchLower) ||
+					programTypeName.includes(searchLower)
+				);
+			})
+			.slice(0, limit);
+
+		return matchingPreceptors.map((preceptor) => ({
 			...preceptor,
 			schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
 			siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site',

@@ -7,11 +7,11 @@ export const get = query({
 		const schoolPrograms = await ctx.db.query('schoolPrograms').collect();
 		const schools = await ctx.db.query('schools').collect();
 		const programTypes = await ctx.db.query('programTypes').collect();
-		
-		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
-		const programTypeMap = new Map(programTypes.map(p => [p._id, p.name]));
-		
-		return schoolPrograms.map(sp => ({
+
+		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
+		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
+
+		return schoolPrograms.map((sp) => ({
 			...sp,
 			schoolName: schoolMap.get(sp.schoolId) || 'Unknown School',
 			programTypeName: programTypeMap.get(sp.programTypeId) || 'Unknown Program'
@@ -26,11 +26,11 @@ export const getBySchool = query({
 			.query('schoolPrograms')
 			.withIndex('by_school', (q) => q.eq('schoolId', schoolId))
 			.collect();
-			
+
 		const programTypes = await ctx.db.query('programTypes').collect();
-		const programTypeMap = new Map(programTypes.map(p => [p._id, p.name]));
-		
-		return schoolPrograms.map(sp => ({
+		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
+
+		return schoolPrograms.map((sp) => ({
 			...sp,
 			programTypeName: programTypeMap.get(sp.programTypeId) || 'Unknown Program'
 		}));
@@ -44,11 +44,11 @@ export const getByProgramType = query({
 			.query('schoolPrograms')
 			.withIndex('by_program_type', (q) => q.eq('programTypeId', programTypeId))
 			.collect();
-			
+
 		const schools = await ctx.db.query('schools').collect();
-		const schoolMap = new Map(schools.map(s => [s._id, s.name]));
-		
-		return schoolPrograms.map(sp => ({
+		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
+
+		return schoolPrograms.map((sp) => ({
 			...sp,
 			schoolName: schoolMap.get(sp.schoolId) || 'Unknown School'
 		}));
@@ -76,14 +76,14 @@ export const updateSchoolProgram = mutation({
 	},
 	handler: async (ctx, { id, schoolId, programTypeId }) => {
 		const updates: Record<string, unknown> = {};
-		
+
 		if (schoolId !== undefined) {
 			updates.schoolId = schoolId;
 		}
 		if (programTypeId !== undefined) {
 			updates.programTypeId = programTypeId;
 		}
-		
+
 		if (Object.keys(updates).length > 0) {
 			await ctx.db.patch(id, updates);
 		}
@@ -95,4 +95,4 @@ export const deleteSchoolProgram = mutation({
 	handler: async (ctx, { id }) => {
 		await ctx.db.delete(id);
 	}
-}); 
+});

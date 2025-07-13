@@ -14,11 +14,11 @@ export const getWithPrograms = query({
 		const schools = await ctx.db.query('schools').collect();
 		const schoolPrograms = await ctx.db.query('schoolPrograms').collect();
 		const programTypes = await ctx.db.query('programTypes').collect();
-		
-		const programTypeMap = new Map(programTypes.map(p => [p._id, p.name]));
+
+		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
 		const schoolProgramsMap = new Map();
-		
-		schoolPrograms.forEach(sp => {
+
+		schoolPrograms.forEach((sp) => {
 			if (!schoolProgramsMap.has(sp.schoolId)) {
 				schoolProgramsMap.set(sp.schoolId, []);
 			}
@@ -27,8 +27,8 @@ export const getWithPrograms = query({
 				programTypeName: programTypeMap.get(sp.programTypeId) || 'Unknown Program'
 			});
 		});
-		
-		return schools.map(school => ({
+
+		return schools.map((school) => ({
 			...school,
 			programs: schoolProgramsMap.get(school._id) || []
 		}));
@@ -52,7 +52,7 @@ export const deleteSchool = mutation({
 });
 
 export const updateSchool = mutation({
-	args: { 
+	args: {
 		id: v.id('schools'),
 		name: v.optional(v.string())
 	},

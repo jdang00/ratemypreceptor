@@ -36,7 +36,7 @@
 	async function handleSubmit() {
 		if (isSubmitting) return;
 
-		if (!formData.name.trim() || !formData.programTypeId) {
+		if (!formData.name.trim() || !formData.programTypeId || !formData.description.trim()) {
 			submitError = 'Please fill in all required fields';
 			return;
 		}
@@ -48,15 +48,15 @@
 			await client.mutation(api.experienceTypes.insertExperienceType, {
 				name: formData.name.trim(),
 				programTypeId: formData.programTypeId as any,
-				description: formData.description.trim() || undefined
+				description: formData.description.trim()
 			});
-			
+
 			formData = {
 				name: '',
 				programTypeId: '',
 				description: ''
 			};
-			
+
 			onSuccess?.();
 			onClose();
 		} catch (error) {
@@ -78,10 +78,10 @@
 </script>
 
 <Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-md p-4 sm:p-6">
+	<Dialog.Content class="w-full max-w-[95vw] p-4 sm:max-w-md sm:p-6">
 		<Dialog.Header>
-			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New Experience Type</Dialog.Title>
-			<Dialog.Description class="text-sm text-muted-foreground">
+			<Dialog.Title class="text-lg font-semibold sm:text-xl">Add New Experience Type</Dialog.Title>
+			<Dialog.Description class="text-muted-foreground text-sm">
 				Add a new experience type to the system.
 			</Dialog.Description>
 		</Dialog.Header>
@@ -104,9 +104,7 @@
 			</div>
 
 			<div class="space-y-2">
-				<Label for="name" class="text-sm font-medium">
-					Experience Type Name *
-				</Label>
+				<Label for="name" class="text-sm font-medium">Experience Type Name *</Label>
 				<Input
 					id="name"
 					placeholder="e.g., IPPE, APPE, Clinical Rotation"
@@ -117,12 +115,10 @@
 			</div>
 
 			<div class="space-y-2">
-				<Label for="description" class="text-sm font-medium">
-					Description
-				</Label>
+				<Label for="description" class="text-sm font-medium">Description *</Label>
 				<Input
 					id="description"
-					placeholder="Optional description of this experience type"
+					placeholder="A brief description of this experience type"
 					bind:value={formData.description}
 					disabled={isSubmitting}
 					class="h-9 text-sm"
@@ -136,13 +132,11 @@
 			{/if}
 		</div>
 
-		<Dialog.Footer class="flex justify-end gap-3 pt-4 border-t">
-			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>
-				Cancel
-			</Button>
+		<Dialog.Footer class="flex justify-end gap-3 border-t pt-4">
+			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>Cancel</Button>
 			<Button onclick={handleSubmit} disabled={isSubmitting}>
 				{isSubmitting ? 'Adding...' : 'Add Experience Type'}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
-</Dialog.Root> 
+</Dialog.Root>

@@ -17,8 +17,6 @@
 	type PaginatedDataTableProps<T> = {
 		columns: ColumnDef<T, unknown>[];
 		data: T[];
-		searchPlaceholder?: string;
-		searchColumn?: string;
 		currentPage: number;
 		totalPages: number;
 		pageSize: number;
@@ -34,8 +32,6 @@
 	let {
 		data,
 		columns,
-		searchPlaceholder = 'Search...',
-		searchColumn = 'name',
 		currentPage,
 		totalPages,
 		pageSize,
@@ -113,8 +109,6 @@
 		}
 	}
 
-
-
 	let startItem = $derived((currentPage - 1) * pageSize + 1);
 	let endItem = $derived(Math.min(currentPage * pageSize, totalCount));
 </script>
@@ -159,7 +153,7 @@
 						<Table.Row>
 							{#each columns as _, j}
 								<Table.Cell class="py-2 text-xs sm:py-3 sm:text-sm">
-									<div class="h-4 bg-gray-200 rounded animate-pulse"></div>
+									<div class="h-4 animate-pulse rounded bg-gray-200"></div>
 								</Table.Cell>
 							{/each}
 						</Table.Row>
@@ -205,7 +199,7 @@
 					<Select.Item value="50" label="50 per page">50 per page</Select.Item>
 				</Select.Content>
 			</Select.Root>
-			
+
 			<div class="flex items-center space-x-2">
 				<Button
 					variant="outline"
@@ -216,11 +210,11 @@
 					<ChevronLeft class="h-4 w-4" />
 					<span class="hidden sm:block">Previous</span>
 				</Button>
-				
-				<span class="text-sm text-muted-foreground">
+
+				<span class="text-muted-foreground text-sm">
 					Page {currentPage}
 				</span>
-				
+
 				<Button
 					variant="outline"
 					size="sm"
@@ -233,4 +227,4 @@
 			</div>
 		</div>
 	</div>
-</div> 
+</div>

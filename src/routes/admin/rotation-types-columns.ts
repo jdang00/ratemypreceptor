@@ -88,4 +88,4 @@ export const rotationTypesColumns: ColumnDef<RotationType>[] = [
 			return renderSnippet(actionsSnippet, row.original);
 		}
 	}
-]; 
+];

@@ -42,13 +42,13 @@
 				city: formData.city.trim(),
 				state: formData.state.trim()
 			});
-			
+
 			formData = {
 				name: '',
 				city: '',
 				state: ''
 			};
-			
+
 			onSuccess?.();
 			onClose();
 		} catch (error) {
@@ -70,19 +70,17 @@
 </script>
 
 <Dialog.Root bind:open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-	<Dialog.Content class="w-full max-w-[95vw] sm:max-w-md p-4 sm:p-6">
+	<Dialog.Content class="w-full max-w-[95vw] p-4 sm:max-w-md sm:p-6">
 		<Dialog.Header>
-			<Dialog.Title class="text-lg sm:text-xl font-semibold">Add New Practice Site</Dialog.Title>
-			<Dialog.Description class="text-sm text-muted-foreground">
+			<Dialog.Title class="text-lg font-semibold sm:text-xl">Add New Practice Site</Dialog.Title>
+			<Dialog.Description class="text-muted-foreground text-sm">
 				Add a new practice site to the system.
 			</Dialog.Description>
 		</Dialog.Header>
 
 		<div class="space-y-4">
 			<div class="space-y-2">
-				<Label for="name" class="text-sm font-medium">
-					Site Name *
-				</Label>
+				<Label for="name" class="text-sm font-medium">Site Name *</Label>
 				<Input
 					id="name"
 					placeholder="Enter site name"
@@ -92,11 +90,9 @@
 				/>
 			</div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+			<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 				<div class="space-y-2">
-					<Label for="city" class="text-sm font-medium">
-						City *
-					</Label>
+					<Label for="city" class="text-sm font-medium">City *</Label>
 					<Input
 						id="city"
 						placeholder="City"
@@ -107,9 +103,7 @@
 				</div>
 
 				<div class="space-y-2">
-					<Label for="state" class="text-sm font-medium">
-						State *
-					</Label>
+					<Label for="state" class="text-sm font-medium">State *</Label>
 					<Input
 						id="state"
 						placeholder="State"
@@ -127,13 +121,11 @@
 			{/if}
 		</div>
 
-		<Dialog.Footer class="flex justify-end gap-3 pt-4 border-t">
-			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>
-				Cancel
-			</Button>
+		<Dialog.Footer class="flex justify-end gap-3 border-t pt-4">
+			<Button variant="outline" onclick={handleClose} disabled={isSubmitting}>Cancel</Button>
 			<Button onclick={handleSubmit} disabled={isSubmitting}>
 				{isSubmitting ? 'Adding...' : 'Add Practice Site'}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
-</Dialog.Root> 
+</Dialog.Root>

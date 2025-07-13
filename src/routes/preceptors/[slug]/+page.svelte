@@ -29,27 +29,26 @@
 </script>
 
 <div class="space-y-6">
-	<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 		<div class="flex-1">
 			<div class="space-y-2">
 				<h1 class="text-3xl font-bold">{displayName}</h1>
 				{#if credentials}
 					<p class="text-muted-foreground text-lg">{credentials}</p>
 				{/if}
-				
+
 				{#if preceptorQuery.data}
-					<div class="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
-						<div class="flex items-center gap-2 text-muted-foreground">
+					<div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+						<div class="text-muted-foreground flex items-center gap-2">
 							<School class="h-4 w-4" />
 							<span class="text-sm font-medium">{preceptorQuery.data.schoolName}</span>
 						</div>
-						<div class="flex items-center gap-2 text-muted-foreground">
+						<div class="text-muted-foreground flex items-center gap-2">
 							<MapPin class="h-4 w-4" />
 							<span class="text-sm font-medium">{preceptorQuery.data.siteName}</span>
 						</div>
 					</div>
 				{/if}
-				
 			</div>
 		</div>
 		<div class="flex-shrink-0">

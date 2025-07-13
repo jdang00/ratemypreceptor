@@ -51,7 +51,7 @@
 				config: clearData ? config : undefined
 			});
 			seedResult = result;
-			
+
 			onSuccess?.();
 		} catch (error) {
 			seedError = error instanceof Error ? error.message : 'Failed to seed database';
@@ -70,7 +70,7 @@
 
 			const result = await client.mutation((api as any).seed.clearTables, {});
 			seedResult = result;
-			
+
 			onSuccess?.();
 		} catch (error) {
 			seedError = error instanceof Error ? error.message : 'Failed to clear tables';
@@ -106,14 +106,12 @@
 			</Dialog.Header>
 
 			<div class="space-y-4">
-				<div class="rounded-lg border p-4 bg-muted/50">
-					<div class="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
+				<div class="bg-muted/50 rounded-lg border p-4">
+					<div class="text-muted-foreground mb-2 flex items-center gap-2 text-sm font-medium">
 						<AlertTriangle class="h-4 w-4" />
 						Development Only
 					</div>
-					<p class="text-sm text-muted-foreground">
-						Configure the amount of data to generate:
-					</p>
+					<p class="text-muted-foreground text-sm">Configure the amount of data to generate:</p>
 				</div>
 
 				<div class="grid grid-cols-2 gap-4">
@@ -186,7 +184,9 @@
 							max="100"
 							step="0.1"
 							value={config.ratingDistributions.positive * 100}
-							onchange={(e) => config.ratingDistributions.positive = Number((e.target as HTMLInputElement).value) / 100}
+							onchange={(e) =>
+								(config.ratingDistributions.positive =
+									Number((e.target as HTMLInputElement).value) / 100)}
 							class="h-9 text-sm"
 						/>
 					</div>
@@ -198,8 +198,8 @@
 				</div>
 
 				{#if seedError}
-					<div class="rounded-lg border border-destructive bg-destructive/10 p-3">
-						<div class="flex items-center gap-2 text-sm text-destructive">
+					<div class="border-destructive bg-destructive/10 rounded-lg border p-3">
+						<div class="text-destructive flex items-center gap-2 text-sm">
 							<AlertTriangle class="h-4 w-4" />
 							{seedError}
 						</div>
@@ -228,16 +228,16 @@
 			</div>
 
 			<Dialog.Footer class="flex justify-between">
-				<Button 
-					variant="destructive" 
-					onclick={handleClearTables} 
+				<Button
+					variant="destructive"
+					onclick={handleClearTables}
 					disabled={isClearing || isSeeding}
 				>
 					{#if isClearing}
-						<Loader2 class="h-4 w-4 animate-spin mr-2" />
+						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 						Clearing...
 					{:else}
-						<Trash2 class="h-4 w-4 mr-2" />
+						<Trash2 class="mr-2 h-4 w-4" />
 						Clear Tables
 					{/if}
 				</Button>
@@ -246,16 +246,16 @@
 					<Button variant="outline" onclick={handleClose} disabled={isSeeding || isClearing}>
 						Cancel
 					</Button>
-					<Button 
-						onclick={handleSeed} 
+					<Button
+						onclick={handleSeed}
 						disabled={isSeeding || isClearing}
 						class="bg-orange-600 hover:bg-orange-700"
 					>
 						{#if isSeeding}
-							<Loader2 class="h-4 w-4 animate-spin mr-2" />
+							<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 							Seeding...
 						{:else}
-							<Database class="h-4 w-4 mr-2" />
+							<Database class="mr-2 h-4 w-4" />
 							Seed Database
 						{/if}
 					</Button>
@@ -263,4 +263,4 @@
 			</Dialog.Footer>
 		</Dialog.Content>
 	</Dialog.Root>
-{/if} 
+{/if}

@@ -70,10 +70,10 @@
 	{:else}
 		<div class="space-y-4">
 			{#each reviews as review (review._id)}
-				<ReviewCard 
-					{review} 
-					showPreceptorName={true} 
-					preceptorLink="/preceptors/{review.preceptorName}" 
+				<ReviewCard
+					{review}
+					showPreceptorName={true}
+					preceptorLink="/preceptors/{review.preceptorName}"
 				/>
 			{/each}
 		</div>

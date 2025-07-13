@@ -1,6 +1,6 @@
 <script lang="ts">
-	import * as NavigationMenu from '$lib/components/ui/navigation-menu/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import * as NavigationMenu from '$lib/components/ui/navigation-menu/index.js';
 	import { cn } from '$lib/utils.js';
 	import { navigationMenuTriggerStyle } from '$lib/components/ui/navigation-menu/navigation-menu-trigger.svelte';
 	import Sun from '@lucide/svelte/icons/sun';
@@ -75,7 +75,7 @@
 			</a>
 			<NavigationMenu.Root viewport={false} class="hidden md:flex">
 				<NavigationMenu.List class="flex items-center space-x-1">
-					{#each links.filter(link => !(link.href === '/admin' && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
+					{#each links.filter((link) => !(link.href === '/admin' && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
 						<NavigationMenu.Item>
 							<NavigationMenu.Link>
 								{#snippet child()}
@@ -155,7 +155,7 @@
 			class="bg-background animate-in slide-in-from-top-2 border-t duration-200 md:hidden"
 		>
 			<ul class="flex flex-col space-y-1 py-4">
-				{#each links.filter(link => !(link.href === '/admin' && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
+				{#each links.filter((link) => !(link.href === '/admin' && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
 					<li>
 						<a
 							href={link.href}

@@ -12,8 +12,8 @@
 {#if query.isLoading}
 	<div class="space-y-3">
 		{#each Array(5) as _, i}
-			<div class="flex items-center space-x-4 p-4 border rounded-lg">
-				<div class="space-y-2 flex-1">
+			<div class="flex items-center space-x-4 rounded-lg border p-4">
+				<div class="flex-1 space-y-2">
 					<Skeleton class="h-5 w-[200px]" />
 					<Skeleton class="h-4 w-[150px]" />
 					<Skeleton class="h-4 w-[100px]" />
