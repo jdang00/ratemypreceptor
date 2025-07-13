@@ -16,7 +16,10 @@
 	const allPreceptors = useQuery(api.preceptors.getWithReviews, {});
 </script>
 
-<h1 class="mt-8 mb-4 text-center text-3xl font-bold">RateMyPreceptor</h1>
+<div class="mt-4 mb-6 flex flex-col items-center justify-center space-y-3">
+	<img src="/RateMyPreceptorLogo.svg" alt="RateMyPreceptor Logo" class="mb-4 h-24 w-24 transition-transform duration-300 hover:rotate-12 hover:scale-110" />
+	<h1 class="text-4xl font-bold">RateMyPreceptor</h1>
+</div>
 <p class="text-center text-lg">Enter a preceptor, school, or rotation to get started.</p>
 
 <div class="mt-12 flex flex-col items-center gap-6">

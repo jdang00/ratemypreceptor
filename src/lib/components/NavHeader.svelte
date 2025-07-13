@@ -72,9 +72,9 @@
 		<div class="flex items-center space-x-8">
 			<a
 				href="/"
-				class="hover:text-primary flex items-center space-x-2 text-xl font-semibold transition-colors"
+				class="hover:text-primary flex items-center space-x-2 text-xl font-semibold transition-colors group"
 			>
-				<img src="/RateMyPreceptorLogo.svg" alt="RateMyPreceptor Logo" class="h-6 w-6" />
+				<img src="/RateMyPreceptorLogo.svg" alt="RateMyPreceptor Logo" class="h-6 w-6 transition-transform duration-300 group-hover:rotate-24 group-hover:scale-110" />
 				<span>{title}</span>
 			</a>
 			<NavigationMenu.Root viewport={false} class="hidden md:flex">
@@ -156,7 +156,7 @@
 	{#if mobileOpen}
 		<div
 			id="mobile-menu"
-			class="bg-background animate-in slide-in-from-top-2 border-t duration-200 md:hidden"
+			class="bg-background/80 supports-[backdrop-filter]:bg-background/60 animate-in slide-in-from-top-2 border-t duration-200 md:hidden backdrop-blur supports-[backdrop-filter]:backdrop-blur-md"
 		>
 			<ul class="flex flex-col space-y-1 py-4">
 				{#each links.filter((link) => !(link.href === '/admin' && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
