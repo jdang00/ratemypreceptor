@@ -29,13 +29,13 @@ export const insertExperienceType = mutation({
 	args: {
 		programTypeId: v.id('programTypes'),
 		name: v.string(),
-		description: v.string()
+		description: v.optional(v.string())
 	},
 	handler: async (ctx, { programTypeId, name, description }) => {
-		await ctx.db.insert('experienceTypes', {
+		return await ctx.db.insert('experienceTypes', {
 			programTypeId,
 			name,
-			description: description ?? 'No description provided'
+			description
 		});
 	}
 });
@@ -48,23 +48,13 @@ export const updateExperienceType = mutation({
 		description: v.optional(v.string())
 	},
 	handler: async (ctx, { id, ...updates }) => {
-		const cleanUpdates = Object.fromEntries(
-			Object.entries(updates).filter(([, value]) => value !== undefined)
-		);
-
-		if (cleanUpdates.description === null || cleanUpdates.description === undefined) {
-			cleanUpdates.description = 'No description provided';
-		}
-
-		if (Object.keys(cleanUpdates).length > 0) {
-			await ctx.db.patch(id, cleanUpdates);
-		}
+		return await ctx.db.patch(id, updates);
 	}
 });
 
 export const deleteExperienceType = mutation({
 	args: { id: v.id('experienceTypes') },
 	handler: async (ctx, { id }) => {
-		await ctx.db.delete(id);
+		return await ctx.db.delete(id);
 	}
 });

@@ -18,8 +18,7 @@ export const getReviewsCount = query({
 			return allReviews.length;
 		}
 
-		const [experienceTypes] = await Promise.all([ctx.db.query('experienceTypes').collect()]);
-
+		const experienceTypes = await ctx.db.query('experienceTypes').collect();
 		const experienceTypeMap = new Map(experienceTypes.map((e) => [e.name, e._id]));
 
 		const filteredReviews = allReviews.filter((review) => {
@@ -64,14 +63,16 @@ export const getReviewsWithOffset = query({
 		)
 	},
 	handler: async (ctx, { offset, limit, filters }) => {
-		const reviewsQuery = ctx.db.query('reviews').withIndex('by_recent_reviews').order('desc');
+		const allReviews = await ctx.db
+			.query('reviews')
+			.withIndex('by_recent_reviews')
+			.order('desc')
+			.collect();
 
-		const allReviews = await reviewsQuery.collect();
 		let filteredReviews = allReviews;
 
 		if (filters) {
-			const [experienceTypes] = await Promise.all([ctx.db.query('experienceTypes').collect()]);
-
+			const experienceTypes = await ctx.db.query('experienceTypes').collect();
 			const experienceTypeMap = new Map(experienceTypes.map((e) => [e.name, e._id]));
 
 			filteredReviews = allReviews.filter((review) => {
@@ -104,17 +105,21 @@ export const getReviewsWithOffset = query({
 
 		const reviewsWithDetails = await Promise.all(
 			paginatedReviews.map(async (review) => {
-				const [preceptor, rotationType, experienceType] = await Promise.all([
+				const [preceptor, rotationType, experienceType, school, site] = await Promise.all([
 					ctx.db.get(review.preceptorId),
 					ctx.db.get(review.rotationTypeId),
-					ctx.db.get(review.experienceTypeId)
+					ctx.db.get(review.experienceTypeId),
+					ctx.db.get(review.schoolId),
+					ctx.db.get(review.siteId)
 				]);
 
 				return {
 					...review,
 					preceptorName: preceptor?.fullName || 'Unknown Preceptor',
 					rotationTypeName: rotationType?.name || 'Unknown Rotation',
-					experienceTypeName: experienceType?.name || 'Unknown Experience'
+					experienceTypeName: experienceType?.name || 'Unknown Experience',
+					schoolName: school?.name || 'Unknown School',
+					siteName: site?.name || 'Unknown Site'
 				};
 			})
 		);
@@ -134,17 +139,21 @@ export const get = query({
 
 		const reviewsWithDetails = await Promise.all(
 			results.map(async (review) => {
-				const [preceptor, rotationType, experienceType] = await Promise.all([
+				const [preceptor, rotationType, experienceType, school, site] = await Promise.all([
 					ctx.db.get(review.preceptorId),
 					ctx.db.get(review.rotationTypeId),
-					ctx.db.get(review.experienceTypeId)
+					ctx.db.get(review.experienceTypeId),
+					ctx.db.get(review.schoolId),
+					ctx.db.get(review.siteId)
 				]);
 
 				return {
 					...review,
 					preceptorName: preceptor?.fullName || 'Unknown Preceptor',
 					rotationTypeName: rotationType?.name || 'Unknown Rotation',
-					experienceTypeName: experienceType?.name || 'Unknown Experience'
+					experienceTypeName: experienceType?.name || 'Unknown Experience',
+					schoolName: school?.name || 'Unknown School',
+					siteName: site?.name || 'Unknown Site'
 				};
 			})
 		);
@@ -155,15 +164,14 @@ export const get = query({
 
 export const getByPreceptor = query({
 	args: {
-		preceptorId: v.id('preceptors'),
-		limit: v.optional(v.number())
+		preceptorId: v.id('preceptors')
 	},
-	handler: async (ctx, { preceptorId, limit = 500 }) => {
+	handler: async (ctx, { preceptorId }) => {
 		const reviews = await ctx.db
 			.query('reviews')
 			.withIndex('by_preceptor_created', (q) => q.eq('preceptorId', preceptorId))
 			.order('desc')
-			.take(limit);
+			.collect();
 
 		const [rotationTypes, experienceTypes] = await Promise.all([
 			ctx.db.query('rotationTypes').collect(),
@@ -222,13 +230,13 @@ export const getPreceptorStats = query({
 });
 
 export const getTopReviews = query({
-	args: { limit: v.optional(v.number()) },
-	handler: async (ctx, { limit = 10 }) => {
+	args: {},
+	handler: async (ctx) => {
 		const reviews = await ctx.db
 			.query('reviews')
 			.withIndex('by_top_reviews')
 			.order('desc')
-			.take(limit);
+			.take(10);
 
 		const reviewsWithDetails = await Promise.all(
 			reviews.map(async (review) => {
@@ -253,42 +261,19 @@ export const getTopReviews = query({
 
 export const searchPreceptorsByReviews = query({
 	args: {
-		searchTerm: v.string(),
-		limit: v.optional(v.number())
+		searchTerm: v.string()
 	},
-	handler: async (ctx, { searchTerm, limit = 200 }) => {
+	handler: async (ctx, { searchTerm }) => {
 		if (!searchTerm.trim()) {
 			return [];
 		}
 
 		const searchLower = searchTerm.toLowerCase();
+		const preceptors = await ctx.db.query('preceptors').collect();
 
-		const [preceptors, schools, practiceSites, programTypes] = await Promise.all([
-			ctx.db.query('preceptors').collect(),
-			ctx.db.query('schools').collect(),
-			ctx.db.query('practiceSites').collect(),
-			ctx.db.query('programTypes').collect()
-		]);
-
-		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
-		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
-		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
-
-		const matchingPreceptors = preceptors
-			.filter((preceptor) => {
-				const preceptorName = preceptor.fullName.toLowerCase();
-				const schoolName = schoolMap.get(preceptor.schoolId)?.toLowerCase() || '';
-				const siteName = practiceSiteMap.get(preceptor.siteId)?.toLowerCase() || '';
-				const programTypeName = programTypeMap.get(preceptor.programTypeId)?.toLowerCase() || '';
-
-				return (
-					preceptorName.includes(searchLower) ||
-					schoolName.includes(searchLower) ||
-					siteName.includes(searchLower) ||
-					programTypeName.includes(searchLower)
-				);
-			})
-			.slice(0, limit);
+		const matchingPreceptors = preceptors.filter((preceptor) =>
+			preceptor.fullName.toLowerCase().includes(searchLower)
+		);
 
 		const preceptorResults = await Promise.all(
 			matchingPreceptors.map(async (preceptor) => {
@@ -307,9 +292,6 @@ export const searchPreceptorsByReviews = query({
 
 				return {
 					...preceptor,
-					schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
-					siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site',
-					programTypeName: programTypeMap.get(preceptor.programTypeId) || 'Unknown Program',
 					totalReviews,
 					averageStarRating,
 					recommendationRate
@@ -328,28 +310,27 @@ export const getFilteredReviews = query({
 			rotationType: v.optional(v.string()),
 			starRating: v.optional(v.number()),
 			wouldRecommend: v.optional(v.boolean())
-		}),
-		limit: v.optional(v.number())
+		})
 	},
-	handler: async (ctx, { filters, limit = 500 }) => {
+	handler: async (ctx, { filters }) => {
 		let reviews;
 
 		if (filters.starRating !== undefined) {
 			reviews = await ctx.db
 				.query('reviews')
 				.withIndex('by_star_rating', (q) => q.eq('starRating', filters.starRating!))
-				.take(limit * 2);
+				.collect();
 		} else if (filters.wouldRecommend !== undefined) {
 			reviews = await ctx.db
 				.query('reviews')
 				.withIndex('by_would_recommend', (q) => q.eq('wouldRecommend', filters.wouldRecommend!))
-				.take(limit * 2);
+				.collect();
 		} else {
 			reviews = await ctx.db
 				.query('reviews')
 				.withIndex('by_recent_reviews')
 				.order('desc')
-				.take(limit * 2);
+				.collect();
 		}
 
 		if (filters.experienceType || filters.rotationType) {
@@ -375,8 +356,6 @@ export const getFilteredReviews = query({
 			}
 		}
 
-		reviews = reviews.slice(0, limit);
-
 		const reviewsWithDetails = await Promise.all(
 			reviews.map(async (review) => {
 				const [preceptor, rotationType, experienceType] = await Promise.all([
@@ -401,6 +380,8 @@ export const getFilteredReviews = query({
 export const insertReview = mutation({
 	args: {
 		preceptorId: v.id('preceptors'),
+		schoolId: v.id('schools'),
+		siteId: v.id('practiceSites'),
 		rotationTypeId: v.id('rotationTypes'),
 		experienceTypeId: v.id('experienceTypes'),
 		schoolYear: v.string(),
@@ -432,7 +413,7 @@ export const insertReview = mutation({
 			createdAt: now,
 			updatedAt: now
 		};
-		await ctx.db.insert('reviews', reviewData);
+		return await ctx.db.insert('reviews', reviewData);
 	}
 });
 
@@ -440,6 +421,8 @@ export const updateReview = mutation({
 	args: {
 		id: v.id('reviews'),
 		preceptorId: v.optional(v.id('preceptors')),
+		schoolId: v.optional(v.id('schools')),
+		siteId: v.optional(v.id('practiceSites')),
 		rotationTypeId: v.optional(v.id('rotationTypes')),
 		experienceTypeId: v.optional(v.id('experienceTypes')),
 		schoolYear: v.optional(v.string()),
@@ -464,20 +447,14 @@ export const updateReview = mutation({
 		outlierReason: v.optional(v.string())
 	},
 	handler: async (ctx, { id, ...updates }) => {
-		const cleanUpdates = Object.fromEntries(
-			Object.entries(updates).filter(([, value]) => value !== undefined)
-		);
-		if (Object.keys(cleanUpdates).length > 0) {
-			cleanUpdates.updatedAt = Date.now();
-			await ctx.db.patch(id, cleanUpdates);
-		}
+		return await ctx.db.patch(id, updates);
 	}
 });
 
 export const deleteReview = mutation({
 	args: { id: v.id('reviews') },
 	handler: async (ctx, { id }) => {
-		await ctx.db.delete(id);
+		return await ctx.db.delete(id);
 	}
 });
 
@@ -490,7 +467,7 @@ export const upvoteReview = mutation({
 		const upvoteCount = review.upvoteCount + 1;
 		const netScore = upvoteCount - review.downvoteCount;
 
-		await ctx.db.patch(id, {
+		return await ctx.db.patch(id, {
 			upvoteCount,
 			netScore,
 			updatedAt: Date.now()
@@ -507,7 +484,7 @@ export const downvoteReview = mutation({
 		const downvoteCount = review.downvoteCount + 1;
 		const netScore = review.upvoteCount - downvoteCount;
 
-		await ctx.db.patch(id, {
+		return await ctx.db.patch(id, {
 			downvoteCount,
 			netScore,
 			updatedAt: Date.now()

@@ -3,10 +3,9 @@ import { v } from 'convex/values';
 
 export const get = query({
 	args: {
-		fullName: v.string(),
-		limit: v.optional(v.number())
+		fullName: v.string()
 	},
-	handler: async (ctx, { fullName, limit = 500 }) => {
+	handler: async (ctx, { fullName }) => {
 		const preceptor = await ctx.db
 			.query('preceptors')
 			.withIndex('by_full_name', (q) => q.eq('fullName', fullName))
@@ -20,7 +19,7 @@ export const get = query({
 			.query('reviews')
 			.withIndex('by_preceptor_created', (q) => q.eq('preceptorId', preceptor._id))
 			.order('desc')
-			.take(limit);
+			.collect();
 
 		const [rotationTypes, experienceTypes] = await Promise.all([
 			ctx.db.query('rotationTypes').collect(),

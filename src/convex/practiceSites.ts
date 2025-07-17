@@ -22,7 +22,7 @@ export const getByLocation = query({
 		} else if (state) {
 			return await ctx.db
 				.query('practiceSites')
-				.withIndex('by_location', (q) => q.eq('state', state))
+				.withIndex('by_state', (q) => q.eq('state', state))
 				.collect();
 		} else {
 			return await ctx.db.query('practiceSites').collect();
@@ -37,18 +37,11 @@ export const insertPracticeSite = mutation({
 		state: v.string()
 	},
 	handler: async (ctx, { name, city, state }) => {
-		await ctx.db.insert('practiceSites', {
+		return await ctx.db.insert('practiceSites', {
 			name,
 			city,
 			state
 		});
-	}
-});
-
-export const deletePracticeSite = mutation({
-	args: { id: v.id('practiceSites') },
-	handler: async (ctx, { id }) => {
-		await ctx.db.delete(id);
 	}
 });
 
@@ -60,11 +53,13 @@ export const updatePracticeSite = mutation({
 		state: v.optional(v.string())
 	},
 	handler: async (ctx, { id, ...updates }) => {
-		const cleanUpdates = Object.fromEntries(
-			Object.entries(updates).filter(([, value]) => value !== undefined)
-		);
-		if (Object.keys(cleanUpdates).length > 0) {
-			await ctx.db.patch(id, cleanUpdates);
-		}
+		return await ctx.db.patch(id, updates);
+	}
+});
+
+export const deletePracticeSite = mutation({
+	args: { id: v.id('practiceSites') },
+	handler: async (ctx, { id }) => {
+		return await ctx.db.delete(id);
 	}
 });

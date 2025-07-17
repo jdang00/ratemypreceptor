@@ -15,7 +15,7 @@ export const insertProgramType = mutation({
 		abbreviation: v.string()
 	},
 	handler: async (ctx, { name, yearLabels, abbreviation }) => {
-		await ctx.db.insert('programTypes', {
+		return await ctx.db.insert('programTypes', {
 			name,
 			yearLabels,
 			abbreviation
@@ -31,18 +31,13 @@ export const updateProgramType = mutation({
 		abbreviation: v.optional(v.string())
 	},
 	handler: async (ctx, { id, ...updates }) => {
-		const cleanUpdates = Object.fromEntries(
-			Object.entries(updates).filter(([, value]) => value !== undefined)
-		);
-		if (Object.keys(cleanUpdates).length > 0) {
-			await ctx.db.patch(id, cleanUpdates);
-		}
+		return await ctx.db.patch(id, updates);
 	}
 });
 
 export const deleteProgramType = mutation({
 	args: { id: v.id('programTypes') },
 	handler: async (ctx, { id }) => {
-		await ctx.db.delete(id);
+		return await ctx.db.delete(id);
 	}
 });

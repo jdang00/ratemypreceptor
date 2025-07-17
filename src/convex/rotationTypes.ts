@@ -31,14 +31,7 @@ export const insertRotationType = mutation({
 		name: v.string()
 	},
 	handler: async (ctx, { programTypeId, name }) => {
-		await ctx.db.insert('rotationTypes', { programTypeId, name });
-	}
-});
-
-export const deleteRotationType = mutation({
-	args: { id: v.id('rotationTypes') },
-	handler: async (ctx, { id }) => {
-		await ctx.db.delete(id);
+		return await ctx.db.insert('rotationTypes', { programTypeId, name });
 	}
 });
 
@@ -49,11 +42,13 @@ export const updateRotationType = mutation({
 		name: v.optional(v.string())
 	},
 	handler: async (ctx, { id, ...updates }) => {
-		const cleanUpdates = Object.fromEntries(
-			Object.entries(updates).filter(([, value]) => value !== undefined)
-		);
-		if (Object.keys(cleanUpdates).length > 0) {
-			await ctx.db.patch(id, cleanUpdates);
-		}
+		return await ctx.db.patch(id, updates);
+	}
+});
+
+export const deleteRotationType = mutation({
+	args: { id: v.id('rotationTypes') },
+	handler: async (ctx, { id }) => {
+		return await ctx.db.delete(id);
 	}
 });

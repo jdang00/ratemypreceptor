@@ -472,21 +472,12 @@
 					bind:checked={formData.agreedToPolicies}
 					onCheckedChange={clearValidationErrors}
 				/>
-				<Label class="text-sm">
-					I agree to the <a
-						href="/terms"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="text-primary hover:underline">Terms of Service</a
-					>
+				<span class="text-sm">
+					I agree to the
+					<a href="/terms" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline ml-1">Terms of Service</a>
 					and
-					<a
-						href="/privacy"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="text-primary hover:underline">Privacy Policy</a
-					>
-				</Label>
+					<a href="/privacy" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline ml-1">Privacy Policy</a>
+				</span>
 			</div>
 
 			{#if validationErrors.length > 0}

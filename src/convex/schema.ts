@@ -2,6 +2,54 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 export default defineSchema({
+	preceptorSchools: defineTable({
+		preceptorId: v.id('preceptors'),
+		schoolId: v.id('schools'),
+		isActive: v.boolean(),
+		createdAt: v.number(),
+		updatedAt: v.number()
+	})
+		.index('by_preceptor', ['preceptorId'])
+		.index('by_school', ['schoolId'])
+		.index('by_preceptor_school', ['preceptorId', 'schoolId'])
+		.index('by_active_preceptor', ['preceptorId', 'isActive']),
+
+	preceptorSites: defineTable({
+		preceptorId: v.id('preceptors'),
+		siteId: v.id('practiceSites'),
+		schoolId: v.id('schools'), // Site affiliation is school-specific
+		isActive: v.boolean(),
+		createdAt: v.number(),
+		updatedAt: v.number()
+	})
+		.index('by_preceptor', ['preceptorId'])
+		.index('by_site', ['siteId'])
+		.index('by_school', ['schoolId'])
+		.index('by_preceptor_site', ['preceptorId', 'siteId'])
+		.index('by_preceptor_school_site', ['preceptorId', 'schoolId', 'siteId'])
+		.index('by_active_preceptor', ['preceptorId', 'isActive']),
+
+	preceptorPrograms: defineTable({
+		preceptorId: v.id('preceptors'),
+		programTypeId: v.id('programTypes'),
+		schoolId: v.id('schools'), // Program supervision is school-specific
+		siteId: v.id('practiceSites'), // And site-specific
+		isActive: v.boolean(),
+		createdAt: v.number(),
+		updatedAt: v.number()
+	})
+		.index('by_preceptor', ['preceptorId'])
+		.index('by_program_type', ['programTypeId'])
+		.index('by_school', ['schoolId'])
+		.index('by_site', ['siteId'])
+		.index('by_preceptor_program', ['preceptorId', 'programTypeId'])
+		.index('by_preceptor_school_site_program', [
+			'preceptorId',
+			'schoolId',
+			'siteId',
+			'programTypeId'
+		])
+		.index('by_active_preceptor', ['preceptorId', 'isActive']),
 	programTypes: defineTable({
 		name: v.string(),
 		yearLabels: v.array(v.string()),
@@ -43,19 +91,15 @@ export default defineSchema({
 		.index('by_name', ['name']),
 
 	preceptors: defineTable({
-		schoolId: v.id('schools'),
-		programTypeId: v.id('programTypes'),
-		siteId: v.id('practiceSites'),
-		fullName: v.string()
-	})
-		.index('by_full_name', ['fullName'])
-		.index('by_school_program', ['schoolId', 'programTypeId'])
-		.index('by_site', ['siteId'])
-		.index('by_program_type', ['programTypeId'])
-		.index('by_school', ['schoolId']),
+		fullName: v.string(),
+		email: v.optional(v.string()),
+		credentials: v.optional(v.string())
+	}).index('by_full_name', ['fullName']),
 
 	reviews: defineTable({
 		preceptorId: v.id('preceptors'),
+		schoolId: v.id('schools'),
+		siteId: v.id('practiceSites'),
 		rotationTypeId: v.id('rotationTypes'),
 		experienceTypeId: v.id('experienceTypes'),
 		schoolYear: v.string(),
@@ -94,4 +138,8 @@ export default defineSchema({
 		.index('by_preceptor_recommend', ['preceptorId', 'wouldRecommend'])
 		.index('by_rotation_star_rating', ['rotationTypeId', 'starRating'])
 		.index('by_top_reviews', ['netScore', 'createdAt'])
+		.index('by_school', ['schoolId'])
+		.index('by_site', ['siteId'])
+		.index('by_school_site', ['schoolId', 'siteId'])
+		.index('by_preceptor_school_site', ['preceptorId', 'schoolId', 'siteId'])
 });

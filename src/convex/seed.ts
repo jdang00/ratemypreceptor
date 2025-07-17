@@ -6,11 +6,11 @@ import { v } from 'convex/values';
 
 // Default seed configuration
 const DEFAULT_SEED_CONFIG = {
-	preceptors: 150,
-	reviews: 1000,
-	schools: 15,
-	practiceSites: 25,
-	reviewsPerPreceptor: { min: 1, max: 8 },
+	preceptors: 100,
+	reviews: 800,
+	schools: 12,
+	practiceSites: 20,
+	reviewsPerPreceptor: { min: 2, max: 12 },
 	ratingDistributions: {
 		positive: 0.6,
 		neutral: 0.3,
@@ -18,7 +18,127 @@ const DEFAULT_SEED_CONFIG = {
 	}
 };
 
-// Seed data constants
+// Real student data from your CSV
+const REAL_STUDENT_DATA = [
+	{ firstName: 'Cori', lastName: 'Dorrell', email: 'dorrellc@nsuok.edu', state: 'KS' },
+	{ firstName: 'Charlea', lastName: 'Leonard', email: 'bcsix10@gmail.com', state: 'OK' },
+	{ firstName: 'Karis', lastName: 'Cheek', email: 'karischeek@gmail.com', state: 'AR' },
+	{ firstName: 'Greyson', lastName: 'Palmer', email: 'greyson.w.palmer@gmail.com', state: 'OK' },
+	{ firstName: 'Madison', lastName: 'Wrather', email: 'cwrath76@gmail.com', state: 'OK' },
+	{ firstName: 'Morgandy', lastName: 'Haggard', email: 'morgan_haggard@yahoo.com', state: 'OK' },
+	{ firstName: 'Kennedy', lastName: 'Ammeter', email: 'kammeter2201@gmail.com', state: 'OK' },
+	{ firstName: 'Connor', lastName: 'Swift', email: 'connorswift44@gmail.com', state: 'OK' },
+	{ firstName: 'Eric', lastName: 'Roach', email: 'ericroach25@gmail.com', state: 'OK' },
+	{ firstName: 'Samantha', lastName: 'Black', email: 'samanthacrosley2@gmail.com', state: 'OK' },
+	{ firstName: 'Lan', lastName: 'Nguyen', email: 'lannguyensh@gmail.com', state: 'OK' },
+	{ firstName: 'Tate', lastName: 'Buster', email: 'tatebuster22@gmail.com', state: 'OK' },
+	{ firstName: 'Reid', lastName: 'Fellers', email: 'reidfellers@gmail.com', state: 'AR' },
+	{ firstName: 'Brianna', lastName: 'Germany', email: 'brianna.germany@gmail.com', state: 'OK' },
+	{ firstName: 'Cooper', lastName: 'McCoy', email: 'cooper_mccoy@yahoo.com', state: 'OK' },
+	{ firstName: 'Tait', lastName: 'Garroutte', email: 'nevermiss3@gmail.com', state: 'OK' },
+	{ firstName: 'Conner', lastName: 'West', email: 'cdwest1999@gmail.com', state: 'OK' },
+	{ firstName: 'Derek', lastName: 'Bryant', email: 'dirkbryant14@gmail.com', state: 'KS' },
+	{ firstName: 'Deryn', lastName: 'Hobbs', email: 'dancerd007@gmail.com', state: 'OK' },
+	{ firstName: 'Nate', lastName: 'Sudderth', email: 'nsudderth2@gmail.com', state: 'OK' },
+	{ firstName: 'Elizabeth', lastName: 'Sharp', email: 'libbyclairesharp@hotmail.com', state: 'OK' },
+	{ firstName: 'Taylor', lastName: 'Haddock', email: 'haddockt@nsuok.edu', state: 'KS' },
+	{ firstName: 'Rebecca', lastName: 'McNeill', email: 'rajmcneill@gmail.com', state: 'OK' },
+	{ firstName: 'Layne', lastName: 'Fowler', email: 'fowlerlayne99@gmail.com', state: 'AR' },
+	{ firstName: 'Spencer', lastName: 'Havel', email: 'spencerhavel@gmail.com', state: 'AR' },
+	{ firstName: 'Zachary', lastName: 'Hardee', email: 'zachary.hardee16@gmail.com', state: 'OK' },
+	{ firstName: 'Madison', lastName: 'Gerk', email: 'madigerk@gmail.com', state: 'OK' },
+	{ firstName: 'Crystal', lastName: 'Henderson', email: 'crhaith@gmail.com', state: 'OK' },
+	{ firstName: 'Sergio', lastName: 'Fernandez', email: 'fernands@nsuok.edu', state: 'OK' },
+	{ firstName: 'Emily', lastName: 'Do', email: 'emilyjoycedo@gmail.com', state: 'OK' },
+	{ firstName: 'Callie', lastName: 'Glisson', email: 'glissonc@nsuok.edu', state: 'OK' },
+	{ firstName: 'Nicholas', lastName: 'Rankin', email: 'nicholasrankin1@gmail.com', state: 'OK' },
+	{ firstName: 'Morgan', lastName: 'Miller', email: 'pack11@nsuok.edu', state: 'OK' },
+	{ firstName: 'Justin', lastName: 'Dang', email: 'justindang02@gmail.com', state: 'OK' },
+	{ firstName: 'Rachel', lastName: 'Psomas', email: 'rachel.psomas@gmail.com', state: 'OK' },
+	{ firstName: 'Clint', lastName: 'Kelley', email: 'clintk21@ymail.com', state: 'OK' },
+	{ firstName: 'Alex', lastName: 'Foree', email: 'aforee32@gmail.com', state: 'OK' },
+	{ firstName: 'Brayden', lastName: 'Dyer', email: 'braydensdyer@gmail.com', state: 'OK' },
+	{ firstName: 'Chloe', lastName: 'Read', email: 'chloeread33@gmail.com', state: 'OK' },
+	{ firstName: 'Austin', lastName: 'Fenton', email: 'austinfenton32@gmail.com', state: 'OK' },
+	{ firstName: 'Jennifer', lastName: 'Perez', email: 'jenny.nicole671@gmail.com', state: 'OK' },
+	{
+		firstName: 'Sherika',
+		lastName: 'Jackson',
+		email: 'sherika.jackson1998@outlook.com',
+		state: 'OK'
+	},
+	{ firstName: 'Katharine', lastName: 'Stanton', email: 'kes1220@yahoo.com', state: 'KS' },
+	{ firstName: 'Bach', lastName: 'Nguyen', email: 'bachlnguyen93@gmail.com', state: 'KS' },
+	{ firstName: 'Julia', lastName: 'Do', email: 'juliado830@gmail.com', state: 'OK' },
+	{ firstName: 'Jayden', lastName: 'Lazzari', email: 'jtlazzari@gmail.com', state: 'OK' },
+	{ firstName: 'Matthew', lastName: 'Wolgast', email: 'wolgastmatthew@gmail.com', state: 'KS' },
+	{ firstName: 'Lindsey', lastName: 'Anstine', email: 'anstine@nsuok.edu', state: 'OK' },
+	{ firstName: 'Lainee', lastName: 'Winton', email: 'laineewinton@gmail.com', state: 'OK' },
+	{ firstName: 'Jayton', lastName: 'Salmans', email: 'j-salmans@hotmail.com', state: 'OK' },
+	{ firstName: 'Corbin', lastName: 'Lill', email: 'corbinlill3@gmail.com', state: 'OK' },
+	{ firstName: 'Ariel', lastName: 'Fowler', email: 'ariel.fowler10@gmail.com', state: 'AR' },
+	{ firstName: 'Nikolay', lastName: 'Spasov', email: 'nickspasov1999@gmail.com', state: 'OK' },
+	{ firstName: 'Haelyn', lastName: 'Depriest', email: 'haelyndepriest@gmail.com', state: 'KS' },
+	{ firstName: 'Corinne', lastName: 'Collet', email: 'colletcori@gmail.com', state: 'OK' },
+	{ firstName: 'James', lastName: 'Gamble', email: 'grantgamble49@yahoo.com', state: 'KS' },
+	{ firstName: 'Haylee', lastName: 'Flores', email: 'vandeveh@nsuok.edu', state: 'OK' },
+	{ firstName: 'Courtney', lastName: 'Swift', email: 'courtneyswift7@gmail.com', state: 'OK' },
+	{ firstName: 'Nathanael', lastName: 'Patron', email: 'patron.nathanael@gmail.com', state: 'KS' },
+	{ firstName: 'Chase', lastName: 'Bowerman', email: 'chasebowerman66@gmail.com', state: 'AR' },
+	{
+		firstName: 'Mckenzie',
+		lastName: 'Crockett',
+		email: 'mckenzie.crockett67@gmail.com',
+		state: 'OK'
+	},
+	{ firstName: 'Ethan', lastName: 'Chandler', email: 'ethanx26@gmail.com', state: 'KS' },
+	{ firstName: 'Jaden', lastName: 'VanCuren', email: 'jaden.vancuren@gmail.com', state: 'KS' },
+	{ firstName: 'Kaitlyn', lastName: 'Shima', email: 'shimakaitlyn@gmail.com', state: 'KS' },
+	{ firstName: 'Makenzie', lastName: 'Fleitman', email: 'makenziefleitman@gmail.com', state: 'OK' },
+	{ firstName: 'Lybbee', lastName: 'Graham', email: 'lybbee11@gmail.com', state: 'OK' },
+	{ firstName: 'Clay', lastName: 'Buchanan', email: 'claymbuchanan@gmail.com', state: 'OK' },
+	{ firstName: 'Abigail', lastName: 'Lowe', email: 'abbyloulowe@gmail.com', state: 'OK' },
+	{
+		firstName: 'Aleksandar',
+		lastName: 'Simovic',
+		email: 'aleksandar.simovic1992@gmail.com',
+		state: 'OK'
+	},
+	{ firstName: 'Elizabeth', lastName: 'Garcia', email: 'egarcia447799@gmail.com', state: 'AR' },
+	{ firstName: 'Hayden', lastName: 'Harness', email: 'hakimberland@gmail.com', state: 'AR' },
+	{ firstName: 'Ryan', lastName: 'Kerr', email: 'kerr.ryan99@gmail.com', state: 'OK' },
+	{ firstName: 'Sophie', lastName: 'Fosmire', email: 'shfosmire@gmail.com', state: 'OK' },
+	{ firstName: 'Catherine', lastName: 'Hoselton', email: 'catevordenbaum@gmail.com', state: 'OK' },
+	{ firstName: 'Chau', lastName: 'Phan', email: 'nguyetchau.phan@gmail.com', state: 'OK' },
+	{ firstName: 'Lorrin', lastName: 'Hooten', email: 'hootenl@nsuok.edu', state: 'AR' },
+	{ firstName: 'Nereida', lastName: 'Torres', email: 'torresn@nsuok.edu', state: 'OK' },
+	{ firstName: 'Maral', lastName: 'Moradi', email: 'maral.m.moradi@gmail.com', state: 'OK' },
+	{ firstName: 'Emma', lastName: 'Strunks', email: 'Strunkse@gmail.com', state: 'OK' },
+	{ firstName: 'Cameron', lastName: 'Williams', email: 'willi305@nsuok.edu', state: 'OK' },
+	{ firstName: 'Laudan', lastName: 'Hatami', email: 'laudanhatami@gmail.com', state: 'OK' },
+	{ firstName: 'Amanda', lastName: 'Arie', email: 'amanda.liske13@gmail.com', state: 'OK' },
+	{ firstName: 'Chelsea', lastName: 'Leonard', email: 'Chelsea.ba.98@gmail.com', state: 'OK' },
+	{ firstName: 'Kaitlyn', lastName: 'Chapman', email: 'chapmankaty73@gmail.com', state: 'OK' },
+	{ firstName: 'Tuyen', lastName: 'Hoang', email: 'kt.hoang01@gmail.com', state: 'KS' },
+	{ firstName: 'Jacob', lastName: 'Allred', email: 'jakeallred28@gmail.com', state: 'OK' },
+	{ firstName: 'Callie', lastName: 'Hawkins', email: 'callie.hawkins99@yahoo.com', state: 'OK' },
+	{ firstName: 'Carl', lastName: 'Robinette', email: 'erobinette12@gmail.com', state: 'KS' },
+	{ firstName: 'Emma', lastName: 'Brockman', email: 'Emma.Brockman4@gmail.com', state: 'OK' },
+	{ firstName: 'Christena', lastName: 'Chanay', email: 'chrcrouch@gmail.com', state: 'KS' },
+	{ firstName: 'Casey', lastName: 'Nolan', email: 'phyllismae13@gmail.com', state: 'OK' },
+	{ firstName: 'Piper', lastName: 'Bowman', email: 'piperfain@gmail.com', state: 'AR' },
+	{ firstName: 'Carlye', lastName: 'Kennedy', email: 'celizabethk00@yahoo.com', state: 'OK' },
+	{ firstName: 'Bayley', lastName: 'Miller', email: 'bayleynmiller@gmail.com', state: 'AR' },
+	{
+		firstName: 'Kaitlyn',
+		lastName: 'Goldsmith',
+		email: 'kaitlyngoldsmith2@gmail.com',
+		state: 'OK'
+	},
+	{ firstName: 'Ashley', lastName: 'Oakley', email: 'ashoak97@gmail.com', state: 'OK' }
+];
+
+// Program types focused on health sciences
 const PROGRAM_TYPES = [
 	{
 		name: 'Pharmacy',
@@ -47,7 +167,7 @@ const PROGRAM_TYPES = [
 	}
 ];
 
-const EXPERIENCE_TYPES_BY_PROGRAM: Record<string, Array<{ name: string; description: string }>> = {
+const EXPERIENCE_TYPES_BY_PROGRAM: Record<string, Array<{ name: string; description?: string }>> = {
 	Pharmacy: [
 		{ name: 'IPPE', description: 'Introductory Pharmacy Practice Experience' },
 		{ name: 'APPE', description: 'Advanced Pharmacy Practice Experience' }
@@ -112,339 +232,44 @@ const ROTATION_TYPES_BY_PROGRAM: Record<string, string[]> = {
 	]
 };
 
-const SAMPLE_SCHOOLS = [
-	'University of California San Francisco',
-	'Johns Hopkins University',
-	'University of Michigan',
-	'University of Washington',
-	'Emory University',
-	'University of North Carolina',
-	'University of Pittsburgh',
-	'Ohio State University',
-	'Stanford University',
-	'Harvard Medical School',
-	'Yale School of Medicine',
-	'University of Pennsylvania',
-	'Duke University',
-	'University of California Los Angeles',
-	'University of Texas Southwestern'
+// Schools in Arkansas, Oklahoma, and Kansas
+const REGIONAL_SCHOOLS = [
+	'University of Arkansas for Medical Sciences',
+	'Arkansas State University',
+	'University of Central Arkansas',
+	'Harding University College of Pharmacy',
+	'University of Oklahoma Health Sciences Center',
+	'Oklahoma State University',
+	'Northeastern State University',
+	'Southwestern Oklahoma State University',
+	'University of Kansas Medical Center',
+	'Kansas State University',
+	'Wichita State University',
+	'Pittsburg State University'
 ];
 
-const SAMPLE_PRACTICE_SITES = [
-	{ name: 'UCSF Medical Center', city: 'San Francisco', state: 'CA' },
-	{ name: 'Johns Hopkins Hospital', city: 'Baltimore', state: 'MD' },
-	{ name: 'CVS Pharmacy #1234', city: 'Ann Arbor', state: 'MI' },
-	{ name: "Seattle Children's Hospital", city: 'Seattle', state: 'WA' },
-	{ name: 'Emory University Hospital', city: 'Atlanta', state: 'GA' },
-	{ name: 'Walgreens #5678', city: 'Chapel Hill', state: 'NC' },
-	{ name: 'UPMC Presbyterian', city: 'Pittsburgh', state: 'PA' },
-	{ name: 'Ohio State Wexner Medical Center', city: 'Columbus', state: 'OH' },
-	{ name: 'Stanford Health Care', city: 'Stanford', state: 'CA' },
-	{ name: 'Massachusetts General Hospital', city: 'Boston', state: 'MA' },
-	{ name: 'Yale New Haven Hospital', city: 'New Haven', state: 'CT' },
-	{ name: 'Hospital of the University of Pennsylvania', city: 'Philadelphia', state: 'PA' },
-	{ name: 'Duke University Hospital', city: 'Durham', state: 'NC' },
-	{ name: 'Ronald Reagan UCLA Medical Center', city: 'Los Angeles', state: 'CA' },
-	{ name: 'UT Southwestern Medical Center', city: 'Dallas', state: 'TX' },
-	{ name: 'Kaiser Permanente Medical Center', city: 'Oakland', state: 'CA' },
-	{ name: 'Mayo Clinic', city: 'Rochester', state: 'MN' },
-	{ name: 'Cleveland Clinic', city: 'Cleveland', state: 'OH' },
-	{ name: 'Mount Sinai Hospital', city: 'New York', state: 'NY' },
-	{ name: 'Northwestern Memorial Hospital', city: 'Chicago', state: 'IL' },
-	{ name: 'Vanderbilt University Medical Center', city: 'Nashville', state: 'TN' },
-	{ name: 'University of Chicago Medical Center', city: 'Chicago', state: 'IL' },
-	{ name: 'NYU Langone Health', city: 'New York', state: 'NY' },
-	{ name: 'Cedars-Sinai Medical Center', city: 'Los Angeles', state: 'CA' },
-	{ name: 'Rush University Medical Center', city: 'Chicago', state: 'IL' }
-];
-
-const DIVERSE_FIRST_NAMES = [
-	'Aisha',
-	'Alicia',
-	'Amanda',
-	'Amber',
-	'Amy',
-	'Andrea',
-	'Angela',
-	'Anna',
-	'Ashley',
-	'Audrey',
-	'Barbara',
-	'Beth',
-	'Brittany',
-	'Brooke',
-	'Caitlin',
-	'Carla',
-	'Carmen',
-	'Carol',
-	'Caroline',
-	'Cassandra',
-	'Catherine',
-	'Chelsea',
-	'Christina',
-	'Christine',
-	'Cindy',
-	'Claire',
-	'Crystal',
-	'Dana',
-	'Danielle',
-	'Dawn',
-	'Deborah',
-	'Denise',
-	'Diana',
-	'Donna',
-	'Dorothy',
-	'Elizabeth',
-	'Emily',
-	'Emma',
-	'Erica',
-	'Erika',
-	'Erin',
-	'Eva',
-	'Faith',
-	'Felicia',
-	'Florence',
-	'Gabrielle',
-	'Gina',
-	'Grace',
-	'Heather',
-	'Helen',
-	'Holly',
-	'Hope',
-	'Iris',
-	'Jackie',
-	'Jacqueline',
-	'Jamie',
-	'Jane',
-	'Janet',
-	'Janice',
-	'Jasmine',
-	'Jennifer',
-	'Jessica',
-	'Jill',
-	'Joan',
-	'Joanna',
-	'Joyce',
-	'Julia',
-	'Julie',
-	'Karen',
-	'Katherine',
-	'Kathy',
-	'Katie',
-	'Katrina',
-	'Kelly',
-	'Kim',
-	'Kimberly',
-	'Kristen',
-	'Kristin',
-	'Kristina',
-	'Kristine',
-	'Laura',
-	'Lauren',
-	'Laurie',
-	'Leah',
-	'Leslie',
-	'Linda',
-	'Lisa',
-	'Lori',
-	'Lynn',
-	'Madison',
-	'Mandy',
-	'Margaret',
-	'Maria',
-	'Marianne',
-	'Marie',
-	'Marilyn',
-	'Marisa',
-	'Martha',
-	'Mary',
-	'Maureen',
-	'Megan',
-	'Melanie',
-	'Melissa',
-	'Michelle',
-	'Molly',
-	'Monica',
-	'Nancy',
-	'Natalie',
-	'Nicole',
-	'Nina',
-	'Olivia',
-	'Pamela',
-	'Patricia',
-	'Paula',
-	'Pauline',
-	'Rachel',
-	'Rebecca',
-	'Renee',
-	'Rhonda',
-	'Robin',
-	'Rose',
-	'Ruth',
-	'Samantha',
-	'Sandra',
-	'Sarah',
-	'Sharon',
-	'Sheila',
-	'Shelley',
-	'Sherry',
-	'Shirley',
-	'Sonia',
-	'Stephanie',
-	'Susan',
-	'Suzanne',
-	'Sylvia',
-	'Tanya',
-	'Tara',
-	'Teresa',
-	'Tiffany',
-	'Tina',
-	'Tracy',
-	'Valerie',
-	'Vanessa',
-	'Vicki',
-	'Victoria',
-	'Wendy',
-	'Wendy',
-	'Yolanda',
-	'Zoe'
-];
-
-const DIVERSE_LAST_NAMES = [
-	'Adams',
-	'Alexander',
-	'Allen',
-	'Anderson',
-	'Andrews',
-	'Armstrong',
-	'Baker',
-	'Barnes',
-	'Bell',
-	'Bennett',
-	'Black',
-	'Blake',
-	'Boyd',
-	'Bradley',
-	'Brooks',
-	'Brown',
-	'Burke',
-	'Burns',
-	'Butler',
-	'Campbell',
-	'Carter',
-	'Chapman',
-	'Clark',
-	'Collins',
-	'Cook',
-	'Cooper',
-	'Cox',
-	'Crawford',
-	'Cruz',
-	'Cunningham',
-	'Curtis',
-	'Davidson',
-	'Davis',
-	'Dixon',
-	'Douglas',
-	'Duncan',
-	'Edwards',
-	'Ellis',
-	'Evans',
-	'Fisher',
-	'Fleming',
-	'Foster',
-	'Fox',
-	'Fraser',
-	'Gardner',
-	'Gibson',
-	'Gordon',
-	'Graham',
-	'Grant',
-	'Gray',
-	'Green',
-	'Hall',
-	'Hamilton',
-	'Harris',
-	'Harrison',
-	'Hart',
-	'Hayes',
-	'Henderson',
-	'Hill',
-	'Holmes',
-	'Howard',
-	'Hughes',
-	'Hunter',
-	'Jackson',
-	'James',
-	'Jenkins',
-	'Johnson',
-	'Jones',
-	'Kelly',
-	'Kennedy',
-	'King',
-	'Knight',
-	'Lawrence',
-	'Lee',
-	'Lewis',
-	'Lopez',
-	'Lucas',
-	'MacDonald',
-	'Marshall',
-	'Martin',
-	'Mason',
-	'McDonald',
-	'Miller',
-	'Mitchell',
-	'Moore',
-	'Morgan',
-	'Morris',
-	'Morrison',
-	'Murphy',
-	'Murray',
-	'Nelson',
-	'Newman',
-	"O'Connor",
-	"O'Brien",
-	'Oliver',
-	'Owen',
-	'Parker',
-	'Paterson',
-	'Patterson',
-	'Pearson',
-	'Phillips',
-	'Powell',
-	'Price',
-	'Quinn',
-	'Reed',
-	'Reid',
-	'Reynolds',
-	'Richardson',
-	'Roberts',
-	'Robertson',
-	'Robinson',
-	'Rogers',
-	'Ross',
-	'Russell',
-	'Ryan',
-	'Scott',
-	'Shaw',
-	'Simpson',
-	'Smith',
-	'Stewart',
-	'Taylor',
-	'Thomas',
-	'Thompson',
-	'Turner',
-	'Walker',
-	'Walsh',
-	'Ward',
-	'Watson',
-	'White',
-	'Williams',
-	'Wilson',
-	'Wood',
-	'Wright',
-	'Young'
+// Practice sites in Arkansas, Oklahoma, and Kansas
+const REGIONAL_PRACTICE_SITES = [
+	{ name: 'UAMS Medical Center', city: 'Little Rock', state: 'AR' },
+	{ name: "Arkansas Children's Hospital", city: 'Little Rock', state: 'AR' },
+	{ name: 'CHI St. Vincent', city: 'Little Rock', state: 'AR' },
+	{ name: 'Washington Regional Medical Center', city: 'Fayetteville', state: 'AR' },
+	{ name: 'Mercy Hospital Northwest Arkansas', city: 'Rogers', state: 'AR' },
+	{ name: 'OU Medical Center', city: 'Oklahoma City', state: 'OK' },
+	{ name: 'Saint Francis Hospital', city: 'Tulsa', state: 'OK' },
+	{ name: 'Integris Baptist Medical Center', city: 'Oklahoma City', state: 'OK' },
+	{ name: 'Hillcrest Medical Center', city: 'Tulsa', state: 'OK' },
+	{ name: 'Mercy Hospital Oklahoma City', city: 'Oklahoma City', state: 'OK' },
+	{ name: 'Tahlequah City Hospital', city: 'Tahlequah', state: 'OK' },
+	{ name: 'Cherokee Nation Health Services', city: 'Tahlequah', state: 'OK' },
+	{ name: 'University of Kansas Hospital', city: 'Kansas City', state: 'KS' },
+	{ name: 'Wesley Medical Center', city: 'Wichita', state: 'KS' },
+	{ name: 'Stormont Vail Health', city: 'Topeka', state: 'KS' },
+	{ name: 'Hays Medical Center', city: 'Hays', state: 'KS' },
+	{ name: 'CVS Pharmacy - Tahlequah', city: 'Tahlequah', state: 'OK' },
+	{ name: 'Walgreens - Fayetteville', city: 'Fayetteville', state: 'AR' },
+	{ name: 'Walmart Pharmacy - Wichita', city: 'Wichita', state: 'KS' },
+	{ name: "Reasor's Pharmacy", city: 'Tulsa', state: 'OK' }
 ];
 
 const REVIEW_COMMENTS = [
@@ -484,11 +309,6 @@ const REVIEW_COMMENTS = [
 interface ProgramTypeWithId {
 	id: Id<'programTypes'>;
 	name: string;
-}
-
-interface PreceptorWithProgram {
-	id: Id<'preceptors'>;
-	programTypeId: Id<'programTypes'>;
 }
 
 interface RotationTypeWithProgram {
@@ -572,7 +392,8 @@ export const seedDatabase = mutation({
 				preceptorIds,
 				rotationTypeIds,
 				experienceTypeIds,
-				programTypeIds,
+				schoolIds,
+				practiceSiteIds,
 				config
 			);
 
@@ -600,6 +421,9 @@ export const seedDatabase = mutation({
 async function clearAllTables(ctx: MutationCtx) {
 	const tables = [
 		'reviews',
+		'preceptorPrograms',
+		'preceptorSites',
+		'preceptorSchools',
 		'preceptors',
 		'rotationTypes',
 		'schoolPrograms',
@@ -630,25 +454,28 @@ async function seedProgramTypes(ctx: MutationCtx): Promise<ProgramTypeWithId[]> 
 
 async function seedSchools(ctx: MutationCtx, count: number): Promise<Id<'schools'>[]> {
 	const ids: Id<'schools'>[] = [];
-	const schoolsToSeed = SAMPLE_SCHOOLS.slice(0, count);
+	const schoolsToSeed = REGIONAL_SCHOOLS.slice(0, Math.min(count, REGIONAL_SCHOOLS.length));
 
 	for (const schoolName of schoolsToSeed) {
 		const id = await ctx.db.insert('schools', { name: schoolName });
 		ids.push(id);
 	}
-	console.log(`🏫 Seeded ${ids.length} schools`);
+	console.log(`🏫 Seeded ${ids.length} regional schools`);
 	return ids;
 }
 
 async function seedPracticeSites(ctx: MutationCtx, count: number): Promise<Id<'practiceSites'>[]> {
 	const ids: Id<'practiceSites'>[] = [];
-	const sitesToSeed = SAMPLE_PRACTICE_SITES.slice(0, count);
+	const sitesToSeed = REGIONAL_PRACTICE_SITES.slice(
+		0,
+		Math.min(count, REGIONAL_PRACTICE_SITES.length)
+	);
 
 	for (const site of sitesToSeed) {
 		const id = await ctx.db.insert('practiceSites', site);
 		ids.push(id);
 	}
-	console.log(`🏥 Seeded ${ids.length} practice sites`);
+	console.log(`🏥 Seeded ${ids.length} regional practice sites`);
 	return ids;
 }
 
@@ -696,13 +523,15 @@ async function seedSchoolPrograms(
 	programTypeIds: ProgramTypeWithId[]
 ): Promise<void> {
 	const ids: Id<'schoolPrograms'>[] = [];
-	for (let i = 0; i < schoolIds.length; i++) {
-		const numPrograms = Math.floor(Math.random() * 3) + 1;
-		const selectedPrograms = programTypeIds.sort(() => 0.5 - Math.random()).slice(0, numPrograms);
+	for (const schoolId of schoolIds) {
+		const numPrograms = Math.floor(Math.random() * 3) + 2;
+		const selectedPrograms = [...programTypeIds]
+			.sort(() => 0.5 - Math.random())
+			.slice(0, numPrograms);
 
 		for (const program of selectedPrograms) {
 			const id = await ctx.db.insert('schoolPrograms', {
-				schoolId: schoolIds[i],
+				schoolId,
 				programTypeId: program.id
 			});
 			ids.push(id);
@@ -717,29 +546,57 @@ async function seedPreceptors(
 	programTypeIds: ProgramTypeWithId[],
 	practiceSiteIds: Id<'practiceSites'>[],
 	count: number
-): Promise<PreceptorWithProgram[]> {
-	const ids: PreceptorWithProgram[] = [];
+): Promise<Id<'preceptors'>[]> {
+	const ids: Id<'preceptors'>[] = [];
+	const now = Date.now();
 
 	for (let i = 0; i < count; i++) {
-		const firstName = DIVERSE_FIRST_NAMES[Math.floor(Math.random() * DIVERSE_FIRST_NAMES.length)];
-		const lastName = DIVERSE_LAST_NAMES[Math.floor(Math.random() * DIVERSE_LAST_NAMES.length)];
-		const fullName = `Dr. ${firstName} ${lastName}`;
+		const student = REAL_STUDENT_DATA[i % REAL_STUDENT_DATA.length];
+		const fullName = `Dr. ${student.firstName} ${student.lastName}`;
+		const email = student.email;
+		const credentials = ['MD', 'PharmD', 'DO', 'NP', 'PA-C'][Math.floor(Math.random() * 5)];
+
+		const preceptorId = await ctx.db.insert('preceptors', {
+			fullName,
+			email,
+			credentials
+		});
 
 		const schoolId = schoolIds[Math.floor(Math.random() * schoolIds.length)];
 		const programType = programTypeIds[Math.floor(Math.random() * programTypeIds.length)];
 		const siteId = practiceSiteIds[Math.floor(Math.random() * practiceSiteIds.length)];
 
-		const id = await ctx.db.insert('preceptors', {
+		await ctx.db.insert('preceptorSchools', {
+			preceptorId,
 			schoolId,
-			programTypeId: programType.id,
-			siteId,
-			fullName
+			isActive: true,
+			createdAt: now,
+			updatedAt: now
 		});
 
-		ids.push({ id, programTypeId: programType.id });
+		await ctx.db.insert('preceptorSites', {
+			preceptorId,
+			schoolId,
+			siteId,
+			isActive: true,
+			createdAt: now,
+			updatedAt: now
+		});
+
+		await ctx.db.insert('preceptorPrograms', {
+			preceptorId,
+			schoolId,
+			siteId,
+			programTypeId: programType.id,
+			isActive: true,
+			createdAt: now,
+			updatedAt: now
+		});
+
+		ids.push(preceptorId);
 	}
 
-	console.log(`👨‍⚕️ Seeded ${ids.length} preceptors`);
+	console.log(`👨‍⚕️ Seeded ${ids.length} preceptors with affiliations`);
 	return ids;
 }
 
@@ -800,40 +657,45 @@ function generateRealisticRatings(config: typeof DEFAULT_SEED_CONFIG): {
 
 async function seedReviews(
 	ctx: MutationCtx,
-	preceptorIds: PreceptorWithProgram[],
+	preceptorIds: Id<'preceptors'>[],
 	rotationTypeIds: RotationTypeWithProgram[],
 	experienceTypeIds: Id<'experienceTypes'>[],
-	programTypeIds: ProgramTypeWithId[],
+	schoolIds: Id<'schools'>[],
+	practiceSiteIds: Id<'practiceSites'>[],
 	config: typeof DEFAULT_SEED_CONFIG
 ): Promise<void> {
 	const priorExperienceOptions = ['None', 'Little', 'Moderate', 'Significant'] as const;
 	const now = Date.now();
 	let totalReviews = 0;
 
-	for (const preceptor of preceptorIds) {
+	for (const preceptorId of preceptorIds) {
 		const numReviews =
 			Math.floor(
 				Math.random() * (config.reviewsPerPreceptor.max - config.reviewsPerPreceptor.min + 1)
 			) + config.reviewsPerPreceptor.min;
 
-		const matchingRotations = rotationTypeIds.filter(
-			(r) => r.programTypeId === preceptor.programTypeId
-		);
-		const matchingExperiences = experienceTypeIds.filter(() =>
-			programTypeIds.find((p) => p.id === preceptor.programTypeId)
-		);
-
-		if (matchingRotations.length === 0 || matchingExperiences.length === 0) continue;
-
 		for (let i = 0; i < numReviews; i++) {
-			const rotationType = matchingRotations[Math.floor(Math.random() * matchingRotations.length)];
+			const rotationType = rotationTypeIds[Math.floor(Math.random() * rotationTypeIds.length)];
 			const experienceType =
-				matchingExperiences[Math.floor(Math.random() * matchingExperiences.length)];
+				experienceTypeIds[Math.floor(Math.random() * experienceTypeIds.length)];
+			const schoolId = schoolIds[Math.floor(Math.random() * schoolIds.length)];
+			const siteId = practiceSiteIds[Math.floor(Math.random() * practiceSiteIds.length)];
 
-			const program = programTypeIds.find((p) => p.id === preceptor.programTypeId);
-			const programType = program ? PROGRAM_TYPES.find((pt) => pt.name === program.name) : null;
-			const yearLabels = programType?.yearLabels || ['P1'];
-			const schoolYear = yearLabels[Math.floor(Math.random() * yearLabels.length)] || 'P1';
+			const yearLabels = [
+				'P1',
+				'P2',
+				'P3',
+				'P4',
+				'M1',
+				'M2',
+				'M3',
+				'M4',
+				'OD1',
+				'OD2',
+				'OD3',
+				'OD4'
+			];
+			const schoolYear = yearLabels[Math.floor(Math.random() * yearLabels.length)];
 
 			const { ratings, starRating } = generateRealisticRatings(config);
 			const upvotes = Math.floor(Math.random() * 15);
@@ -845,7 +707,9 @@ async function seedReviews(
 				: undefined;
 
 			await ctx.db.insert('reviews', {
-				preceptorId: preceptor.id,
+				preceptorId,
+				schoolId,
+				siteId,
 				rotationTypeId: rotationType.id,
 				experienceTypeId: experienceType,
 				schoolYear,

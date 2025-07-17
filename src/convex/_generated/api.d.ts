@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as experienceTypes from "../experienceTypes.js";
 import type * as practiceSites from "../practiceSites.js";
+import type * as preceptorAffiliations from "../preceptorAffiliations.js";
 import type * as preceptorReviews from "../preceptorReviews.js";
 import type * as preceptors from "../preceptors.js";
 import type * as programTypes from "../programTypes.js";
@@ -35,6 +36,7 @@ import type * as seed from "../seed.js";
 declare const fullApi: ApiFromModules<{
   experienceTypes: typeof experienceTypes;
   practiceSites: typeof practiceSites;
+  preceptorAffiliations: typeof preceptorAffiliations;
   preceptorReviews: typeof preceptorReviews;
   preceptors: typeof preceptors;
   programTypes: typeof programTypes;

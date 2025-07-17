@@ -2,148 +2,62 @@ import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 
 export const get = query({
-	args: {
-		limit: v.optional(v.number())
-	},
-	handler: async (ctx, { limit = 500 }) => {
-		const preceptors = await ctx.db.query('preceptors').take(limit);
-
-		const [schools, practiceSites, programTypes] = await Promise.all([
-			ctx.db.query('schools').collect(),
-			ctx.db.query('practiceSites').collect(),
-			ctx.db.query('programTypes').collect()
-		]);
-
-		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
-		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
-		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
-
-		return preceptors.map((preceptor) => ({
-			...preceptor,
-			schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
-			siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site',
-			programTypeName: programTypeMap.get(preceptor.programTypeId) || 'Unknown Program'
-		}));
+	args: {},
+	handler: async (ctx) => {
+		return ctx.db.query('preceptors').collect();
 	}
 });
 
 export const getWithStats = query({
-	args: {
-		limit: v.optional(v.number())
-	},
-	handler: async (ctx, { limit = 500 }) => {
-		const preceptors = await ctx.db.query('preceptors').take(limit);
+	args: {},
+	handler: async (ctx) => {
+		const preceptors = await ctx.db.query('preceptors').collect();
 
-		const [schools, practiceSites, programTypes] = await Promise.all([
-			ctx.db.query('schools').collect(),
-			ctx.db.query('practiceSites').collect(),
-			ctx.db.query('programTypes').collect()
-		]);
-
-		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
-		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
-		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
-
-		const preceptorResults = await Promise.all(
+		const preceptorsWithStats = await Promise.all(
 			preceptors.map(async (preceptor) => {
 				const reviews = await ctx.db
 					.query('reviews')
 					.withIndex('by_preceptor', (q) => q.eq('preceptorId', preceptor._id))
 					.collect();
 
-				const totalReviews = reviews.length;
-				const averageStarRating =
-					totalReviews > 0 ? reviews.reduce((sum, r) => sum + r.starRating, 0) / totalReviews : 0;
-				const recommendationRate =
-					totalReviews > 0
-						? (reviews.filter((r) => r.wouldRecommend).length / totalReviews) * 100
+				const reviewCount = reviews.length;
+				const averageRating =
+					reviewCount > 0
+						? reviews.reduce((sum, review) => sum + review.starRating, 0) / reviewCount
 						: 0;
 
 				return {
 					...preceptor,
-					schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
-					siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site',
-					programTypeName: programTypeMap.get(preceptor.programTypeId) || 'Unknown Program',
-					totalReviews,
-					averageStarRating,
-					recommendationRate
+					reviewCount,
+					averageRating
 				};
 			})
 		);
 
-		return preceptorResults.sort((a, b) => b.totalReviews - a.totalReviews);
-	}
-});
-
-export const getWithReviews = query({
-	args: {
-		limit: v.optional(v.number())
-	},
-	handler: async (ctx, { limit = 200 }) => {
-		const preceptors = await ctx.db.query('preceptors').take(limit);
-
-		const [schools, practiceSites, programTypes] = await Promise.all([
-			ctx.db.query('schools').collect(),
-			ctx.db.query('practiceSites').collect(),
-			ctx.db.query('programTypes').collect()
-		]);
-
-		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
-		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
-		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
-
-		const preceptorResults = await Promise.all(
-			preceptors.map(async (preceptor) => {
-				const reviews = await ctx.db
-					.query('reviews')
-					.withIndex('by_preceptor', (q) => q.eq('preceptorId', preceptor._id))
-					.collect();
-
-				const totalReviews = reviews.length;
-				const averageStarRating =
-					totalReviews > 0 ? reviews.reduce((sum, r) => sum + r.starRating, 0) / totalReviews : 0;
-				const recommendationRate =
-					totalReviews > 0
-						? (reviews.filter((r) => r.wouldRecommend).length / totalReviews) * 100
-						: 0;
-
-				return {
-					...preceptor,
-					schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
-					siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site',
-					programTypeName: programTypeMap.get(preceptor.programTypeId) || 'Unknown Program',
-					totalReviews,
-					averageStarRating,
-					recommendationRate
-				};
-			})
-		);
-
-		return preceptorResults.sort((a, b) => b.totalReviews - a.totalReviews);
+		return preceptorsWithStats;
 	}
 });
 
 export const getBySchoolProgram = query({
 	args: {
 		schoolId: v.id('schools'),
-		programTypeId: v.id('programTypes'),
-		limit: v.optional(v.number())
+		programTypeId: v.id('programTypes')
 	},
-	handler: async (ctx, { schoolId, programTypeId, limit = 500 }) => {
-		const preceptors = await ctx.db
-			.query('preceptors')
-			.withIndex('by_school_program', (q) =>
-				q.eq('schoolId', schoolId).eq('programTypeId', programTypeId)
-			)
-			.take(limit);
+	handler: async (ctx, { schoolId, programTypeId }) => {
+		const preceptorPrograms = await ctx.db
+			.query('preceptorPrograms')
+			.withIndex('by_school', (q) => q.eq('schoolId', schoolId))
+			.filter((q) => q.eq(q.field('programTypeId'), programTypeId))
+			.filter((q) => q.eq(q.field('isActive'), true))
+			.collect();
 
-		const practiceSites = await ctx.db.query('practiceSites').collect();
-		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
+		const preceptors = await Promise.all(
+			preceptorPrograms.map(async (pp) => {
+				return await ctx.db.get(pp.preceptorId);
+			})
+		);
 
-		return preceptors.map((preceptor) => ({
-			...preceptor,
-			siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site'
-		}));
+		return preceptors.filter(Boolean);
 	}
 });
 
@@ -152,170 +66,136 @@ export const getByFullName = query({
 		fullName: v.string()
 	},
 	handler: async (ctx, { fullName }) => {
-		const preceptor = await ctx.db
+		return await ctx.db
 			.query('preceptors')
 			.withIndex('by_full_name', (q) => q.eq('fullName', fullName))
-			.first();
-
-		if (!preceptor) {
-			return null;
-		}
-
-		const [school, practiceSite, programType] = await Promise.all([
-			ctx.db.get(preceptor.schoolId),
-			ctx.db.get(preceptor.siteId),
-			ctx.db.get(preceptor.programTypeId)
-		]);
-
-		return {
-			...preceptor,
-			schoolName: school?.name || 'Unknown School',
-			siteName: practiceSite?.name || 'Unknown Site',
-			programTypeName: programType?.name || 'Unknown Program'
-		};
+			.collect();
 	}
 });
 
 export const getByProgramType = query({
 	args: {
-		programTypeId: v.id('programTypes'),
-		limit: v.optional(v.number())
+		programTypeId: v.id('programTypes')
 	},
-	handler: async (ctx, { programTypeId, limit = 500 }) => {
-		const preceptors = await ctx.db
-			.query('preceptors')
+	handler: async (ctx, { programTypeId }) => {
+		const preceptorPrograms = await ctx.db
+			.query('preceptorPrograms')
 			.withIndex('by_program_type', (q) => q.eq('programTypeId', programTypeId))
-			.take(limit);
+			.filter((q) => q.eq(q.field('isActive'), true))
+			.collect();
 
-		const [schools, practiceSites] = await Promise.all([
-			ctx.db.query('schools').collect(),
-			ctx.db.query('practiceSites').collect()
-		]);
+		const preceptors = await Promise.all(
+			preceptorPrograms.map(async (pp) => {
+				return await ctx.db.get(pp.preceptorId);
+			})
+		);
 
-		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
-		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
-
-		return preceptors.map((preceptor) => ({
-			...preceptor,
-			schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
-			siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site'
-		}));
+		return preceptors.filter(Boolean);
 	}
 });
 
 export const getBySchool = query({
 	args: {
-		schoolId: v.id('schools'),
-		limit: v.optional(v.number())
+		schoolId: v.id('schools')
 	},
-	handler: async (ctx, { schoolId, limit = 50 }) => {
-		const preceptors = await ctx.db
-			.query('preceptors')
+	handler: async (ctx, { schoolId }) => {
+		const preceptorSchools = await ctx.db
+			.query('preceptorSchools')
 			.withIndex('by_school', (q) => q.eq('schoolId', schoolId))
-			.take(limit);
+			.filter((q) => q.eq(q.field('isActive'), true))
+			.collect();
 
-		const [practiceSites, programTypes] = await Promise.all([
-			ctx.db.query('practiceSites').collect(),
-			ctx.db.query('programTypes').collect()
-		]);
+		const preceptors = await Promise.all(
+			preceptorSchools.map(async (ps) => {
+				return await ctx.db.get(ps.preceptorId);
+			})
+		);
 
-		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
-		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
-
-		return preceptors.map((preceptor) => ({
-			...preceptor,
-			siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site',
-			programTypeName: programTypeMap.get(preceptor.programTypeId) || 'Unknown Program'
-		}));
+		return preceptors.filter(Boolean);
 	}
 });
 
 export const search = query({
 	args: {
-		searchTerm: v.string(),
-		limit: v.optional(v.number())
+		searchTerm: v.string()
 	},
-	handler: async (ctx, { searchTerm, limit = 20 }) => {
-		if (!searchTerm.trim()) {
-			return [];
-		}
+	handler: async (ctx, { searchTerm }) => {
+		const allPreceptors = await ctx.db.query('preceptors').collect();
 
-		const searchLower = searchTerm.toLowerCase();
-
-		const preceptors = await ctx.db.query('preceptors').take(1000);
-		const [schools, practiceSites, programTypes] = await Promise.all([
-			ctx.db.query('schools').collect(),
-			ctx.db.query('practiceSites').collect(),
-			ctx.db.query('programTypes').collect()
-		]);
-
-		const schoolMap = new Map(schools.map((s) => [s._id, s.name]));
-		const practiceSiteMap = new Map(practiceSites.map((s) => [s._id, s.name]));
-		const programTypeMap = new Map(programTypes.map((p) => [p._id, p.name]));
-
-		const matchingPreceptors = preceptors
-			.filter((preceptor) => {
-				const preceptorName = preceptor.fullName.toLowerCase();
-				const schoolName = schoolMap.get(preceptor.schoolId)?.toLowerCase() || '';
-				const siteName = practiceSiteMap.get(preceptor.siteId)?.toLowerCase() || '';
-				const programTypeName = programTypeMap.get(preceptor.programTypeId)?.toLowerCase() || '';
-
-				return (
-					preceptorName.includes(searchLower) ||
-					schoolName.includes(searchLower) ||
-					siteName.includes(searchLower) ||
-					programTypeName.includes(searchLower)
-				);
-			})
-			.slice(0, limit);
-
-		return matchingPreceptors.map((preceptor) => ({
-			...preceptor,
-			schoolName: schoolMap.get(preceptor.schoolId) || 'Unknown School',
-			siteName: practiceSiteMap.get(preceptor.siteId) || 'Unknown Site',
-			programTypeName: programTypeMap.get(preceptor.programTypeId) || 'Unknown Program'
-		}));
+		return allPreceptors.filter((preceptor) =>
+			preceptor.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+		);
 	}
 });
 
 export const insertPreceptor = mutation({
 	args: {
 		fullName: v.string(),
+		email: v.optional(v.string()),
+		credentials: v.optional(v.string()),
 		schoolId: v.id('schools'),
 		programTypeId: v.id('programTypes'),
 		siteId: v.id('practiceSites')
 	},
-	handler: async (ctx, { fullName, schoolId, programTypeId, siteId }) => {
-		await ctx.db.insert('preceptors', {
+	handler: async (ctx, { fullName, email, credentials, schoolId, programTypeId, siteId }) => {
+		// Create the preceptor
+		const preceptorId = await ctx.db.insert('preceptors', {
 			fullName,
-			schoolId,
-			programTypeId,
-			siteId
+			email,
+			credentials
 		});
+
+		const now = Date.now();
+
+		// Create school affiliation
+		await ctx.db.insert('preceptorSchools', {
+			preceptorId,
+			schoolId,
+			isActive: true,
+			createdAt: now,
+			updatedAt: now
+		});
+
+		// Create site affiliation
+		await ctx.db.insert('preceptorSites', {
+			preceptorId,
+			schoolId,
+			siteId,
+			isActive: true,
+			createdAt: now,
+			updatedAt: now
+		});
+
+		// Create program affiliation
+		await ctx.db.insert('preceptorPrograms', {
+			preceptorId,
+			schoolId,
+			siteId,
+			programTypeId,
+			isActive: true,
+			createdAt: now,
+			updatedAt: now
+		});
+
+		return preceptorId;
 	}
 });
 
 export const updatePreceptor = mutation({
 	args: {
 		id: v.id('preceptors'),
-		schoolId: v.optional(v.id('schools')),
-		programTypeId: v.optional(v.id('programTypes')),
-		siteId: v.optional(v.id('practiceSites')),
-		fullName: v.optional(v.string())
+		fullName: v.optional(v.string()),
+		email: v.optional(v.string()),
+		credentials: v.optional(v.string())
 	},
 	handler: async (ctx, { id, ...updates }) => {
-		const cleanUpdates = Object.fromEntries(
-			Object.entries(updates).filter(([, value]) => value !== undefined)
-		);
-		if (Object.keys(cleanUpdates).length > 0) {
-			await ctx.db.patch(id, cleanUpdates);
-		}
+		return await ctx.db.patch(id, updates);
 	}
 });
 
 export const deletePreceptor = mutation({
 	args: { id: v.id('preceptors') },
 	handler: async (ctx, { id }) => {
-		await ctx.db.delete(id);
+		return await ctx.db.delete(id);
 	}
 });
