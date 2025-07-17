@@ -17,18 +17,18 @@
 
 	const client = useConvexClient();
 	const dispatch = createEventDispatcher();
-	
+
 	// State for cascading queries
 	let selectedPreceptorId = $state<Id<'preceptors'> | ''>('');
 	let selectedSchoolId = $state<Id<'schools'> | ''>('');
 	let selectedSiteId = $state<Id<'practiceSites'> | ''>('');
-	
+
 	// Base queries
 	const preceptorsQuery = useQuery(api.preceptors.get, {});
 	const rotationTypesQuery = useQuery(api.rotationTypes.get, {});
 	const experienceTypesQuery = useQuery(api.experienceTypes.get, {});
 	const programTypesQuery = useQuery(api.programTypes.get, {});
-	
+
 	// Dependent queries with proper reactivity and null handling
 	const preceptorSchoolsQuery = $derived(
 		selectedPreceptorId
@@ -37,20 +37,20 @@
 				})
 			: { data: null }
 	);
-	
+
 	const preceptorSitesQuery = $derived(
 		selectedPreceptorId && selectedSchoolId
 			? useQuery(api.preceptorAffiliations.getAvailableSitesForPreceptorAtSchool, {
-					preceptorId: selectedPreceptorId as Id<'preceptors'>, 
+					preceptorId: selectedPreceptorId as Id<'preceptors'>,
 					schoolId: selectedSchoolId as Id<'schools'>
 				})
 			: { data: null }
 	);
-	
+
 	const preceptorProgramsQuery = $derived(
 		selectedPreceptorId && selectedSchoolId && selectedSiteId
 			? useQuery(api.preceptorAffiliations.getAvailableProgramsForPreceptorAtSchoolSite, {
-					preceptorId: selectedPreceptorId as Id<'preceptors'>, 
+					preceptorId: selectedPreceptorId as Id<'preceptors'>,
 					schoolId: selectedSchoolId as Id<'schools'>,
 					siteId: selectedSiteId as Id<'practiceSites'>
 				})
@@ -87,17 +87,12 @@
 	const preceptors = $derived(preceptorsQuery.data ?? []);
 	const rotationTypes = $derived(rotationTypesQuery.data ?? []);
 	const experienceTypes = $derived(experienceTypesQuery.data ?? []);
-	const programTypes = $derived(programTypesQuery.data ?? []);
-	
+
 	// Available options based on selection with null safety
 	const availableSchools = $derived(preceptorSchoolsQuery.data ?? []);
 	const availableSites = $derived(preceptorSitesQuery.data ?? []);
 	const availableProgramTypes = $derived(preceptorProgramsQuery.data ?? []);
-	
-	const selectedPreceptor = $derived(
-		preceptors.find((p) => p._id === formData.preceptorId)
-	);
-	
+
 	// Derive program type from available programs
 	const selectedProgramType = $derived(
 		availableProgramTypes.length > 0 ? availableProgramTypes[0] : null
@@ -115,20 +110,8 @@
 			? experienceTypes.filter((et) => et.programTypeId === selectedProgramType._id)
 			: []
 	);
-	
-	const availableYears = $derived(
-		selectedProgramType ? selectedProgramType.yearLabels : []
-	);
 
-	// Text content for select components
-	const rotationTypeTriggerContent = $derived(
-		filteredRotationTypes.find((r) => r._id === formData.rotationTypeId)?.name ?? 'Select rotation'
-	);
-
-	const experienceTypeTriggerContent = $derived(
-		filteredExperienceTypes.find((e) => e._id === formData.experienceTypeId)?.name ??
-			'Select experience'
-	);
+	const availableYears = $derived(selectedProgramType ? selectedProgramType.yearLabels : []);
 
 	const schoolYearTriggerContent = $derived(formData.schoolYear || 'Select year');
 	const priorExperienceTriggerContent = $derived(formData.priorExperience || 'Select experience');
@@ -217,9 +200,7 @@
 				comment: reviewDataToSend.comment?.trim() || undefined,
 				isOutlier: reviewDataToSend.isOutlier === 'true',
 				outlierReason:
-					reviewDataToSend.isOutlier === 'true'
-						? reviewDataToSend.outlierReason?.trim()
-						: undefined
+					reviewDataToSend.isOutlier === 'true' ? reviewDataToSend.outlierReason?.trim() : undefined
 			});
 			dispatch('submitted');
 		} catch (error: any) {
@@ -236,7 +217,7 @@
 	function handlePreceptorChange(preceptorId: string) {
 		formData.preceptorId = preceptorId;
 		selectedPreceptorId = preceptorId as Id<'preceptors'>;
-		
+
 		// Reset dependent fields
 		formData.schoolId = '';
 		selectedSchoolId = '';
@@ -247,11 +228,11 @@
 		formData.schoolYear = '';
 		clearValidationErrors();
 	}
-	
+
 	function handleSchoolChange(schoolId: string) {
 		formData.schoolId = schoolId;
 		selectedSchoolId = schoolId as Id<'schools'>;
-		
+
 		// Reset dependent fields
 		formData.siteId = '';
 		selectedSiteId = '';
@@ -260,11 +241,11 @@
 		formData.schoolYear = '';
 		clearValidationErrors();
 	}
-	
+
 	function handleSiteChange(siteId: string) {
 		formData.siteId = siteId;
 		selectedSiteId = siteId as Id<'practiceSites'>;
-		
+
 		// Reset dependent fields
 		formData.rotationTypeId = '';
 		formData.experienceTypeId = '';
@@ -307,7 +288,9 @@
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">School *</Label>
 					<UniversalComboBox
-						items={availableSchools.filter(s => s !== null).map(s => ({ id: s._id, name: s.name }))}
+						items={availableSchools
+							.filter((s) => s !== null)
+							.map((s) => ({ id: s._id, name: s.name }))}
 						value={formData.schoolId}
 						onValueChange={handleSchoolChange}
 						placeholder="Select school"
@@ -322,7 +305,9 @@
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Practice Site *</Label>
 					<UniversalComboBox
-						items={availableSites.filter(s => s !== null).map(s => ({ id: s._id, name: s.name }))}
+						items={availableSites
+							.filter((s) => s !== null)
+							.map((s) => ({ id: s._id, name: s.name }))}
 						value={formData.siteId}
 						onValueChange={handleSiteChange}
 						placeholder="Select practice site"
@@ -337,7 +322,7 @@
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Rotation Type *</Label>
 					<UniversalComboBox
-						items={filteredRotationTypes.map(rt => ({ id: rt._id, name: rt.name }))}
+						items={filteredRotationTypes.map((rt) => ({ id: rt._id, name: rt.name }))}
 						value={formData.rotationTypeId}
 						onValueChange={handleRotationTypeChange}
 						placeholder="Select rotation type"
@@ -352,7 +337,7 @@
 				<div class="space-y-2">
 					<Label class="text-sm font-medium">Experience Type *</Label>
 					<UniversalComboBox
-						items={filteredExperienceTypes.map(et => ({ id: et._id, name: et.name }))}
+						items={filteredExperienceTypes.map((et) => ({ id: et._id, name: et.name }))}
 						value={formData.experienceTypeId}
 						onValueChange={handleExperienceTypeChange}
 						placeholder="Select experience type"
@@ -585,9 +570,19 @@
 				/>
 				<span class="text-sm">
 					I agree to the
-					<a href="/terms" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline ml-1">Terms of Service</a>
+					<a
+						href="/terms"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-primary ml-1 hover:underline">Terms of Service</a
+					>
 					and
-					<a href="/privacy" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline ml-1">Privacy Policy</a>
+					<a
+						href="/privacy"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-primary ml-1 hover:underline">Privacy Policy</a
+					>
 				</span>
 			</div>
 

@@ -5,6 +5,18 @@
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 
 	const query = useQuery(api.preceptors.getWithReviews, {});
+
+	function getPreceptorDisplayData(preceptor: any) {
+		return {
+			fullName: preceptor.fullName || 'Unknown',
+			schoolNames: preceptor.schoolNames || [],
+			programTypeNames: preceptor.programTypeNames || [],
+			siteNames: preceptor.siteNames || [],
+			totalReviews: preceptor.totalReviews || preceptor.reviewCount || 0,
+			averageStarRating: preceptor.averageStarRating || preceptor.averageRating || 0,
+			recommendationRate: preceptor.recommendationRate || 0
+		};
+	}
 </script>
 
 <div class="mb-6 text-3xl font-bold">Preceptors</div>
@@ -30,14 +42,15 @@
 {:else}
 	<div class="flex flex-col gap-2">
 		{#each query.data as preceptor (preceptor._id)}
+			{@const displayData = getPreceptorDisplayData(preceptor)}
 			<PreceptorResults
-				fullName={preceptor.fullName}
-				schoolName={preceptor.schoolName}
-				programTypeName={preceptor.programTypeName}
-				siteName={preceptor.siteName}
-				totalReviews={preceptor.totalReviews}
-				averageStarRating={preceptor.averageStarRating}
-				recommendationRate={preceptor.recommendationRate}
+				fullName={displayData.fullName}
+				schoolNames={displayData.schoolNames}
+				programTypeNames={displayData.programTypeNames}
+				siteNames={displayData.siteNames}
+				totalReviews={displayData.totalReviews}
+				averageStarRating={displayData.averageStarRating}
+				recommendationRate={displayData.recommendationRate}
 			/>
 		{/each}
 	</div>

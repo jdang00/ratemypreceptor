@@ -290,11 +290,42 @@ export const searchPreceptorsByReviews = query({
 						? (stats.filter((r) => r.wouldRecommend).length / totalReviews) * 100
 						: 0;
 
+				const [schoolAffiliations, siteAffiliations, programAffiliations] = await Promise.all([
+					ctx.db
+						.query('preceptorSchools')
+						.withIndex('by_preceptor', (q) => q.eq('preceptorId', preceptor._id))
+						.filter((q) => q.eq(q.field('isActive'), true))
+						.collect(),
+					ctx.db
+						.query('preceptorSites')
+						.withIndex('by_preceptor', (q) => q.eq('preceptorId', preceptor._id))
+						.filter((q) => q.eq(q.field('isActive'), true))
+						.collect(),
+					ctx.db
+						.query('preceptorPrograms')
+						.withIndex('by_preceptor', (q) => q.eq('preceptorId', preceptor._id))
+						.filter((q) => q.eq(q.field('isActive'), true))
+						.collect()
+				]);
+
+				const [schools, sites, programs] = await Promise.all([
+					Promise.all(schoolAffiliations.map(async (sa) => await ctx.db.get(sa.schoolId))),
+					Promise.all(siteAffiliations.map(async (sa) => await ctx.db.get(sa.siteId))),
+					Promise.all(programAffiliations.map(async (pa) => await ctx.db.get(pa.programTypeId)))
+				]);
+
+				const schoolNames = schools.filter(Boolean).map((s) => s!.name);
+				const siteNames = sites.filter(Boolean).map((s) => s!.name);
+				const programTypeNames = programs.filter(Boolean).map((p) => p!.name);
+
 				return {
 					...preceptor,
 					totalReviews,
 					averageStarRating,
-					recommendationRate
+					recommendationRate,
+					schoolNames,
+					siteNames,
+					programTypeNames
 				};
 			})
 		);

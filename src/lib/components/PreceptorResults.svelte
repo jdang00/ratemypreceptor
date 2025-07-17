@@ -5,9 +5,9 @@
 
 	interface Props {
 		fullName: string;
-		schoolName: string;
-		programTypeName: string;
-		siteName: string;
+		schoolNames: string[];
+		programTypeNames: string[];
+		siteNames: string[];
 		totalReviews?: number;
 		averageStarRating?: number;
 		recommendationRate?: number;
@@ -16,9 +16,9 @@
 
 	let {
 		fullName,
-		schoolName,
-		programTypeName,
-		siteName,
+		schoolNames = [],
+		programTypeNames = [],
+		siteNames = [],
 		totalReviews,
 		averageStarRating,
 		recommendationRate,
@@ -27,6 +27,11 @@
 
 	const { displayName, credentials } = formatNameWithCredentials(fullName);
 	const hasReviews = totalReviews && totalReviews > 0;
+
+	// Simple comma-separated display for multiples
+	const schoolDisplay = schoolNames.length > 0 ? schoolNames.join(', ') : 'N/A';
+	const programDisplay = programTypeNames.length > 0 ? programTypeNames.join(', ') : 'N/A';
+	const siteDisplay = siteNames.length > 0 ? siteNames.join(', ') : 'N/A';
 </script>
 
 <div class="w-full py-1 {className}">
@@ -47,15 +52,15 @@
 						<div class="space-y-1.5">
 							<div class="text-muted-foreground flex items-center gap-1.5 text-sm">
 								<School class="h-3.5 w-3.5 flex-shrink-0" />
-								<span class="truncate">{schoolName}</span>
+								<span class="truncate">{schoolDisplay}</span>
 							</div>
 							<div class="text-muted-foreground flex items-center gap-1.5 text-sm">
 								<GraduationCap class="h-3.5 w-3.5 flex-shrink-0" />
-								<span class="truncate">{programTypeName}</span>
+								<span class="truncate">{programDisplay}</span>
 							</div>
 							<div class="text-muted-foreground flex items-center gap-1.5 text-sm">
 								<MapPin class="h-3.5 w-3.5 flex-shrink-0" />
-								<span class="truncate">{siteName}</span>
+								<span class="truncate">{siteDisplay}</span>
 							</div>
 						</div>
 					</div>

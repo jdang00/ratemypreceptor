@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { useQuery, useConvexClient } from 'convex-svelte';
+	import { useQuery } from 'convex-svelte';
 	import { api } from '../../convex/_generated/api.js';
 	import type { Id } from '../../convex/_generated/dataModel.js';
 
-	const client = useConvexClient();
-
+	// Top-level queries (always called in same order)
 	const allPreceptors = useQuery(api.preceptors.get, {});
 	const allSchools = useQuery(api.schools.get, {});
 	const allSites = useQuery(api.practiceSites.get, {});
@@ -17,93 +16,84 @@
 	let selectedSchoolId = $state<Id<'schools'> | ''>('');
 	let selectedSiteId = $state<Id<'practiceSites'> | ''>('');
 
-	// Cascading queries using $derived pattern
-	let preceptorSchoolsQuery = $derived(
-		selectedPreceptorId
-			? (() => {
-				console.log('getAvailableSchoolsForPreceptor args:', { preceptorId: selectedPreceptorId });
-				return useQuery(api.preceptorAffiliations.getAvailableSchoolsForPreceptor, {
-					preceptorId: selectedPreceptorId as Id<'preceptors'>
-				});
-			})()
-			: { data: null }
+	// Cascading queries using reactive args and enabled flags
+	const preceptorSchools = useQuery(
+		api.preceptorAffiliations.getAvailableSchoolsForPreceptor,
+		$derived(() => ({ preceptorId: selectedPreceptorId as Id<'preceptors'> })),
+		{ enabled: $derived(() => !!selectedPreceptorId) }
 	);
 
-	let preceptorSitesQuery = $derived(
-		selectedPreceptorId && selectedSchoolId
-			? useQuery(api.preceptorAffiliations.getAvailableSitesForPreceptorAtSchool, {
-					preceptorId: selectedPreceptorId as Id<'preceptors'>,
-					schoolId: selectedSchoolId as Id<'schools'>
-				})
-			: { data: null }
+	const preceptorSites = useQuery(
+		api.preceptorAffiliations.getAvailableSitesForPreceptorAtSchool,
+		$derived(() => ({
+			preceptorId: selectedPreceptorId as Id<'preceptors'>,
+			schoolId: selectedSchoolId as Id<'schools'>
+		})),
+		{ enabled: $derived(() => !!selectedPreceptorId && !!selectedSchoolId) }
 	);
 
-	let preceptorProgramsQuery = $derived(
-		selectedPreceptorId && selectedSchoolId && selectedSiteId
-			? useQuery(api.preceptorAffiliations.getAvailableProgramsForPreceptorAtSchoolSite, {
-					preceptorId: selectedPreceptorId as Id<'preceptors'>,
-					schoolId: selectedSchoolId as Id<'schools'>,
-					siteId: selectedSiteId as Id<'practiceSites'>
-				})
-			: { data: null }
+	const preceptorPrograms = useQuery(
+		api.preceptorAffiliations.getAvailableProgramsForPreceptorAtSchoolSite,
+		$derived(() => ({
+			preceptorId: selectedPreceptorId as Id<'preceptors'>,
+			schoolId: selectedSchoolId as Id<'schools'>,
+			siteId: selectedSiteId as Id<'practiceSites'>
+		})),
+		{ enabled: $derived(() => !!selectedPreceptorId && !!selectedSchoolId && !!selectedSiteId) }
 	);
 
-	let preceptorWithAffiliationsQuery = $derived(
-		selectedPreceptorId
-			? (() => {
-				console.log('getPreceptorWithAffiliations args:', { preceptorId: selectedPreceptorId });
-				return useQuery(api.preceptorAffiliations.getPreceptorWithAffiliations, {
-					preceptorId: selectedPreceptorId
-				});
-			})()
-			: { data: null }
+	const preceptorWithAffiliations = useQuery(
+		api.preceptorAffiliations.getPreceptorWithAffiliations,
+		$derived(() => ({ preceptorId: selectedPreceptorId as Id<'preceptors'> })),
+		{ enabled: $derived(() => !!selectedPreceptorId) }
 	);
 
-	// Derived data for display
-	let selectedPreceptor = $derived(
+	// Derived data using function-style $derived to track .data property changes
+	const availableSchools = $derived(() => preceptorSchools.data ?? []);
+	const availableSites = $derived(() => preceptorSites.data ?? []);
+	const availablePrograms = $derived(() => preceptorPrograms.data ?? []);
+
+	// Other derived data
+	const selectedPreceptor = $derived(() =>
 		allPreceptors.data?.find((p) => p._id === selectedPreceptorId)
 	);
 
 	$inspect(selectedPreceptor);
 
-	let selectedSchool = $derived(allSchools.data?.find((s) => s._id === selectedSchoolId));
+	const selectedSchool = $derived(() => allSchools.data?.find((s) => s._id === selectedSchoolId));
 
-	let selectedSite = $derived(allSites.data?.find((s) => s._id === selectedSiteId));
+	const selectedSite = $derived(() => allSites.data?.find((s) => s._id === selectedSiteId));
 
-	let selectedProgramType = $derived(
-		preceptorProgramsQuery.data && preceptorProgramsQuery.data.length > 0
-			? preceptorProgramsQuery.data[0]
-			: null
+	const selectedProgramType = $derived(() =>
+		availablePrograms().length > 0 ? availablePrograms()[0] : null
 	);
 
-	let filteredRotationTypes = $derived(
-		selectedProgramType
-			? (allRotationTypes.data?.filter((rt) => rt.programTypeId === selectedProgramType._id) ?? [])
-			: []
-	);
+	const filteredRotationTypes = $derived(() => {
+		const programType = selectedProgramType();
+		return programType
+			? (allRotationTypes.data?.filter((rt) => rt.programTypeId === programType._id) ?? [])
+			: [];
+	});
 
-	let filteredExperienceTypes = $derived(
-		selectedProgramType
-			? (allExperienceTypes.data?.filter((et) => et.programTypeId === selectedProgramType._id) ?? [])
-			: []
-	);
+	const filteredExperienceTypes = $derived(() => {
+		const programType = selectedProgramType();
+		return programType
+			? (allExperienceTypes.data?.filter((et) => et.programTypeId === programType._id) ?? [])
+			: [];
+	});
 
-	let availableYears = $derived(selectedProgramType ? selectedProgramType.yearLabels : []);
+	const availableYears = $derived(() => {
+		const programType = selectedProgramType();
+		return programType ? programType.yearLabels : [];
+	});
 
-	// Available schools for the selected preceptor
-	const availableSchools = $derived(preceptorSchoolsQuery.data ?? []);
-
-	// Available sites for the selected preceptor and school
-	const availableSites = $derived(preceptorSitesQuery.data ?? []);
-
-	// Available programs for the selected preceptor, school, and site
-	const availablePrograms = $derived(preceptorProgramsQuery.data ?? []);
-
-	// Reset dependent selections when preceptor changes
+	// Reset cascading selections when parent changes
+	let prevPreceptorId = '';
 	$effect(() => {
-		if (selectedPreceptorId) {
+		if (selectedPreceptorId !== prevPreceptorId) {
 			selectedSchoolId = '';
 			selectedSiteId = '';
+			prevPreceptorId = selectedPreceptorId;
 		}
 	});
 
@@ -116,7 +106,6 @@
 	function handlePreceptorChange(event: Event) {
 		const target = event.target as HTMLSelectElement;
 		const newPreceptorId = target.value as Id<'preceptors'> | '';
-
 		selectedPreceptorId = newPreceptorId;
 	}
 
@@ -163,11 +152,11 @@
 					id="school-select"
 					value={selectedSchoolId}
 					onchange={handleSchoolChange}
-					disabled={!selectedPreceptorId || availableSchools.length === 0}
+					disabled={!selectedPreceptorId || availableSchools().length === 0}
 					class="w-full rounded border px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					<option value="">Choose school...</option>
-					{#each availableSchools.filter((s) => s !== null) as school (school._id)}
+					{#each availableSchools().filter((s) => s !== null) as school (school._id)}
 						<option value={school._id}>{school.name}</option>
 					{/each}
 				</select>
@@ -184,11 +173,11 @@
 					id="site-select"
 					value={selectedSiteId}
 					onchange={handleSiteChange}
-					disabled={!selectedSchoolId || availableSites.length === 0}
+					disabled={!selectedSchoolId || availableSites().length === 0}
 					class="w-full rounded border px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					<option value="">Choose site...</option>
-					{#each availableSites.filter((s) => s !== null) as site (site._id)}
+					{#each availableSites().filter((s) => s !== null) as site (site._id)}
 						<option value={site._id}>{site.name} - {site.city}, {site.state}</option>
 					{/each}
 				</select>
@@ -206,27 +195,27 @@
 			<div class="space-y-2">
 				<div class="flex items-center space-x-2">
 					<span class="font-medium">Preceptor:</span>
-					<span class="rounded bg-blue-100 px-2 py-1">{selectedPreceptor?.fullName}</span>
+					<span class="rounded bg-blue-100 px-2 py-1">{selectedPreceptor()?.fullName}</span>
 				</div>
 				{#if selectedSchoolId}
 					<div class="flex items-center space-x-2">
 						<span class="font-medium">School:</span>
-						<span class="rounded bg-green-100 px-2 py-1">{selectedSchool?.name}</span>
+						<span class="rounded bg-green-100 px-2 py-1">{selectedSchool()?.name}</span>
 					</div>
 				{/if}
 				{#if selectedSiteId}
 					<div class="flex items-center space-x-2">
 						<span class="font-medium">Site:</span>
 						<span class="rounded bg-purple-100 px-2 py-1"
-							>{selectedSite?.name} - {selectedSite?.city}, {selectedSite?.state}</span
+							>{selectedSite()?.name} - {selectedSite()?.city}, {selectedSite()?.state}</span
 						>
 					</div>
 				{/if}
-				{#if selectedProgramType}
+				{#if selectedProgramType()}
 					<div class="flex items-center space-x-2">
 						<span class="font-medium">Program:</span>
 						<span class="rounded bg-orange-100 px-2 py-1"
-							>{selectedProgramType.name} ({selectedProgramType.abbreviation})</span
+							>{selectedProgramType()?.name} ({selectedProgramType()?.abbreviation})</span
 						>
 					</div>
 				{/if}
@@ -237,11 +226,11 @@
 	<!-- Available Schools for Selected Preceptor -->
 	{#if selectedPreceptorId}
 		<section class="rounded-lg bg-white p-6 shadow">
-			<h2 class="mb-4 text-xl font-bold">Available Schools for {selectedPreceptor?.fullName}</h2>
-			{#if preceptorSchoolsQuery.data}
-				{#if availableSchools.length > 0}
+			<h2 class="mb-4 text-xl font-bold">Available Schools for {selectedPreceptor()?.fullName}</h2>
+			{#if preceptorSchools.data}
+				{#if availableSchools().length > 0}
 					<div class="grid gap-2">
-						{#each availableSchools.filter((s) => s !== null) as school (school._id)}
+						{#each availableSchools().filter((s) => s !== null) as school (school._id)}
 							<div class="flex items-center justify-between rounded border p-3">
 								<div>
 									<span class="font-medium">{school.name}</span>
@@ -263,12 +252,12 @@
 	{#if selectedPreceptorId && selectedSchoolId}
 		<section class="rounded-lg bg-white p-6 shadow">
 			<h2 class="mb-4 text-xl font-bold">
-				Available Sites for {selectedPreceptor?.fullName} at {selectedSchool?.name}
+				Available Sites for {selectedPreceptor()?.fullName} at {selectedSchool()?.name}
 			</h2>
-			{#if preceptorSitesQuery.data}
-				{#if availableSites.length > 0}
+			{#if preceptorSites.data}
+				{#if availableSites().length > 0}
 					<div class="grid gap-2">
-						{#each availableSites.filter((s) => s !== null) as site (site._id)}
+						{#each availableSites().filter((s) => s !== null) as site (site._id)}
 							<div class="flex items-center justify-between rounded border p-3">
 								<div>
 									<span class="font-medium">{site.name}</span>
@@ -291,12 +280,13 @@
 	{#if selectedPreceptorId && selectedSchoolId && selectedSiteId}
 		<section class="rounded-lg bg-white p-6 shadow">
 			<h2 class="mb-4 text-xl font-bold">
-				Available Programs for {selectedPreceptor?.fullName} at {selectedSchool?.name} - {selectedSite?.name}
+				Available Programs for {selectedPreceptor()?.fullName} at {selectedSchool()?.name} - {selectedSite()
+					?.name}
 			</h2>
-			{#if preceptorProgramsQuery.data}
-				{#if availablePrograms.length > 0}
+			{#if preceptorPrograms.data}
+				{#if availablePrograms().length > 0}
 					<div class="grid gap-2">
-						{#each availablePrograms.filter((p) => p !== null) as program (program._id)}
+						{#each availablePrograms().filter((p) => p !== null) as program (program._id)}
 							<div class="flex items-center justify-between rounded border p-3">
 								<div>
 									<span class="font-medium">{program.name}</span>
@@ -316,14 +306,14 @@
 	{/if}
 
 	<!-- Filtered Rotation Types -->
-	{#if selectedProgramType}
+	{#if selectedProgramType()}
 		<section class="rounded-lg bg-white p-6 shadow">
 			<h2 class="mb-4 text-xl font-bold">
-				Available Rotation Types for {selectedProgramType.name}
+				Available Rotation Types for {selectedProgramType()?.name}
 			</h2>
-			{#if filteredRotationTypes.length > 0}
+			{#if filteredRotationTypes().length > 0}
 				<div class="grid gap-2">
-					{#each filteredRotationTypes as rotationType (rotationType._id)}
+					{#each filteredRotationTypes() as rotationType (rotationType._id)}
 						<div class="flex items-center justify-between rounded border p-3">
 							<span class="font-medium">{rotationType.name}</span>
 							<span class="text-xs text-gray-500">ID: {rotationType._id}</span>
@@ -337,14 +327,14 @@
 	{/if}
 
 	<!-- Filtered Experience Types -->
-	{#if selectedProgramType}
+	{#if selectedProgramType()}
 		<section class="rounded-lg bg-white p-6 shadow">
 			<h2 class="mb-4 text-xl font-bold">
-				Available Experience Types for {selectedProgramType.name}
+				Available Experience Types for {selectedProgramType()?.name}
 			</h2>
-			{#if filteredExperienceTypes.length > 0}
+			{#if filteredExperienceTypes().length > 0}
 				<div class="grid gap-2">
-					{#each filteredExperienceTypes as experienceType (experienceType._id)}
+					{#each filteredExperienceTypes() as experienceType (experienceType._id)}
 						<div class="flex items-center justify-between rounded border p-3">
 							<span class="font-medium">{experienceType.name}</span>
 							<span class="text-xs text-gray-500">ID: {experienceType._id}</span>
@@ -358,13 +348,13 @@
 	{/if}
 
 	<!-- Available Years -->
-	{#if selectedProgramType && availableYears.length > 0}
+	{#if selectedProgramType() && availableYears().length > 0}
 		<section class="rounded-lg bg-white p-6 shadow">
 			<h2 class="mb-4 text-xl font-bold">
-				Available Years for {selectedProgramType.name}
+				Available Years for {selectedProgramType()?.name}
 			</h2>
 			<div class="flex flex-wrap gap-2">
-				{#each availableYears as year}
+				{#each availableYears() as year (year)}
 					<span class="rounded bg-gray-100 px-3 py-1 text-sm">{year}</span>
 				{/each}
 			</div>
@@ -372,18 +362,18 @@
 	{/if}
 
 	<!-- Complete Preceptor Information -->
-	{#if selectedPreceptorId && preceptorWithAffiliationsQuery.data}
+	{#if selectedPreceptorId && preceptorWithAffiliations.data}
 		<section class="rounded-lg bg-white p-6 shadow">
 			<h2 class="mb-4 text-xl font-bold">Complete Preceptor Information</h2>
 			<div class="space-y-4">
 				<div class="rounded bg-gray-50 p-4">
-					<h3 class="text-lg font-semibold">{preceptorWithAffiliationsQuery.data.fullName}</h3>
-					{#if preceptorWithAffiliationsQuery.data.email}
-						<p class="text-sm text-gray-600">Email: {preceptorWithAffiliationsQuery.data.email}</p>
+					<h3 class="text-lg font-semibold">{preceptorWithAffiliations.data.fullName}</h3>
+					{#if preceptorWithAffiliations.data.email}
+						<p class="text-sm text-gray-600">Email: {preceptorWithAffiliations.data.email}</p>
 					{/if}
-					{#if preceptorWithAffiliationsQuery.data.credentials}
+					{#if preceptorWithAffiliations.data.credentials}
 						<p class="text-sm text-gray-600">
-							Credentials: {preceptorWithAffiliationsQuery.data.credentials}
+							Credentials: {preceptorWithAffiliations.data.credentials}
 						</p>
 					{/if}
 				</div>
@@ -391,11 +381,11 @@
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<div>
 						<h4 class="font-medium text-blue-600">
-							All Schools ({preceptorWithAffiliationsQuery.data.schools.filter((s) => s !== null)
+							All Schools ({preceptorWithAffiliations.data.schools.filter((s) => s !== null)
 								.length})
 						</h4>
 						<ul class="mt-2 space-y-1">
-							{#each preceptorWithAffiliationsQuery.data.schools.filter((s) => s !== null) as school (school._id)}
+							{#each preceptorWithAffiliations.data.schools.filter((s) => s !== null) as school (school._id)}
 								<li class="text-sm">• {school.name}</li>
 							{/each}
 						</ul>
@@ -403,11 +393,10 @@
 
 					<div>
 						<h4 class="font-medium text-green-600">
-							All Sites ({preceptorWithAffiliationsQuery.data.sites.filter((s) => s !== null)
-								.length})
+							All Sites ({preceptorWithAffiliations.data.sites.filter((s) => s !== null).length})
 						</h4>
 						<ul class="mt-2 space-y-1">
-							{#each preceptorWithAffiliationsQuery.data.sites.filter((s) => s !== null) as site (site._id)}
+							{#each preceptorWithAffiliations.data.sites.filter((s) => s !== null) as site (site._id)}
 								<li class="text-sm">• {site.name} - {site.city}, {site.state}</li>
 							{/each}
 						</ul>
@@ -415,11 +404,11 @@
 
 					<div>
 						<h4 class="font-medium text-purple-600">
-							All Programs ({preceptorWithAffiliationsQuery.data.programs.filter((p) => p !== null)
+							All Programs ({preceptorWithAffiliations.data.programs.filter((p) => p !== null)
 								.length})
 						</h4>
 						<ul class="mt-2 space-y-1">
-							{#each preceptorWithAffiliationsQuery.data.programs.filter((p) => p !== null) as program (program._id)}
+							{#each preceptorWithAffiliations.data.programs.filter((p) => p !== null) as program (program._id)}
 								<li class="text-sm">• {program.name} ({program.abbreviation})</li>
 							{/each}
 						</ul>

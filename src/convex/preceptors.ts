@@ -199,3 +199,67 @@ export const deletePreceptor = mutation({
 		return await ctx.db.delete(id);
 	}
 });
+
+export const getWithReviews = query({
+	args: {},
+	handler: async (ctx) => {
+		const preceptors = await ctx.db.query('preceptors').collect();
+		const reviews = await ctx.db.query('reviews').collect();
+
+		const reviewsByPreceptor = new Map<string, typeof reviews>();
+		for (const r of reviews) {
+			const list = reviewsByPreceptor.get(r.preceptorId) ?? [];
+			list.push(r);
+			reviewsByPreceptor.set(r.preceptorId, list);
+		}
+
+		const preceptorsWithStats = await Promise.all(
+			preceptors.map(async (p) => {
+				const list = reviewsByPreceptor.get(p._id) ?? [];
+				const reviewCount = list.length;
+				const averageRating =
+					reviewCount > 0 ? list.reduce((sum, r) => sum + r.starRating, 0) / reviewCount : 0;
+
+				const [schoolAffiliations, siteAffiliations, programAffiliations] = await Promise.all([
+					ctx.db
+						.query('preceptorSchools')
+						.withIndex('by_preceptor', (q) => q.eq('preceptorId', p._id))
+						.filter((q) => q.eq(q.field('isActive'), true))
+						.collect(),
+					ctx.db
+						.query('preceptorSites')
+						.withIndex('by_preceptor', (q) => q.eq('preceptorId', p._id))
+						.filter((q) => q.eq(q.field('isActive'), true))
+						.collect(),
+					ctx.db
+						.query('preceptorPrograms')
+						.withIndex('by_preceptor', (q) => q.eq('preceptorId', p._id))
+						.filter((q) => q.eq(q.field('isActive'), true))
+						.collect()
+				]);
+
+				const [schools, sites, programs] = await Promise.all([
+					Promise.all(schoolAffiliations.map(async (sa) => await ctx.db.get(sa.schoolId))),
+					Promise.all(siteAffiliations.map(async (sa) => await ctx.db.get(sa.siteId))),
+					Promise.all(programAffiliations.map(async (pa) => await ctx.db.get(pa.programTypeId)))
+				]);
+
+				const schoolNames = schools.filter(Boolean).map((s) => s!.name);
+				const siteNames = sites.filter(Boolean).map((s) => s!.name);
+				const programTypeNames = programs.filter(Boolean).map((p) => p!.name);
+
+				return {
+					...p,
+					reviews: list,
+					reviewCount,
+					averageRating,
+					schoolNames,
+					siteNames,
+					programTypeNames
+				};
+			})
+		);
+
+		return preceptorsWithStats;
+	}
+});

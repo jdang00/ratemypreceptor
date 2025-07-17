@@ -7,6 +7,32 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 
+	type PreceptorWithStats = {
+		_id: string;
+		fullName: string;
+		email?: string;
+		credentials?: string;
+		reviews?: any[];
+		reviewCount?: number;
+		averageRating?: number;
+		totalReviews?: number;
+		averageStarRating?: number;
+		recommendationRate?: number;
+		schoolNames?: string[];
+		siteNames?: string[];
+		programTypeNames?: string[];
+	};
+
+	type PreceptorDisplayData = {
+		fullName: string;
+		schoolNames: string[];
+		programTypeNames: string[];
+		siteNames: string[];
+		totalReviews: number;
+		averageStarRating: number;
+		recommendationRate: number;
+	};
+
 	let searchTerm = $state('');
 
 	const searchResults = useQuery(api.reviews.searchPreceptorsByReviews, () => ({
@@ -14,10 +40,30 @@
 	}));
 
 	const allPreceptors = useQuery(api.preceptors.getWithReviews, {});
+
+	function getPreceptorKey(preceptor: PreceptorWithStats, index: number): string {
+		return preceptor._id || `preceptor-${index}`;
+	}
+
+	function getPreceptorDisplayData(preceptor: PreceptorWithStats): PreceptorDisplayData {
+		return {
+			fullName: preceptor.fullName || 'Unknown',
+			schoolNames: preceptor.schoolNames || [],
+			programTypeNames: preceptor.programTypeNames || [],
+			siteNames: preceptor.siteNames || [],
+			totalReviews: preceptor.totalReviews || preceptor.reviewCount || 0,
+			averageStarRating: preceptor.averageStarRating || preceptor.averageRating || 0,
+			recommendationRate: preceptor.recommendationRate || 0
+		};
+	}
 </script>
 
 <div class="mt-4 mb-6 flex flex-col items-center justify-center space-y-3">
-	<img src="/RateMyPreceptorLogo.svg" alt="RateMyPreceptor Logo" class="mb-4 h-24 w-24 transition-transform duration-300 hover:rotate-12 hover:scale-110" />
+	<img
+		src="/RateMyPreceptorLogo.svg"
+		alt="RateMyPreceptor Logo"
+		class="mb-4 h-24 w-24 transition-transform duration-300 hover:scale-110 hover:rotate-12"
+	/>
 	<h1 class="text-4xl font-bold">RateMyPreceptor</h1>
 </div>
 <p class="text-center text-lg">Enter a preceptor, school, or rotation to get started.</p>
@@ -40,7 +86,7 @@
 		{#if searchTerm}
 			{#if searchResults.isLoading}
 				<div class="space-y-3">
-					{#each Array(3) as _, i}
+					{#each Array(3), i (i)}
 						<div class="flex items-center space-x-4 rounded-lg border p-4">
 							<div class="flex-1 space-y-2">
 								<Skeleton class="h-5 w-[200px]" />
@@ -72,15 +118,16 @@
 								: ''} for "{searchTerm}"
 						</h2>
 						<div class="flex flex-col gap-3">
-							{#each searchResults.data as preceptor (preceptor._id)}
+							{#each searchResults.data as preceptor, i (getPreceptorKey(preceptor, i))}
+								{@const displayData = getPreceptorDisplayData(preceptor)}
 								<PreceptorResults
-									fullName={preceptor.fullName}
-									schoolName={preceptor.schoolName}
-									programTypeName={preceptor.programTypeName}
-									siteName={preceptor.siteName}
-									totalReviews={preceptor.totalReviews}
-									averageStarRating={preceptor.averageStarRating}
-									recommendationRate={preceptor.recommendationRate}
+									fullName={displayData.fullName}
+									schoolNames={displayData.schoolNames}
+									programTypeNames={displayData.programTypeNames}
+									siteNames={displayData.siteNames}
+									totalReviews={displayData.totalReviews}
+									averageStarRating={displayData.averageStarRating}
+									recommendationRate={displayData.recommendationRate}
 								/>
 							{/each}
 						</div>
@@ -89,7 +136,7 @@
 			{/if}
 		{:else if allPreceptors.isLoading}
 			<div class="space-y-3">
-				{#each Array(5) as _, i}
+				{#each Array(5), i (i)}
 					<div class="flex items-center space-x-4 rounded-lg border p-4">
 						<div class="flex-1 space-y-2">
 							<Skeleton class="h-5 w-[200px]" />
@@ -116,15 +163,16 @@
 						All Preceptors ({allPreceptors.data.length})
 					</h2>
 					<div class="flex flex-col gap-3">
-						{#each allPreceptors.data as preceptor (preceptor._id)}
+						{#each allPreceptors.data as preceptor, i (getPreceptorKey(preceptor, i))}
+							{@const displayData = getPreceptorDisplayData(preceptor)}
 							<PreceptorResults
-								fullName={preceptor.fullName}
-								schoolName={preceptor.schoolName}
-								programTypeName={preceptor.programTypeName}
-								siteName={preceptor.siteName}
-								totalReviews={preceptor.totalReviews}
-								averageStarRating={preceptor.averageStarRating}
-								recommendationRate={preceptor.recommendationRate}
+								fullName={displayData.fullName}
+								schoolNames={displayData.schoolNames}
+								programTypeNames={displayData.programTypeNames}
+								siteNames={displayData.siteNames}
+								totalReviews={displayData.totalReviews}
+								averageStarRating={displayData.averageStarRating}
+								recommendationRate={displayData.recommendationRate}
 							/>
 						{/each}
 					</div>

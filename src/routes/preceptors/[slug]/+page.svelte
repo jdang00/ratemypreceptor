@@ -5,21 +5,48 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { aggregateReviews, formatNameWithCredentials } from '$lib/utils.js';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { Plus, School, MapPin } from '@lucide/svelte';
+	import { Plus, School, MapPin, GraduationCap } from '@lucide/svelte';
 	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
 	import ReviewCard from '$lib/components/ReviewCard.svelte';
+	import type { Id } from '../../../convex/_generated/dataModel.js';
 
 	let { data }: PageProps = $props();
+	let fullName: string = data.fullName;
 
-	let fullName = data.fullName;
+	const reviewsQuery = useQuery(api.preceptorReviews.get, { fullName });
+	const preceptorQuery = useQuery(api.preceptors.getByFullName, { fullName });
 
-	const reviewsQuery = useQuery(api.preceptorReviews.get, { fullName: fullName });
-	const preceptorQuery = useQuery(api.preceptors.getByFullName, { fullName: fullName });
+	type AffiliationSchool = { _id: Id<'schools'>; _creationTime: number; name: string };
+	type AffiliationSite = { _id: Id<'practiceSites'>; _creationTime: number; name: string };
+	type AffiliationProgram = {
+		_id: Id<'programTypes'>;
+		_creationTime: number;
+		name: string;
+		yearLabels: string[];
+		abbreviation: string;
+	};
+
+	type AffiliationData = {
+		schools: (AffiliationSchool | null)[];
+		sites: (AffiliationSite | null)[];
+		programs: (AffiliationProgram | null)[];
+	};
+
+	let preceptorId = $state<Id<'preceptors'> | undefined>(undefined);
+	$effect(() => {
+		preceptorId = preceptorQuery.data && preceptorQuery.data[0]?._id;
+	});
+
+	const affiliationsQuery = $derived(() =>
+		preceptorId
+			? useQuery(api.preceptorAffiliations.getPreceptorWithAffiliations, { preceptorId })
+			: { data: undefined, error: undefined, isLoading: false, isStale: false }
+	);
 
 	const { displayName, credentials } = formatNameWithCredentials(fullName);
 	const aggregation = $derived(aggregateReviews(reviewsQuery.data ?? []));
 
-	function formatDate(timestamp: number) {
+	function formatDate(timestamp: number): string {
 		return new Date(timestamp).toLocaleDateString('en-US', {
 			month: 'short',
 			day: 'numeric',
@@ -37,16 +64,32 @@
 					<p class="text-muted-foreground text-lg">{credentials}</p>
 				{/if}
 
-				{#if preceptorQuery.data}
-					<div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-						<div class="text-muted-foreground flex items-center gap-2">
-							<School class="h-4 w-4" />
-							<span class="text-sm font-medium">{preceptorQuery.data.schoolName}</span>
-						</div>
-						<div class="text-muted-foreground flex items-center gap-2">
-							<MapPin class="h-4 w-4" />
-							<span class="text-sm font-medium">{preceptorQuery.data.siteName}</span>
-						</div>
+				{#if affiliationsQuery()?.data?.schools}
+					<div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6">
+						{#if (affiliationsQuery().data?.schools ?? []).filter((s) => s !== null).length > 0}
+							<div class="text-muted-foreground flex items-center gap-2">
+								<School class="h-4 w-4" />
+								<span class="text-sm font-medium">
+									{(affiliationsQuery().data?.schools ?? []).filter((s) => s !== null).map((s) => s.name).join(', ')}
+								</span>
+							</div>
+						{/if}
+						{#if (affiliationsQuery().data?.programs ?? []).filter((p) => p !== null).length > 0}
+							<div class="text-muted-foreground flex items-center gap-2">
+								<GraduationCap class="h-4 w-4" />
+								<span class="text-sm font-medium">
+									{(affiliationsQuery().data?.programs ?? []).filter((p) => p !== null).map((p) => p.name).join(', ')}
+								</span>
+							</div>
+						{/if}
+						{#if (affiliationsQuery().data?.sites ?? []).filter((s) => s !== null).length > 0}
+							<div class="text-muted-foreground flex items-center gap-2">
+								<MapPin class="h-4 w-4" />
+								<span class="text-sm font-medium">
+									{(affiliationsQuery().data?.sites ?? []).filter((s) => s !== null).map((s) => s.name).join(', ')}
+								</span>
+							</div>
+						{/if}
 					</div>
 				{/if}
 			</div>
