@@ -9,18 +9,58 @@
 	import { Checkbox } from './ui/checkbox/index.js';
 	import RatingInput from './RatingInput.svelte';
 	import PreceptorComboBox from './PreceptorComboBox.svelte';
+	import UniversalComboBox from './UniversalComboBox.svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import type { Id } from '../../convex/_generated/dataModel.js';
 
 	let { prefillPreceptorName = null }: { prefillPreceptorName?: string | null } = $props();
 
 	const client = useConvexClient();
+	const dispatch = createEventDispatcher();
+	
+	// State for cascading queries
+	let selectedPreceptorId = $state<Id<'preceptors'> | ''>('');
+	let selectedSchoolId = $state<Id<'schools'> | ''>('');
+	let selectedSiteId = $state<Id<'practiceSites'> | ''>('');
+	
+	// Base queries
 	const preceptorsQuery = useQuery(api.preceptors.get, {});
 	const rotationTypesQuery = useQuery(api.rotationTypes.get, {});
 	const experienceTypesQuery = useQuery(api.experienceTypes.get, {});
 	const programTypesQuery = useQuery(api.programTypes.get, {});
+	
+	// Dependent queries with proper reactivity and null handling
+	const preceptorSchoolsQuery = $derived(
+		selectedPreceptorId
+			? useQuery(api.preceptorAffiliations.getAvailableSchoolsForPreceptor, {
+					preceptorId: selectedPreceptorId as Id<'preceptors'>
+				})
+			: { data: null }
+	);
+	
+	const preceptorSitesQuery = $derived(
+		selectedPreceptorId && selectedSchoolId
+			? useQuery(api.preceptorAffiliations.getAvailableSitesForPreceptorAtSchool, {
+					preceptorId: selectedPreceptorId as Id<'preceptors'>, 
+					schoolId: selectedSchoolId as Id<'schools'>
+				})
+			: { data: null }
+	);
+	
+	const preceptorProgramsQuery = $derived(
+		selectedPreceptorId && selectedSchoolId && selectedSiteId
+			? useQuery(api.preceptorAffiliations.getAvailableProgramsForPreceptorAtSchoolSite, {
+					preceptorId: selectedPreceptorId as Id<'preceptors'>, 
+					schoolId: selectedSchoolId as Id<'schools'>,
+					siteId: selectedSiteId as Id<'practiceSites'>
+				})
+			: { data: null }
+	);
 
 	let formData = $state({
 		preceptorId: '',
+		schoolId: '',
+		siteId: '',
 		rotationTypeId: '',
 		experienceTypeId: '',
 		schoolYear: '',
@@ -43,29 +83,44 @@
 	let submitError = $state('');
 	let validationErrors = $state<string[]>([]);
 
+	// Derived data from queries
 	const preceptors = $derived(preceptorsQuery.data ?? []);
 	const rotationTypes = $derived(rotationTypesQuery.data ?? []);
 	const experienceTypes = $derived(experienceTypesQuery.data ?? []);
 	const programTypes = $derived(programTypesQuery.data ?? []);
-
-	const selectedPreceptor = $derived(preceptors.find((p) => p._id === formData.preceptorId));
-	const selectedProgramType = $derived(
-		selectedPreceptor ? programTypes.find((pt) => pt._id === selectedPreceptor.programTypeId) : null
+	
+	// Available options based on selection with null safety
+	const availableSchools = $derived(preceptorSchoolsQuery.data ?? []);
+	const availableSites = $derived(preceptorSitesQuery.data ?? []);
+	const availableProgramTypes = $derived(preceptorProgramsQuery.data ?? []);
+	
+	const selectedPreceptor = $derived(
+		preceptors.find((p) => p._id === formData.preceptorId)
 	);
-	const availableYears = $derived(selectedProgramType ? selectedProgramType.yearLabels : []);
+	
+	// Derive program type from available programs
+	const selectedProgramType = $derived(
+		availableProgramTypes.length > 0 ? availableProgramTypes[0] : null
+	);
 
+	// Filter rotation and experience types based on program type
 	const filteredRotationTypes = $derived(
-		selectedPreceptor && selectedPreceptor.programTypeId
-			? rotationTypes.filter((rt) => rt.programTypeId === selectedPreceptor.programTypeId)
-			: rotationTypes
+		selectedProgramType
+			? rotationTypes.filter((rt) => rt.programTypeId === selectedProgramType._id)
+			: []
 	);
 
 	const filteredExperienceTypes = $derived(
-		selectedPreceptor && selectedPreceptor.programTypeId
-			? experienceTypes.filter((et) => et.programTypeId === selectedPreceptor.programTypeId)
-			: experienceTypes
+		selectedProgramType
+			? experienceTypes.filter((et) => et.programTypeId === selectedProgramType._id)
+			: []
+	);
+	
+	const availableYears = $derived(
+		selectedProgramType ? selectedProgramType.yearLabels : []
 	);
 
+	// Text content for select components
 	const rotationTypeTriggerContent = $derived(
 		filteredRotationTypes.find((r) => r._id === formData.rotationTypeId)?.name ?? 'Select rotation'
 	);
@@ -76,9 +131,7 @@
 	);
 
 	const schoolYearTriggerContent = $derived(formData.schoolYear || 'Select year');
-
 	const priorExperienceTriggerContent = $derived(formData.priorExperience || 'Select experience');
-
 	const wouldRecommendTriggerContent = $derived(
 		formData.wouldRecommend === 'true'
 			? 'Yes, I would recommend'
@@ -86,7 +139,6 @@
 				? 'No, I would not recommend'
 				: 'Select recommendation'
 	);
-
 	const isOutlierTriggerContent = $derived(
 		formData.isOutlier === 'true'
 			? 'Yes, outlier experience'
@@ -95,6 +147,7 @@
 				: 'Select outlier status'
 	);
 
+	// Word and character counts for text areas
 	const commentWordCount = $derived(
 		formData.comment
 			? formData.comment
@@ -117,13 +170,12 @@
 		formData.outlierReason ? formData.outlierReason.length : 0
 	);
 
-	const dispatch = createEventDispatcher();
-
 	onMount(() => {
 		if (prefillPreceptorName && preceptors.length > 0) {
 			const match = preceptors.find((p) => p.fullName === prefillPreceptorName);
 			if (match) {
 				formData.preceptorId = match._id;
+				selectedPreceptorId = match._id;
 			}
 		}
 	});
@@ -147,8 +199,14 @@
 			const { agreedToPolicies, ...reviewDataToSend } = validatedData;
 
 			await client.mutation(api.reviews.insertReview, {
-				...reviewDataToSend,
-				extraHours: reviewDataToSend.extraHours,
+				preceptorId: reviewDataToSend.preceptorId as any,
+				schoolId: formData.schoolId as any,
+				siteId: formData.siteId as any,
+				rotationTypeId: reviewDataToSend.rotationTypeId as any,
+				experienceTypeId: reviewDataToSend.experienceTypeId as any,
+				schoolYear: reviewDataToSend.schoolYear,
+				priorExperience: reviewDataToSend.priorExperience as any,
+				extraHours: reviewDataToSend.extraHours ? Number(reviewDataToSend.extraHours) : undefined,
 				schedulingFlexibility: Number(reviewDataToSend.schedulingFlexibility),
 				workload: Number(reviewDataToSend.workload),
 				expectations: Number(reviewDataToSend.expectations),
@@ -164,9 +222,9 @@
 						: undefined
 			});
 			dispatch('submitted');
-		} catch (error) {
+		} catch (error: any) {
 			if (error.issues) {
-				validationErrors = error.issues.map((issue) => issue.message);
+				validationErrors = error.issues.map((issue: any) => issue.message);
 			} else {
 				submitError = error instanceof Error ? error.message : 'Failed to submit review';
 			}
@@ -177,9 +235,50 @@
 
 	function handlePreceptorChange(preceptorId: string) {
 		formData.preceptorId = preceptorId;
+		selectedPreceptorId = preceptorId as Id<'preceptors'>;
+		
+		// Reset dependent fields
+		formData.schoolId = '';
+		selectedSchoolId = '';
+		formData.siteId = '';
+		selectedSiteId = '';
 		formData.rotationTypeId = '';
 		formData.experienceTypeId = '';
 		formData.schoolYear = '';
+		clearValidationErrors();
+	}
+	
+	function handleSchoolChange(schoolId: string) {
+		formData.schoolId = schoolId;
+		selectedSchoolId = schoolId as Id<'schools'>;
+		
+		// Reset dependent fields
+		formData.siteId = '';
+		selectedSiteId = '';
+		formData.rotationTypeId = '';
+		formData.experienceTypeId = '';
+		formData.schoolYear = '';
+		clearValidationErrors();
+	}
+	
+	function handleSiteChange(siteId: string) {
+		formData.siteId = siteId;
+		selectedSiteId = siteId as Id<'practiceSites'>;
+		
+		// Reset dependent fields
+		formData.rotationTypeId = '';
+		formData.experienceTypeId = '';
+		formData.schoolYear = '';
+		clearValidationErrors();
+	}
+
+	function handleRotationTypeChange(rotationTypeId: string) {
+		formData.rotationTypeId = rotationTypeId;
+		clearValidationErrors();
+	}
+
+	function handleExperienceTypeChange(experienceTypeId: string) {
+		formData.experienceTypeId = experienceTypeId;
 		clearValidationErrors();
 	}
 </script>
@@ -206,50 +305,62 @@
 				</div>
 
 				<div class="space-y-2">
-					<Label class="text-sm font-medium">Rotation Type *</Label>
-					<Select.Root
-						type="single"
-						bind:value={formData.rotationTypeId}
-						onValueChange={clearValidationErrors}
-						disabled={!selectedPreceptor}
-					>
-						<Select.Trigger class="w-full">
-							{rotationTypeTriggerContent}
-						</Select.Trigger>
-						<Select.Content>
-							{#each filteredRotationTypes as rotation (rotation._id)}
-								<Select.Item value={rotation._id} label={rotation.name}>
-									{rotation.name}
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-					{#if !selectedPreceptor}
+					<Label class="text-sm font-medium">School *</Label>
+					<UniversalComboBox
+						items={availableSchools.filter(s => s !== null).map(s => ({ id: s._id, name: s.name }))}
+						value={formData.schoolId}
+						onValueChange={handleSchoolChange}
+						placeholder="Select school"
+						searchPlaceholder="Search schools..."
+						disabled={!selectedPreceptorId}
+					/>
+					{#if !selectedPreceptorId}
 						<p class="text-muted-foreground text-xs">Select a preceptor first</p>
 					{/if}
 				</div>
 
 				<div class="space-y-2">
+					<Label class="text-sm font-medium">Practice Site *</Label>
+					<UniversalComboBox
+						items={availableSites.filter(s => s !== null).map(s => ({ id: s._id, name: s.name }))}
+						value={formData.siteId}
+						onValueChange={handleSiteChange}
+						placeholder="Select practice site"
+						searchPlaceholder="Search practice sites..."
+						disabled={!selectedSchoolId}
+					/>
+					{#if !selectedSchoolId}
+						<p class="text-muted-foreground text-xs">Select a school first</p>
+					{/if}
+				</div>
+
+				<div class="space-y-2">
+					<Label class="text-sm font-medium">Rotation Type *</Label>
+					<UniversalComboBox
+						items={filteredRotationTypes.map(rt => ({ id: rt._id, name: rt.name }))}
+						value={formData.rotationTypeId}
+						onValueChange={handleRotationTypeChange}
+						placeholder="Select rotation type"
+						searchPlaceholder="Search rotation types..."
+						disabled={!selectedProgramType}
+					/>
+					{#if !selectedProgramType}
+						<p class="text-muted-foreground text-xs">Complete selections above first</p>
+					{/if}
+				</div>
+
+				<div class="space-y-2">
 					<Label class="text-sm font-medium">Experience Type *</Label>
-					<Select.Root
-						type="single"
-						bind:value={formData.experienceTypeId}
-						onValueChange={clearValidationErrors}
-						disabled={!selectedPreceptor}
-					>
-						<Select.Trigger class="w-full">
-							{experienceTypeTriggerContent}
-						</Select.Trigger>
-						<Select.Content>
-							{#each filteredExperienceTypes as experienceType (experienceType._id)}
-								<Select.Item value={experienceType._id} label={experienceType.name}>
-									{experienceType.name}
-								</Select.Item>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-					{#if !selectedPreceptor}
-						<p class="text-muted-foreground text-xs">Select a preceptor first</p>
+					<UniversalComboBox
+						items={filteredExperienceTypes.map(et => ({ id: et._id, name: et.name }))}
+						value={formData.experienceTypeId}
+						onValueChange={handleExperienceTypeChange}
+						placeholder="Select experience type"
+						searchPlaceholder="Search experience types..."
+						disabled={!selectedProgramType}
+					/>
+					{#if !selectedProgramType}
+						<p class="text-muted-foreground text-xs">Complete selections above first</p>
 					{/if}
 				</div>
 
@@ -273,7 +384,7 @@
 						</Select.Content>
 					</Select.Root>
 					{#if !selectedProgramType}
-						<p class="text-muted-foreground text-xs">Select a preceptor first</p>
+						<p class="text-muted-foreground text-xs">Complete selections above first</p>
 					{/if}
 				</div>
 

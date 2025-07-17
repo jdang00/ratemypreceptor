@@ -23,7 +23,9 @@ export const getPreceptorSchools = query({
 			preceptorSchools.map(async (ps) => {
 				return await ctx.db.get(ps.schoolId);
 			})
-		);
+		)
+
+		console.log(schools)
 
 		return schools.filter(Boolean);
 	}
@@ -259,6 +261,7 @@ export const getPreceptorWithAffiliations = query({
 			})
 		);
 
+
 		return {
 			...preceptor,
 			schools: schools.filter(Boolean),
@@ -476,6 +479,7 @@ export const getAvailableSchoolsForPreceptor = query({
 		);
 
 		return schools.filter(Boolean);
+
 	}
 });
 
