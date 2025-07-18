@@ -79,7 +79,7 @@
 			</a>
 			<NavigationMenu.Root viewport={false} class="hidden md:flex">
 				<NavigationMenu.List class="flex items-center space-x-1">
-					{#each links.filter((link) => !(link.href === '/admin' && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
+					{#each links.filter((link) => !(link.href.startsWith('/admin') && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
 						<NavigationMenu.Item>
 							<NavigationMenu.Link>
 								{#snippet child()}
@@ -159,7 +159,7 @@
 			class="bg-background/80 supports-[backdrop-filter]:bg-background/60 animate-in slide-in-from-top-2 border-t duration-200 md:hidden backdrop-blur supports-[backdrop-filter]:backdrop-blur-md"
 		>
 			<ul class="flex flex-col space-y-1 py-4">
-				{#each links.filter((link) => !(link.href === '/admin' && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
+				{#each links.filter((link) => !(link.href.startsWith('/admin') && ctx.user?.publicMetadata.role !== 'admin')) as link (link.href)}
 					<li>
 						<a
 							href={link.href}

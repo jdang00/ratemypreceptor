@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	if (userRole !== 'admin') {
 		throw redirect(307, '/denied');
 	}
-
-	// Redirect to preceptor-centric admin interface
-	throw redirect(307, '/admin/preceptors');
+	return {
+		userId
+	};
 };

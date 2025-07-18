@@ -145,7 +145,7 @@
 	<Dialog.Content
 		class="max-h-[90vh] w-full max-w-[95vw] overflow-hidden p-4 sm:max-h-[85vh] sm:max-w-[700px] sm:p-8"
 	>
-		<Dialog.Header class="pb-4">
+		<Dialog.Header class="pb-4 text-left">
 			<Dialog.Title class="text-lg font-semibold sm:text-xl">
 				Edit {toTitleCase(mutationName.split('.')[0])}
 			</Dialog.Title>

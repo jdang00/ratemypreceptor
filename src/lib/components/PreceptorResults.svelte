@@ -28,10 +28,16 @@
 	const { displayName, credentials } = formatNameWithCredentials(fullName);
 	const hasReviews = totalReviews && totalReviews > 0;
 
-	// Simple comma-separated display for multiples
-	const schoolDisplay = schoolNames.length > 0 ? schoolNames.join(', ') : 'N/A';
-	const programDisplay = programTypeNames.length > 0 ? programTypeNames.join(', ') : 'N/A';
-	const siteDisplay = siteNames.length > 0 ? siteNames.join(', ') : 'N/A';
+	// Truncated display for multiples - show first item + count
+	function getTruncatedDisplay(items: string[]): string {
+		if (items.length === 0) return 'N/A';
+		if (items.length === 1) return items[0];
+		return `${items[0]} +${items.length - 1} more`;
+	}
+
+	const schoolDisplay = getTruncatedDisplay(schoolNames);
+	const programDisplay = getTruncatedDisplay(programTypeNames);
+	const siteDisplay = getTruncatedDisplay(siteNames);
 </script>
 
 <div class="w-full py-1 {className}">
@@ -73,8 +79,8 @@
 							</div>
 
 							<div class="flex items-center gap-1.5">
-								<ThumbsUp class="h-3.5 w-3.5 text-green-600" />
-								<span class="text-sm font-medium text-green-700"
+								<ThumbsUp class="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+								<span class="text-sm font-medium text-green-700 dark:text-green-300"
 									>{recommendationRate?.toFixed(0)}%</span
 								>
 							</div>

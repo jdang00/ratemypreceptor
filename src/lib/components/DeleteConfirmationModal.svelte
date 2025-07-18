@@ -11,6 +11,7 @@
 		entityName: string;
 		entityType: string;
 		mutationName: string;
+		parameterName?: string; // Optional parameter name, defaults to 'id'
 		onClose: () => void;
 		onDelete?: () => void;
 		onSuccess?: () => void;
@@ -22,6 +23,7 @@
 		entityName,
 		entityType,
 		mutationName,
+		parameterName = 'id',
 		onClose,
 		onDelete,
 		onSuccess
@@ -37,7 +39,7 @@
 
 			const [moduleName, functionName] = mutationName.split('.');
 			const mutation = (api as any)[moduleName][functionName];
-			await client.mutation(mutation, { id: entityId });
+			await client.mutation(mutation, { [parameterName]: entityId });
 
 			onDelete?.();
 			onClose();

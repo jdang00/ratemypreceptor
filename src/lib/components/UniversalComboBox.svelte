@@ -55,7 +55,7 @@
 		{#snippet child({ props })}
 			<Button
 				variant="outline"
-				class={cn('w-full justify-between', className)}
+				class={cn('w-full justify-between text-left', className)}
 				{...props}
 				role="combobox"
 				aria-expanded={open}

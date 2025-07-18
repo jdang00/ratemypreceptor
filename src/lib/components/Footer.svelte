@@ -12,7 +12,7 @@
 			<div class="text-muted-foreground text-sm">© 2025 RateMyPreceptor. All rights reserved.</div>
 			<div class="flex space-x-6 text-sm">
 				{#if ctx.user?.publicMetadata.role === 'admin'}
-					<a href="/admin" class="text-muted-foreground hover:text-foreground transition-colors">
+					<a href="/admin/preceptors" class="text-muted-foreground hover:text-foreground transition-colors">
 						Admin
 					</a>
 				{/if}

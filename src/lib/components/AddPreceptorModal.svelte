@@ -7,14 +7,17 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { TITLES, DEGREES, formatFullName } from '$lib/utils.js';
+	import UniversalComboBox from './UniversalComboBox.svelte';
+	import { goto } from '$app/navigation';
 
 	type Props = {
 		isOpen: boolean;
 		onClose: () => void;
 		onSuccess?: () => void;
+		redirectToDetail?: boolean;
 	};
 
-	let { isOpen, onClose, onSuccess }: Props = $props();
+	let { isOpen, onClose, onSuccess, redirectToDetail = false }: Props = $props();
 
 	const client = useConvexClient();
 	const schoolsQuery = useQuery(api.schools.get, {});
@@ -38,16 +41,25 @@
 	const practiceSites = $derived(practiceSitesQuery.data ?? []);
 	const programTypes = $derived(programTypesQuery.data ?? []);
 
-	const schoolTriggerContent = $derived(
-		schools.find((s) => s._id === formData.schoolId)?.name ?? 'Select school'
+	const schoolItems = $derived(
+		schools.map((school) => ({
+			id: school._id,
+			name: school.name
+		}))
 	);
 
-	const programTypeTriggerContent = $derived(
-		programTypes.find((p) => p._id === formData.programTypeId)?.name ?? 'Select program type'
+	const programTypeItems = $derived(
+		programTypes.map((programType) => ({
+			id: programType._id,
+			name: programType.name
+		}))
 	);
 
-	const practiceSiteTriggerContent = $derived(
-		practiceSites.find((p) => p._id === formData.siteId)?.name ?? 'Select practice site'
+	const practiceSiteItems = $derived(
+		practiceSites.map((site) => ({
+			id: site._id,
+			name: `${site.name} - ${site.city}, ${site.state}`
+		}))
 	);
 
 	async function handleSubmit() {
@@ -82,7 +94,7 @@
 				siteId: formData.siteId as any
 			};
 
-			await client.mutation(api.preceptors.insertPreceptor, preceptorData);
+			const preceptorId = await client.mutation(api.preceptors.insertPreceptor, preceptorData);
 
 			formData = {
 				title: '',
@@ -96,6 +108,11 @@
 
 			onSuccess?.();
 			onClose();
+
+			// Redirect to detail page if requested
+			if (redirectToDetail && preceptorId) {
+				goto(`/admin/preceptors/${preceptorId}`);
+			}
 		} catch (error) {
 			submitError = error instanceof Error ? error.message : 'Failed to add preceptor';
 		} finally {
@@ -122,7 +139,7 @@
 	<Dialog.Content
 		class="max-h-[90vh] w-full max-w-[95vw] overflow-hidden p-4 sm:max-h-[85vh] sm:max-w-md sm:p-6"
 	>
-		<Dialog.Header>
+		<Dialog.Header class="text-left">
 			<Dialog.Title class="text-lg font-semibold sm:text-xl">Add New Preceptor</Dialog.Title>
 			<Dialog.Description class="text-muted-foreground text-sm">
 				Add a new preceptor to the system. First and last name are required.
@@ -189,8 +206,8 @@
 			</div>
 
 			{#if formData.title || formData.firstName || formData.lastName || formData.degree}
-				<div class="rounded-md border border-blue-200 bg-blue-50 p-3">
-					<p class="text-sm text-blue-800">
+				<div class="rounded-md border border-blue-200 bg-blue-50 p-3 dark:border-blue-800/20 dark:bg-blue-900/10">
+					<p class="text-sm text-blue-800 dark:text-blue-200">
 						<strong>Preview:</strong>
 						{formatFullName(formData.title, formData.firstName, formData.lastName, formData.degree)}
 					</p>
@@ -199,55 +216,43 @@
 
 			<div class="space-y-2">
 				<Label class="text-sm font-medium">School *</Label>
-				<Select.Root type="single" bind:value={formData.schoolId}>
-					<Select.Trigger class="h-9 w-full text-sm">
-						{schoolTriggerContent}
-					</Select.Trigger>
-					<Select.Content>
-						{#each schools as school (school._id)}
-							<Select.Item value={school._id} label={school.name}>
-								{school.name}
-							</Select.Item>
-						{/each}
-					</Select.Content>
-				</Select.Root>
+				<UniversalComboBox
+					items={schoolItems}
+					value={formData.schoolId}
+					onValueChange={(value) => (formData.schoolId = value)}
+					placeholder="Select school"
+					searchPlaceholder="Search schools..."
+					disabled={isSubmitting}
+				/>
 			</div>
 
 			<div class="space-y-2">
 				<Label class="text-sm font-medium">Program Type *</Label>
-				<Select.Root type="single" bind:value={formData.programTypeId}>
-					<Select.Trigger class="h-9 w-full text-sm">
-						{programTypeTriggerContent}
-					</Select.Trigger>
-					<Select.Content>
-						{#each programTypes as programType (programType._id)}
-							<Select.Item value={programType._id} label={programType.name}>
-								{programType.name}
-							</Select.Item>
-						{/each}
-					</Select.Content>
-				</Select.Root>
+				<UniversalComboBox
+					items={programTypeItems}
+					value={formData.programTypeId}
+					onValueChange={(value) => (formData.programTypeId = value)}
+					placeholder="Select program type"
+					searchPlaceholder="Search program types..."
+					disabled={isSubmitting}
+				/>
 			</div>
 
 			<div class="space-y-2">
 				<Label class="text-sm font-medium">Practice Site *</Label>
-				<Select.Root type="single" bind:value={formData.siteId}>
-					<Select.Trigger class="h-9 w-full text-sm" disabled={!formData.schoolId}>
-						{practiceSiteTriggerContent}
-					</Select.Trigger>
-					<Select.Content>
-						{#each practiceSites as site (site._id)}
-							<Select.Item value={site._id} label={site.name}>
-								{site.name} - {site.city}, {site.state}
-							</Select.Item>
-						{/each}
-					</Select.Content>
-				</Select.Root>
+				<UniversalComboBox
+					items={practiceSiteItems}
+					value={formData.siteId}
+					onValueChange={(value) => (formData.siteId = value)}
+					placeholder="Select practice site"
+					searchPlaceholder="Search practice sites..."
+					disabled={isSubmitting || !formData.schoolId}
+				/>
 			</div>
 
 			{#if submitError}
-				<div class="rounded-md border border-red-200 bg-red-50 p-3">
-					<p class="text-sm text-red-800">{submitError}</p>
+				<div class="rounded-md border border-destructive/20 bg-destructive/10 p-3">
+					<p class="text-sm text-destructive-foreground">{submitError}</p>
 				</div>
 			{/if}
 		</div>

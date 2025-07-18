@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { clerkClient } from 'svelte-clerk/server';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, params }) => {
 	const { userId } = locals.auth();
 
 	if (!userId) {
@@ -16,6 +16,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(307, '/denied');
 	}
 
-	// Redirect to preceptor-centric admin interface
-	throw redirect(307, '/admin/preceptors');
+	return {
+		userId,
+		preceptorId: params.id
+	};
 };

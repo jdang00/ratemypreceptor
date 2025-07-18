@@ -32,6 +32,41 @@ export const getPreceptorSchools = query({
 });
 
 /**
+ * Get all school affiliations for a preceptor with affiliation details
+ */
+export const getPreceptorSchoolAffiliations = query({
+	args: {
+		preceptorId: v.id('preceptors'),
+		onlyActive: v.optional(v.boolean())
+	},
+	handler: async (ctx, { preceptorId, onlyActive = true }) => {
+		let preceptorSchools = await ctx.db
+			.query('preceptorSchools')
+			.withIndex('by_preceptor', (q) => q.eq('preceptorId', preceptorId))
+			.collect();
+
+		if (onlyActive) {
+			preceptorSchools = preceptorSchools.filter((ps) => ps.isActive);
+		}
+
+		const affiliations = await Promise.all(
+			preceptorSchools.map(async (ps) => {
+				const school = await ctx.db.get(ps.schoolId);
+				return {
+					affiliationId: ps._id,
+					school,
+					isActive: ps.isActive,
+					createdAt: ps.createdAt,
+					updatedAt: ps.updatedAt
+				};
+			})
+		);
+
+		return affiliations.filter(affiliation => affiliation.school !== null);
+	}
+});
+
+/**
  * Get all practice sites affiliated with a preceptor
  */
 export const getPreceptorSites = query({
@@ -61,6 +96,43 @@ export const getPreceptorSites = query({
 		);
 
 		return sites.filter(Boolean);
+	}
+});
+
+/**
+ * Get all practice site affiliations for a preceptor with affiliation details
+ */
+export const getPreceptorSiteAffiliations = query({
+	args: {
+		preceptorId: v.id('preceptors'),
+		onlyActive: v.optional(v.boolean())
+	},
+	handler: async (ctx, { preceptorId, onlyActive = true }) => {
+		let preceptorSites = await ctx.db
+			.query('preceptorSites')
+			.withIndex('by_preceptor', (q) => q.eq('preceptorId', preceptorId))
+			.collect();
+
+		if (onlyActive) {
+			preceptorSites = preceptorSites.filter((ps) => ps.isActive);
+		}
+
+		const affiliations = await Promise.all(
+			preceptorSites.map(async (ps) => {
+				const site = await ctx.db.get(ps.siteId);
+				const school = await ctx.db.get(ps.schoolId);
+				return {
+					affiliationId: ps._id,
+					site,
+					school,
+					isActive: ps.isActive,
+					createdAt: ps.createdAt,
+					updatedAt: ps.updatedAt
+				};
+			})
+		);
+
+		return affiliations.filter(affiliation => affiliation.site !== null && affiliation.school !== null);
 	}
 });
 
@@ -553,5 +625,33 @@ export const hasActiveAffiliations = query({
 			.first();
 
 		return !!activeSchools;
+	}
+});
+
+/**
+ * Get all available sites for a specific school (for adding new site affiliations)
+ */
+export const getAvailableSitesForSchool = query({
+	args: {
+		schoolId: v.id('schools'),
+		preceptorId: v.optional(v.id('preceptors'))
+	},
+	handler: async (ctx, { schoolId, preceptorId }) => {
+		// Get all practice sites
+		const allSites = await ctx.db.query('practiceSites').collect();
+		
+		// If preceptorId is provided, filter out sites already affiliated with this preceptor at this school
+		if (preceptorId) {
+			const existingAffiliations = await ctx.db
+				.query('preceptorSites')
+				.withIndex('by_preceptor', (q) => q.eq('preceptorId', preceptorId))
+				.filter((q) => q.eq(q.field('schoolId'), schoolId))
+				.collect();
+			
+			const affiliatedSiteIds = new Set(existingAffiliations.map(aff => aff.siteId));
+			return allSites.filter(site => !affiliatedSiteIds.has(site._id));
+		}
+		
+		return allSites;
 	}
 });

@@ -24,6 +24,7 @@ import type * as rotationTypes from "../rotationTypes.js";
 import type * as schoolPrograms from "../schoolPrograms.js";
 import type * as schools from "../schools.js";
 import type * as seed from "../seed.js";
+import type * as waitlist from "../waitlist.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -45,6 +46,7 @@ declare const fullApi: ApiFromModules<{
   schoolPrograms: typeof schoolPrograms;
   schools: typeof schools;
   seed: typeof seed;
+  waitlist: typeof waitlist;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

@@ -54,6 +54,8 @@ export default defineSchema({
 		name: v.string(),
 		yearLabels: v.array(v.string()),
 		abbreviation: v.string()
+	}).searchIndex('search_name', {
+		searchField: 'name'
 	}),
 
 	experienceTypes: defineTable({
@@ -64,7 +66,11 @@ export default defineSchema({
 
 	schools: defineTable({
 		name: v.string()
-	}).index('by_name', ['name']),
+	})
+		.index('by_name', ['name'])
+		.searchIndex('search_name', {
+			searchField: 'name'
+		}),
 
 	schoolPrograms: defineTable({
 		schoolId: v.id('schools'),
@@ -81,7 +87,10 @@ export default defineSchema({
 	})
 		.index('by_location', ['state', 'city'])
 		.index('by_name', ['name'])
-		.index('by_state', ['state']),
+		.index('by_state', ['state'])
+		.searchIndex('search_name', {
+			searchField: 'name'
+		}),
 
 	rotationTypes: defineTable({
 		programTypeId: v.id('programTypes'),
@@ -94,7 +103,11 @@ export default defineSchema({
 		fullName: v.string(),
 		email: v.optional(v.string()),
 		credentials: v.optional(v.string())
-	}).index('by_full_name', ['fullName']),
+	})
+		.index('by_full_name', ['fullName'])
+		.searchIndex('search_name', {
+			searchField: 'fullName'
+		}),
 
 	reviews: defineTable({
 		preceptorId: v.id('preceptors'),
@@ -141,5 +154,9 @@ export default defineSchema({
 		.index('by_school', ['schoolId'])
 		.index('by_site', ['siteId'])
 		.index('by_school_site', ['schoolId', 'siteId'])
-		.index('by_preceptor_school_site', ['preceptorId', 'schoolId', 'siteId'])
+		.index('by_preceptor_school_site', ['preceptorId', 'schoolId', 'siteId']),
+
+	waitlist: defineTable({
+		email: v.string()
+	}).index('by_email', ['email'])
 });

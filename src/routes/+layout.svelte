@@ -21,7 +21,7 @@
 		{ title: 'Home', href: '/' },
 		{ title: 'Preceptors', href: '/preceptors' },
 		{ title: 'Reviews', href: '/reviews' },
-		{ title: 'Admin Dashboard', href: '/admin' }
+		{ title: 'Admin Dashboard', href: '/admin/preceptors' }
 	];
 
 	let theme = $state(new Theme());
@@ -43,8 +43,8 @@
 
 		<main
 			class="mx-auto w-full flex-1 px-4 py-8"
-			class:max-w-5xl={$page.url.pathname !== '/admin'}
-			class:max-w-7xl={$page.url.pathname === '/admin'}
+			class:max-w-5xl={!$page.url.pathname.startsWith('/admin')}
+			class:max-w-7xl={$page.url.pathname.startsWith('/admin')}
 		>
 			{@render children()}
 		</main>

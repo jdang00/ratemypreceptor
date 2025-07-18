@@ -200,6 +200,102 @@ export const deletePreceptor = mutation({
 	}
 });
 
+export const universalSearch = query({
+	args: {
+		searchTerm: v.string()
+	},
+	handler: async (ctx, { searchTerm }) => {
+		if (!searchTerm.trim()) return [];
+
+		const term = searchTerm.toLowerCase();
+		const preceptors = await ctx.db.query('preceptors').collect();
+		const reviews = await ctx.db.query('reviews').collect();
+
+		const reviewsByPreceptor = new Map<string, typeof reviews>();
+		for (const r of reviews) {
+			const list = reviewsByPreceptor.get(r.preceptorId) ?? [];
+			list.push(r);
+			reviewsByPreceptor.set(r.preceptorId, list);
+		}
+
+		const matchingPreceptors = await Promise.all(
+			preceptors.map(async (p) => {
+				const list = reviewsByPreceptor.get(p._id) ?? [];
+				const reviewCount = list.length;
+				const averageRating =
+					reviewCount > 0 ? list.reduce((sum, r) => sum + r.starRating, 0) / reviewCount : 0;
+				const recommendationRate =
+					reviewCount > 0 ? (list.filter(r => r.wouldRecommend).length / reviewCount) * 100 : 0;
+
+				const [schoolAffiliations, siteAffiliations, programAffiliations] = await Promise.all([
+					ctx.db
+						.query('preceptorSchools')
+						.withIndex('by_preceptor', (q) => q.eq('preceptorId', p._id))
+						.filter((q) => q.eq(q.field('isActive'), true))
+						.collect(),
+					ctx.db
+						.query('preceptorSites')
+						.withIndex('by_preceptor', (q) => q.eq('preceptorId', p._id))
+						.filter((q) => q.eq(q.field('isActive'), true))
+						.collect(),
+					ctx.db
+						.query('preceptorPrograms')
+						.withIndex('by_preceptor', (q) => q.eq('preceptorId', p._id))
+						.filter((q) => q.eq(q.field('isActive'), true))
+						.collect()
+				]);
+
+				const [schools, sites, programs] = await Promise.all([
+					Promise.all(schoolAffiliations.map(async (sa) => await ctx.db.get(sa.schoolId))),
+					Promise.all(siteAffiliations.map(async (sa) => await ctx.db.get(sa.siteId))),
+					Promise.all(programAffiliations.map(async (pa) => await ctx.db.get(pa.programTypeId)))
+				]);
+
+				const schoolNames = schools.filter(Boolean).map((s) => s!.name);
+				const siteNames = sites.filter(Boolean).map((s) => s!.name);
+				const programTypeNames = programs.filter(Boolean).map((p) => p!.name);
+
+				// Comprehensive search across ALL fields associated with preceptor
+				const nameMatch = p.fullName?.toLowerCase().includes(term);
+				const emailMatch = p.email?.toLowerCase().includes(term);
+				const credentialsMatch = p.credentials?.toLowerCase().includes(term);
+				const schoolMatch = schoolNames.some(name => name.toLowerCase().includes(term));
+				const siteMatch = siteNames.some(name => name.toLowerCase().includes(term));
+				const programMatch = programTypeNames.some(name => name.toLowerCase().includes(term));
+
+				// Also search site locations (city, state)
+				const siteLocationMatch = sites.some(site =>
+					site && (
+						site.city?.toLowerCase().includes(term) ||
+						site.state?.toLowerCase().includes(term)
+					)
+				);
+
+				// Search program abbreviations
+				const programAbbrevMatch = programs.some(program =>
+					program && program.abbreviation?.toLowerCase().includes(term)
+				);
+
+				if (nameMatch || emailMatch || credentialsMatch || schoolMatch || siteMatch || programMatch || siteLocationMatch || programAbbrevMatch) {
+					return {
+						...p,
+						reviews: list,
+						reviewCount,
+						averageRating,
+						recommendationRate,
+						schoolNames,
+						siteNames,
+						programTypeNames
+					};
+				}
+				return null;
+			})
+		);
+
+		return matchingPreceptors.filter(Boolean);
+	}
+});
+
 export const getWithReviews = query({
 	args: {},
 	handler: async (ctx) => {

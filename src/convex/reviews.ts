@@ -173,19 +173,26 @@ export const getByPreceptor = query({
 			.order('desc')
 			.collect();
 
-		const [rotationTypes, experienceTypes] = await Promise.all([
-			ctx.db.query('rotationTypes').collect(),
-			ctx.db.query('experienceTypes').collect()
-		]);
+		const reviewsWithDetails = await Promise.all(
+			reviews.map(async (review) => {
+				const [rotationType, experienceType, school, site] = await Promise.all([
+					ctx.db.get(review.rotationTypeId),
+					ctx.db.get(review.experienceTypeId),
+					ctx.db.get(review.schoolId),
+					ctx.db.get(review.siteId)
+				]);
 
-		const rotationTypeMap = new Map(rotationTypes.map((r) => [r._id, r.name]));
-		const experienceTypeMap = new Map(experienceTypes.map((e) => [e._id, e.name]));
+				return {
+					...review,
+					rotationTypeName: rotationType?.name || 'Unknown Rotation',
+					experienceTypeName: experienceType?.name || 'Unknown Experience',
+					schoolName: school?.name || 'Unknown School',
+					siteName: site?.name || 'Unknown Site'
+				};
+			})
+		);
 
-		return reviews.map((review) => ({
-			...review,
-			rotationTypeName: rotationTypeMap.get(review.rotationTypeId) || 'Unknown Rotation',
-			experienceTypeName: experienceTypeMap.get(review.experienceTypeId) || 'Unknown Experience'
-		}));
+		return reviewsWithDetails;
 	}
 });
 

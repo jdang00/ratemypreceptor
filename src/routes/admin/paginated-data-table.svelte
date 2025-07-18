@@ -153,7 +153,7 @@
 						<Table.Row>
 							{#each columns as _, j}
 								<Table.Cell class="py-2 text-xs sm:py-3 sm:text-sm">
-									<div class="h-4 animate-pulse rounded bg-gray-200"></div>
+									<div class="h-4 animate-pulse rounded bg-muted"></div>
 								</Table.Cell>
 							{/each}
 						</Table.Row>
